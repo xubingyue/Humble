@@ -5,7 +5,7 @@
 
 H_BNAMSP
 
-CChan::CChan(const size_t iCount) : m_uiCount(iCount), m_uiRWait(H_INIT_NUMBER),
+CChan::CChan(const unsigned int &uiCount) : m_uiCount(uiCount), m_uiRWait(H_INIT_NUMBER),
     m_uiWWait(H_INIT_NUMBER)
 {
     pthread_mutex_init(&m_quLock, NULL);

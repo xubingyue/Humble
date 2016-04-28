@@ -50,7 +50,7 @@ void CWorkerDisp::setThreadNum(const unsigned short usNum)
     }
 }
 
-CChan *CWorkerDisp::regSendChan(const char *pszChanName, const char *pszTaskName, const size_t iCount)
+CChan *CWorkerDisp::regSendChan(const char *pszChanName, const char *pszTaskName, const unsigned int uiCount)
 {
     std::string strName(pszChanName);
     CChan *pChan = NULL;
@@ -59,7 +59,7 @@ CChan *CWorkerDisp::regSendChan(const char *pszChanName, const char *pszTaskName
     chanit itChan = m_mapChan.find(strName);
     if (m_mapChan.end() == itChan)
     {
-        pChan = new(std::nothrow) CChan(iCount);
+        pChan = new(std::nothrow) CChan(uiCount);
         H_ASSERT(NULL != pChan, "malloc memory error.");
         pChan->setChanNam(pszChanName);
         pChan->setSendTaskNam(pszTaskName);
@@ -76,7 +76,7 @@ CChan *CWorkerDisp::regSendChan(const char *pszChanName, const char *pszTaskName
     return pChan;
 }
 
-CChan *CWorkerDisp::regRecvChan(const char *pszChanName, const char *pszTaskName, const size_t iCount)
+CChan *CWorkerDisp::regRecvChan(const char *pszChanName, const char *pszTaskName, const unsigned int uiCount)
 {
     std::string strName(pszChanName);
     CChan *pChan = NULL;
@@ -85,7 +85,7 @@ CChan *CWorkerDisp::regRecvChan(const char *pszChanName, const char *pszTaskName
     chanit itChan = m_mapChan.find(strName);
     if (m_mapChan.end() == itChan)
     {
-        pChan = new(std::nothrow) CChan(iCount);
+        pChan = new(std::nothrow) CChan(uiCount);
         H_ASSERT(NULL != pChan, "malloc memory error.");
         pChan->setChanNam(pszChanName);
         pChan->setRecvTaskNam(pszTaskName);

@@ -298,7 +298,7 @@ static void pack_one(lua_State *L, struct write_block *b, int index, int depth);
 
 static int
 wb_table_array(lua_State *L, struct write_block * wb, int index, int depth) {
-	int array_size = lua_rawlen(L,index);
+	int array_size = (int)lua_rawlen(L,index);
 	if (array_size >= MAX_COOKIE-1) {
 		int n = COMBINE_TYPE(TYPE_TABLE, MAX_COOKIE-1);
 		wb_push(wb, &n, 1);

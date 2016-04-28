@@ -39,6 +39,10 @@
 #include "nsCharSetProber.h"
 #include "prmem.h"
 
+#ifdef WIN32
+#pragma warning(disable:4244)
+#endif
+
 //This filter applies to all scripts which do not use English characters
 PRBool nsCharSetProber::FilterWithoutEnglishLetters(const char* aBuf, PRUint32 aLen, char** newBuf, PRUint32& newLen)
 {

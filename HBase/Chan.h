@@ -10,7 +10,7 @@ class CChan
 {
 public:
     //0 ²»ÏÞÖÆ
-    explicit CChan(const size_t iCount);
+    explicit CChan(const unsigned int &uiCount);
     ~CChan(void);
 
     void Send(void *pszVal);

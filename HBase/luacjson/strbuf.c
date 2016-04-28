@@ -31,6 +31,7 @@
 
 #ifdef WIN32
 #pragma warning(disable:4996)
+#pragma warning(disable:4311)
 #endif
 
 static void die(const char *fmt, ...)

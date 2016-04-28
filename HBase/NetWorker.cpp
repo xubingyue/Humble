@@ -351,7 +351,7 @@ H_SOCK CNetWorker::initSock(const char *pszHost, const unsigned short &usPort)
         return H_INVALID_SOCK;
     }
 
-    if (0 != connect(sock, objAddr.getAddr(), objAddr.getAddrSize()))
+    if (0 != connect(sock, objAddr.getAddr(), (int)objAddr.getAddrSize()))
     {
         H_Printf("%s", "connect error.");
         evutil_closesocket(sock);
@@ -456,7 +456,7 @@ void CNetWorker::sendTo(H_SOCK sock, const char *pszHost, const unsigned short u
 {
     CNETAddr objAddr;
     objAddr.setAddr(pszHost, usPort);
-    sendto(sock, pBuf, iLens, 0, objAddr.getAddr(), objAddr.getAddrSize());
+    sendto(sock, pBuf, (int)iLens, 0, objAddr.getAddr(), (int)objAddr.getAddrSize());
 }
 
 H_ENAMSP
