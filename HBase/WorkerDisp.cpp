@@ -255,8 +255,6 @@ void CWorkerDisp::Run(void)
             }
             if (H_INIT_NUMBER != pWorkerTask->getRef())
             {
-                //正在执行的重新加入到调度队列
-                m_quTask.push(pTaskNam);
                 continue;
             }
 

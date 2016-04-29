@@ -19,7 +19,7 @@ end
 
 function runTask()
     local itick, icount
-    if tChan.timer:canRecv() then
+    while tChan.timer:canRecv() do
         itick, icount = table.unpack(serialize.unpack(tChan.timer:Recv()))
         print(string.format("timer task tick %d count %d", itick, icount))
     end
