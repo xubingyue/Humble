@@ -3,7 +3,7 @@
 
 H_BNAMSP
 
-CLNetDisp::CLNetDisp(void) : /*m_iFromLens(sizeof(m_stFromAddr)),*/ m_pLState(NULL), m_pLFunc(NULL)
+CLNetDisp::CLNetDisp(void) : m_pLState(NULL), m_pLFunc(NULL)
 {
     m_pLFunc = new(std::nothrow) luabridge::LuaRef *[LCount];
     H_ASSERT(NULL != m_pLFunc, "malloc memory error.");    
@@ -37,12 +37,12 @@ CLNetDisp::CLNetDisp(void) : /*m_iFromLens(sizeof(m_stFromAddr)),*/ m_pLState(NU
         H_ASSERT(false, pError);
     }
 
-    *(m_pLFunc[LOnstart]) = luabridge::getGlobal(m_pLState, "onstart");
-    *(m_pLFunc[LOnTimer]) = luabridge::getGlobal(m_pLState, "ontimer");
-    *(m_pLFunc[LOnTcpLinked]) = luabridge::getGlobal(m_pLState, "ontcplinked");
-    *(m_pLFunc[LOnTcpClose]) = luabridge::getGlobal(m_pLState, "ontcpclose");
-    *(m_pLFunc[LOnTcpRead]) = luabridge::getGlobal(m_pLState, "ontcpread");
-    //*(m_pLFunc[LOnUdpRead]) = luabridge::getGlobal(m_pLState, "onUdpRead");
+    *(m_pLFunc[LOnstart]) = luabridge::getGlobal(m_pLState, "onStart");
+    *(m_pLFunc[LOnStop]) = luabridge::getGlobal(m_pLState, "onStop");
+    *(m_pLFunc[LOnTimer]) = luabridge::getGlobal(m_pLState, "onTimer");
+    *(m_pLFunc[LOnTcpLinked]) = luabridge::getGlobal(m_pLState, "onTcpLinked");
+    *(m_pLFunc[LOnTcpClose]) = luabridge::getGlobal(m_pLState, "onTcpClose");
+    *(m_pLFunc[LOnTcpRead]) = luabridge::getGlobal(m_pLState, "onTcpRead");
 }
 
 CLNetDisp::~CLNetDisp(void)
@@ -70,6 +70,18 @@ void CLNetDisp::onStart(void)
     try
     {
         (*(m_pLFunc[LOnstart]))();
+    }
+    catch (luabridge::LuaException &e)
+    {
+        H_LOG(LOGLV_ERROR, "%s", e.what());
+    }
+}
+
+void CLNetDisp::onStop(void)
+{
+    try
+    {
+        (*(m_pLFunc[LOnStop]))();
     }
     catch (luabridge::LuaException &e)
     {
@@ -125,27 +137,5 @@ void CLNetDisp::onTcpRead(struct H_Session *pSession)
         H_LOG(LOGLV_ERROR, "%s", e.what());
     }
 }
-
-//void CLNetDisp::onUdpRead(H_SOCK &sock, const unsigned short &usType)
-//{
-//    int iLens = recvfrom(sock, m_acUdpBuffer, sizeof(m_acUdpBuffer), 0, &m_stFromAddr, &m_iFromLens);
-//    if (iLens < 0)
-//    {
-//        return;
-//    }
-//
-//    CNETAddr objAddr;
-//    objAddr.setAddr(&m_stFromAddr);
-//    m_objUdpBinary.setReadBuffer(m_acUdpBuffer, iLens);
-//
-//    try
-//    {
-//        (*(m_pLFunc[LOnTcpClose]))(sock, usType, objAddr.getIp(), objAddr.getPort(), &m_objUdpBinary);
-//    }
-//    catch (luabridge::LuaException &e)
-//    {
-//        H_LOG(LOGLV_ERROR, "%s", e.what());
-//    }
-//}
 
 H_ENAMSP

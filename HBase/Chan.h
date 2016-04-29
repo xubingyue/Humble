@@ -9,15 +9,16 @@ H_BNAMSP
 class CChan
 {
 public:
-    //0 ²»ÏÞÖÆ
     explicit CChan(const unsigned int &uiCount);
     ~CChan(void);
 
+    bool canSend(void);
     void Send(void *pszVal);
+
+    bool canRecv(void);
     void *Recv(void);
 
-    bool canSend(void);
-    bool canRecv(void);
+    void Close(void);
 
     void setSendTaskNam(const char *pszName);
     void setRecvTaskNam(const char *pszName);
@@ -28,6 +29,7 @@ private:
     CChan(void);
 
 private:
+    bool m_bClose;
     unsigned int m_uiCount;
     unsigned int m_uiRWait;
     unsigned int m_uiWWait;

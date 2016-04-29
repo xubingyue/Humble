@@ -6,31 +6,30 @@ require("utile")
 local table = table
 
 --无效ID
-invalid_id = -1
-invalid_sock = -1
+Invalid_ID = -1
+Invalid_Sock = -1
 
-errcode = {
+ErrCode = {
     "faile",
     "ok",
     "error",
 }
-errcode = table.enum(errcode, -1)
+ErrCode = table.enum(ErrCode, -1)
 
 --文本日志级别
-loglv = {
-    "error",
-    "warn",
-    "info",
-    "debug",
+LogLV = {
+    "Err",
+    "Warn",
+    "Info",
+    "Debug",
 }
-loglv = table.enum(loglv, 1)
+LogLV = table.enum(LogLV, 1)
 
-channam = {
-    closesock = "sockclosechan",
-    timer = "timerchan",
+ChanNam = {
+    CloseSock = "closesockchan",
 }
 
-socktype = {
-    "tcp",
+SockType = {
+    "Tcp",
 }
-socktype = table.enum(socktype, 1)
+SockType = table.enum(SockType, 1)

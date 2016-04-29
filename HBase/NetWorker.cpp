@@ -9,7 +9,8 @@ SINGLETON_INIT(CNetWorker)
 CNetWorker objNetWorker;
 
 CNetWorker::CNetWorker(void) : m_uiExit(RS_RUN), m_uiCount(H_INIT_NUMBER), m_uiTick(H_INIT_NUMBER),
-    m_uiTickCount(H_INIT_NUMBER), m_uiSession(H_INIT_NUMBER), m_pTickEvent(NULL), m_pIntf(NULL)
+    m_uiTickCount(H_INIT_NUMBER), m_uiSession(H_INIT_NUMBER), m_uiReadyStop(RSTOP_NONE),
+    m_pTickEvent(NULL), m_pIntf(NULL)
 {
 #ifdef H_OS_WIN
     WORD wVersionReq;
@@ -71,6 +72,7 @@ CNetWorker::~CNetWorker(void)
 
 void CNetWorker::setTick(const unsigned int uiMS)
 {
+    H_ASSERT(uiMS > 0, "tick must big than zero.");
     m_uiTick = uiMS;
 }
 
@@ -136,6 +138,18 @@ void CNetWorker::timeCB(H_SOCK, short, void *arg)
         (void)event_base_loopbreak(pNetWorker->getBase());
         return;
     }
+
+    switch (pNetWorker->getReadyStop())
+    {
+    case RSTOP_RAN:
+        return;
+    case RSTOP_RUN:
+        pNetWorker->getIntf()->onStop();
+        pNetWorker->setReadyStop(RSTOP_RAN);
+        return;
+    default:
+        break;
+    }
     
     pNetWorker->addTick();
     pNetWorker->getIntf()->onTimer(pNetWorker->getTick(), pNetWorker->getTickCount());
@@ -163,6 +177,16 @@ struct event *CNetWorker::intiTick(const unsigned int &uiMS)
     return pEvent;
 }
 
+void CNetWorker::setReadyStop(const unsigned int iVal)
+{
+    H_AtomicSet(&m_uiReadyStop, iVal);
+}
+
+unsigned int CNetWorker::getReadyStop(void)
+{
+    return H_AtomicGet(&m_uiReadyStop);
+}
+
 void CNetWorker::Run(void)
 {
     H_AtomicAdd(&m_uiCount, 1);
@@ -174,7 +198,7 @@ void CNetWorker::Run(void)
 
 void CNetWorker::waitStart(void)
 {
-    for (unsigned int uiTime = 0; uiTime < 1000; uiTime += 10)
+    for (;;)
     {
         if (H_INIT_NUMBER != H_AtomicGet(&m_uiCount))
         {
@@ -183,8 +207,6 @@ void CNetWorker::waitStart(void)
 
         H_Sleep(10);
     }
-
-    H_Printf("%s", "waitStart error.");
 }
 
 void CNetWorker::addMapListener(H_SOCK &sock, const unsigned short &usSockType)
@@ -298,6 +320,12 @@ void CNetWorker::acceptCB(struct evconnlistener *pListener, H_SOCK sock, struct 
     int, void *arg)
 {
     CNetWorker *pNetWorker = (CNetWorker *)arg;
+    if (RSTOP_NONE != pNetWorker->getReadyStop())
+    {
+        evutil_closesocket(sock);
+        return;
+    }
+
     unsigned short usType(H_INIT_NUMBER);
     if (!(pNetWorker->getListenerType(evconnlistener_get_fd(pListener), usType)))
     {
@@ -390,73 +418,6 @@ void CNetWorker::closeSock(const H_SOCK sock, const unsigned int uiSession)
 
     m_pIntf->onTcpClose(pSession);
     delSession(pSession->sock);
-}
-
-H_SOCK CNetWorker::initUDP(const unsigned short &usPort)
-{
-    sockaddr_in stAddr;
-    const int iBroad = 1;
-    H_Zero(&stAddr, sizeof(stAddr));
-    stAddr.sin_family = AF_INET;
-    stAddr.sin_port = htons(usPort);
-    stAddr.sin_addr.s_addr = htonl(INADDR_ANY);
-
-    H_SOCK sock = socket(PF_INET, SOCK_DGRAM, 0);
-    if (H_INVALID_SOCK == sock)
-    {
-        H_Printf("%s", "creat socket error.");
-        return H_INVALID_SOCK;
-    }
-
-    (void)setsockopt(sock, SOL_SOCKET, SO_BROADCAST, (char *)&iBroad, sizeof(iBroad));
-
-    if (bind(sock, (struct sockaddr *)&(stAddr), sizeof(stAddr)) < 0)
-    {
-        H_Printf("%s", "bind error.");
-        evutil_closesocket(sock);
-
-        return H_INVALID_SOCK;
-    }
-
-    return sock;
-}
-
-void CNetWorker::udpReadCB(H_SOCK sock, short ev, void *arg)
-{
-    CNetWorker *pNetWorker = (CNetWorker *)arg;
-    unsigned short usType = H_INIT_NUMBER;
-    if (!(pNetWorker->getListenerType(sock, usType)))
-    {
-        return;
-    }
-    
-    pNetWorker->getIntf()->onUdpRead(sock, usType);
-}
-
-bool CNetWorker::udpListen(const unsigned short usSockType, const unsigned short usPort)
-{
-    H_SOCK sock = initUDP(usPort);
-    if (H_INVALID_SOCK == sock)
-    {
-        return false;
-    }
-
-    struct event *pEv = event_new(m_pBase, sock, EV_READ | EV_PERSIST, udpReadCB, this);
-    (void)event_add(pEv, NULL);
-
-    m_vcUdpSock.push_back(sock);
-    m_vcUdpListener.push_back(pEv);
-    addMapListener(sock, usSockType);
-
-    return true;
-}
-
-void CNetWorker::sendTo(H_SOCK sock, const char *pszHost, const unsigned short usPort, 
-    const char *pBuf, const size_t iLens)
-{
-    CNETAddr objAddr;
-    objAddr.setAddr(pszHost, usPort);
-    sendto(sock, pBuf, (int)iLens, 0, objAddr.getAddr(), (int)objAddr.getAddrSize());
 }
 
 H_ENAMSP

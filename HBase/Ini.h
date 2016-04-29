@@ -35,6 +35,7 @@ public:
     /*É¾³ý*/
     void delKey(const char *pszNode, const char *pszKey);
     void delNode(const char *pszNode);
+    bool haveNode(const char *pszNode);
 
     /*±£´æ*/
     void Save(void);

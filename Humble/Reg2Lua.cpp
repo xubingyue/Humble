@@ -13,7 +13,7 @@ void LSleep(const unsigned int uiMs)
     H_Sleep(uiMs);
 }
 
-CWorkerTask *netLuaTask(void)
+CWorkerTask *newLuaTask(void)
 {
     return new CLuaTask();
 }
@@ -38,19 +38,8 @@ void H_RegAll(struct lua_State *pLState)
     H_RegRSA(pLState);
     H_RegWorkerDisp(pLState);
     H_RegWorkerTask(pLState);
-    H_RegLog(pLState);
     H_RegChan(pLState);
     H_RegGlobal(pLState);
-}
-
-void H_RegLog(struct lua_State *pLState)
-{
-    luabridge::getGlobalNamespace(pLState)
-        .beginClass<CLog>("CLog")
-            .addFunction("setPriority", &CLog::setPriority)
-            .addFunction("setLogFile", &CLog::setLogFile)
-            .addFunction("Open", &CLog::Open)
-        .endClass();
 }
 
 void H_RegWorkerTask(struct lua_State *pLState)
@@ -72,7 +61,6 @@ void H_RegWorkerDisp(struct lua_State *pLState)
             .addFunction("regRecvChan", &CWorkerDisp::regRecvChan)
             .addFunction("getChan", &CWorkerDisp::getChan)
             .addFunction("regTask", &CWorkerDisp::regTask)
-            .addFunction("setThreadNum", &CWorkerDisp::setThreadNum)
         .endClass();
 }
 
@@ -231,7 +219,6 @@ void H_RegGlobal(struct lua_State *pLState)
     luabridge::setGlobal(pLState, CSender::getSingletonPtr(), "g_pSender");
     luabridge::setGlobal(pLState, CMail::getSingletonPtr(), "g_pEmail");
     luabridge::setGlobal(pLState, CWorkerDisp::getSingletonPtr(), "g_pWorkerMgr");
-    luabridge::setGlobal(pLState, CLog::getSingletonPtr(), "g_pLog");
 }
 
 void H_RegFuncs(struct lua_State *pLState)
@@ -245,7 +232,7 @@ void H_RegFuncs(struct lua_State *pLState)
         .addFunction("urlDecode", H_UDecode)
         .addFunction("zlibEncode", H_ZEncode)
         .addFunction("zlibDecode", H_ZDecode)
-        .addFunction("netLuaTask", netLuaTask);
+        .addFunction("newLuaTask", newLuaTask);
 }
 
 void H_RegBinary(struct lua_State *pLState)
@@ -333,7 +320,6 @@ void H_RegNetWorker(struct lua_State *pLState)
             .addFunction("tcpListen", &CNetWorker::tcpListen)
             .addFunction("addTcpLink", &CNetWorker::addTcpLink)
             .addFunction("closeSock", &CNetWorker::closeSock)
-            .addFunction("setTick", &CNetWorker::setTick)
             //.addFunction("udpListen", &CNetWorker::udpListen)
             //.addFunction("sendTo", &CNetWorker::sendTo)
         .endClass();
@@ -352,11 +338,6 @@ void H_RegMail(struct lua_State *pLState)
 {
     luabridge::getGlobalNamespace(pLState)
         .beginClass<CMail>("CMail")
-            .addFunction("setServer", &CMail::setServer)
-            .addFunction("setAuthType", &CMail::setAuthType)
-            .addFunction("setSender", &CMail::setSender)
-            .addFunction("setUserName", &CMail::setUserName)
-            .addFunction("setPassWord", &CMail::setPassWord)
             .addFunction("sendMail", &CMail::sendMail)
         .endClass();
 }

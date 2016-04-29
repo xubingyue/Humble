@@ -16,6 +16,10 @@ public:
     {
 
     };
+    virtual void onStop(void)
+    {
+
+    };
     virtual void onTimer(const unsigned uiTick, const unsigned uiCount)
     {
     };
@@ -26,9 +30,6 @@ public:
     {
     };
     virtual void onTcpRead(struct H_Session *pSession) 
-    {
-    };
-    virtual void onUdpRead(H_SOCK &sock, const unsigned short &usType) 
     {
     };
 };

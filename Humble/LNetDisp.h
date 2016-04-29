@@ -13,32 +13,28 @@ public:
     ~CLNetDisp(void);
 
     void onStart(void);
+    void onStop(void);
     void onTimer(const unsigned uiTick, const unsigned uiCount);
     void onTcpLinked(struct H_Session *pSession);
     void onTcpClose(struct H_Session *pSession);
     void onTcpRead(struct H_Session *pSession);
-    //void onUdpRead(H_SOCK &sock, const unsigned short &usType);
 
 private:
     enum
     {
         LOnstart = 0,
+        LOnStop,
         LOnTimer,
         LOnTcpLinked,
         LOnTcpClose,
         LOnTcpRead,
-        LOnUdpRead,
 
         LCount,
     };
 
 private:
-    //socket_t m_iFromLens;
     struct lua_State *m_pLState;
     luabridge::LuaRef **m_pLFunc;
-    //char m_acUdpBuffer[H_MAXUDPBUF];
-    //sockaddr m_stFromAddr;
-    //CBinary m_objUdpBinary;
     CEvBuffer m_objTcpEvBuffer;
 };
 

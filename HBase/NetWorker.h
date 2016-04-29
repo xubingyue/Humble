@@ -22,6 +22,14 @@ struct H_Session
     { };
 };
 
+//准备停止
+enum
+{
+    RSTOP_NONE = 0,//初始状态
+    RSTOP_RUN,//准备执行
+    RSTOP_RAN,//已经执行
+};
+
 class CNetWorker : public CTask, public CSingleton<CNetWorker>
 {
 public:
@@ -40,14 +48,12 @@ public:
     void Run(void);
     void Join(void);
     void waitStart(void);
+    void setReadyStop(const unsigned int iVal);
+    unsigned int getReadyStop(void);
 
     bool tcpListen(const unsigned short usSockType, const char *pszHost, const unsigned short usPort);
     H_SOCK addTcpLink(const unsigned short usSockType, const char *pszHost, const unsigned short usPort);
     void closeSock(const H_SOCK sock, const unsigned int uiSession);
-
-    bool udpListen(const unsigned short usSockType, const unsigned short usPort);
-    void sendTo(H_SOCK sock, const char *pszHost, const unsigned short usPort, 
-        const char *pBuf, const size_t iLens);
 
     void addMapListener(H_SOCK &sock, const unsigned short &usSockType);
     bool getListenerType(H_SOCK sock, unsigned short &usType);
@@ -62,14 +68,12 @@ public:
         int, void *arg);
     static void tcpReadCB(struct bufferevent *bev, void *arg);
     static void tcpEventCB(struct bufferevent *bev, short, void *arg);
-    static void udpReadCB(H_SOCK sock, short ev, void *arg);
 
 private:
     struct event *intiTick(const unsigned int &uiMS);
     void addSession(H_SOCK &sock, H_Session *pSesson);
     void freeSession(H_Session *pSession);
     H_SOCK initSock(const char *pszHost, const unsigned short &usPort);
-    H_SOCK initUDP(const unsigned short &usPort);
 
 private:
     H_DISALLOWCOPY(CNetWorker);
@@ -77,7 +81,7 @@ private:
     {
         RS_RUN = 0,
         RS_STOP,
-    };
+    };    
 #ifdef H_OS_WIN 
     #define listenerit std::unordered_map<H_SOCK, unsigned short>::iterator
     #define listener_map std::unordered_map<H_SOCK, unsigned short>
@@ -96,6 +100,7 @@ private:
     unsigned int m_uiTick;
     unsigned int m_uiTickCount;
     unsigned int m_uiSession;
+    unsigned int m_uiReadyStop;
     struct event_base *m_pBase;
     struct event *m_pTickEvent;
     CNetIntf *m_pIntf;

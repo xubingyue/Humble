@@ -9,39 +9,43 @@ local string = string
 local pWorkerMgr = g_pWorkerMgr
 local pSender = g_pSender
 local pEmail = g_pEmail
-local channam = channam
+local newLuaTask = newLuaTask
+local ChanNam = ChanNam
 
 --ÍøÂç
-function humble.closesock(sock, uisession)
-    local pclosechan = humble.getchan(channam.closesock)
-    if not pclosechan then
+function humble.closeSock(sock, uiSession)
+    local pChan = humble.getChan(ChanNam.CloseSock)
+    if not pChan then
         return
     end
     
-    pclosechan:Send(serialize.pack({sock, uisession}))
+    pChan:Send(serialize.pack({sock, uiSession}))
 end
-function humble.send(sock, uisession, strbuf)
-    pSender:Send(sock, uisession, strbuf, string.len(strbuf))
+function humble.Send(sock, uiSession, strBuf)
+    pSender:Send(sock, uiSession, strBuf, string.len(strBuf))
 end
 --tsock: {{sock,session},...}
-function humble.broadcast(tsock, strbuf)
-    pSender:broadCast(tsock, strbuf, string.len(strbuf))
+function humble.broadCast(tSock, strBuf)
+    pSender:broadCast(tSock, strBuf, string.len(strBuf))
 end
 
 --ÓÊ¼þ
-function humble.sendemail(stremail)
-    pEmail:sendMail(stremail)
+function humble.sendMail(strMail)
+    pEmail:sendMail(strMail)
 end
 
 --chan×¢²á
-function humble.regsendchan(strchannam, strtasknam, uicount)
-    return pWorkerMgr:regSendChan(strchannam, strtasknam, uicount)
+function humble.regSendChan(strChanNam, strTaskNam, uiCount)
+    return pWorkerMgr:regSendChan(strChanNam, strTaskNam, uiCount)
 end
-function humble.regrecvchan(strchannam, strtasknam, uicount)
-    return pWorkerMgr:regRecvChan(strchannam, strtasknam, uicount)
+function humble.regRecvChan(strChanNam, strTaskNam, uiCount)
+    return pWorkerMgr:regRecvChan(strChanNam, strTaskNam, uiCount)
 end
-function humble.getchan(strchannam)
-    return pWorkerMgr:getChan(strchannam)
+function humble.getChan(strChanNam)
+    return pWorkerMgr:getChan(strChanNam)
+end
+function humble.regTask(strNam)
+    return pWorkerMgr:regTask(strNam, newLuaTask())
 end
 
 return humble

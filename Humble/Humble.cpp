@@ -80,6 +80,53 @@ void sigHandEntry(int iSigNum)
 }
 #endif
 
+int init()
+{
+    CLog *pLog = CLog::getSingletonPtr();
+    CMail *pMail = CMail::getSingletonPtr();
+    CNetWorker *pNet = CNetWorker::getSingletonPtr();
+    CWorkerDisp *pWorker = CWorkerDisp::getSingletonPtr();
+
+    std::string strConfFile = H_FormatStr("%s%s%s%s", g_strProPath.c_str(), "config", H_PATH_SEPARATOR, "config.ini");
+    CIniFile objIni(strConfFile.c_str());
+
+    if (objIni.haveNode("Log"))
+    {
+        pLog->setPriority(objIni.getIntValue("Log", "priority"));
+        std::string strLogFile = H_FormatStr("%s%s%s%s", g_strProPath.c_str(), 
+            "log", H_PATH_SEPARATOR, objIni.getStringValue("Log", "name"));
+        pLog->setLogFile(strLogFile.c_str());
+        pLog->Open();
+    }
+    else
+    {
+        H_Printf("%s", "in config.ini not find node 'Log'");
+        return H_RTN_FAILE;
+    }
+
+    if (objIni.haveNode("Email"))
+    {
+        pMail->setServer(objIni.getStringValue("Email", "server"));
+        pMail->setAuthType(objIni.getIntValue("Email", "auth"));
+        pMail->setSender(objIni.getStringValue("Email", "sender"));
+        pMail->setUserName(objIni.getStringValue("Email", "user"));
+        pMail->setPassWord(objIni.getStringValue("Email", "psw"));
+    }
+
+    if (objIni.haveNode("Main"))
+    {
+        pNet->setTick(objIni.getIntValue("Main", "tick"));
+        pWorker->setThreadNum(objIni.getIntValue("Main", "thread"));
+    }
+    else
+    {
+        H_Printf("%s", "in config.ini not find node 'Main'");
+        return H_RTN_FAILE;
+    }
+
+    return H_RTN_OK;
+}
+
 int main(int argc, char *argv[])
 {
     g_strProPath = H_GetProPath();
@@ -102,25 +149,17 @@ int main(int argc, char *argv[])
     pthread_mutex_init(&g_objExitMu, NULL);
     atexit(freeCondMu);
 
-    std::string strLuaFile = g_strScriptPath + "start.lua";
-    lua_State *pLState = luaL_newstate();
-    H_ASSERT(NULL != pLState, "luaL_newstate error.");
-    luaL_openlibs(pLState);
-    H_RegAll(pLState);
-    if (H_RTN_OK != luaL_dofile(pLState, strLuaFile.c_str()))
+    if (H_RTN_OK != init())
     {
-        H_Printf("%s", lua_tostring(pLState, -1));
-        lua_close(pLState);
-        H_ASSERT(false, "do lua file start.lua error.");
+        return H_RTN_FAILE;
     }
-    lua_close(pLState);
-    
-    CLNetDisp objNetIntf;
+
     CLog *pLog = CLog::getSingletonPtr();
     CMail *pMail = CMail::getSingletonPtr();
     CNetWorker *pNet = CNetWorker::getSingletonPtr();
-    CSender *pSender = CSender::getSingletonPtr();
     CWorkerDisp *pWorker = CWorkerDisp::getSingletonPtr();
+    CSender *pSender = CSender::getSingletonPtr(); 
+    CLNetDisp objNetIntf;
 
     pNet->setIntf(&objNetIntf);
 
@@ -138,7 +177,9 @@ int main(int argc, char *argv[])
     CThread::Creat(pNet);
     pNet->waitStart();
 
-    CThread::Creat(CWorkerDisp::getSingletonPtr());
+    CThread::Creat(pWorker);
+    pWorker->waitStart();
+
     {
         CLckThis objLckThis(&g_objExitMu);
         pthread_cond_wait(&g_ExitCond, objLckThis.getMutex());

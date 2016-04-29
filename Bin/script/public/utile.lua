@@ -16,36 +16,36 @@ local urlDecode = urlDecode
 local zlibEncode = zlibEncode
 local zlibDecode = zlibDecode
 
-function utile.sleep(uims)
+function utile.Sleep(uims)
     Sleep(uims)
 end
 
-function utile.log(loglv, fmt, ...)
+function utile.Log(loglv, fmt, ...)
     local strmsg = string.format(fmt, table.unpack({...}))
     H_LOG(loglv, strmsg)
 end
 
-function utile.crc16(strval)
+function utile.CRC16(strval)
     return CRC16(strval, string.len(strval))
 end
 
-function utile.crc32(strval)
+function utile.CRC32(strval)
     return CRC32(strval, string.len(strval))
 end
 
-function utile.urlencode(strval)
+function utile.urlEncode(strval)
     return urlEncode(strval, string.len(strval))
 end
 
-function utile.urldecode(strval)
+function utile.urlDecode(strval)
     return urlDecode(strval, string.len(strval))
 end
 
-function utile.zlibencode(strval)
+function utile.zlibEncode(strval)
     return zlibEncode(strval, string.len(strval))
 end
 
-function utile.zlibdecode(strval)
+function utile.zlibDecode(strval)
     return zlibDecode(strval, string.len(strval))
 end
 

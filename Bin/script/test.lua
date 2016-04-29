@@ -1,4 +1,3 @@
-
 local strpubdir = string.format("%s%s%s", g_strScriptPath, "public", "/")
 package.path = string.format("%s;%s?.lua", package.path, strpubdir)
 
@@ -7,18 +6,18 @@ local serialize = require("serialize")
 local humble = require("humble")
 local table = table
 local string = string
-local channam = channam
+local ChanNam = ChanNam
 
 if not g_tChan then
     g_tChan = {}    
 end
 local tChan = g_tChan
 
-function inittask()
-    tChan.timer = humble.regrecvchan(channam.timer, "ts_timer", 0)
+function initTask()
+    tChan.timer = humble.regRecvChan("testtimer", "test", 10)
 end
 
-function runtask()
+function runTask()
     local itick, icount
     if tChan.timer:canRecv() then
         itick, icount = table.unpack(serialize.unpack(tChan.timer:Recv()))
@@ -26,6 +25,6 @@ function runtask()
     end
 end
 
-function destroytask()
+function destroyTask()
     
 end

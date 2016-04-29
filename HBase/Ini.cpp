@@ -315,6 +315,23 @@ void CIniFile::delNode(const char *pszNode)
     }
 }
 
+bool CIniFile::haveNode(const char *pszNode)
+{
+    assert(NULL != pszNode);
+
+    std::list<stIniNode>::iterator itNodeInfo;
+
+    for (itNodeInfo = m_lstNodeInfo.begin(); m_lstNodeInfo.end() != itNodeInfo; itNodeInfo++)
+    {
+        if (std::string(pszNode) == itNodeInfo->strNode)//先找到node
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void CIniFile::saveTo(const char *pszFile)
 {
     assert(NULL != pszFile);

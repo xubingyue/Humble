@@ -63,9 +63,9 @@ void CLuaTask::initTask(const char *pName)
         return;
     }
 
-    *(m_pLFunc[LTASK_INIT]) = luabridge::getGlobal(m_pLState, "inittask");
-    *(m_pLFunc[LTASK_RUN]) = luabridge::getGlobal(m_pLState, "runtask");
-    *(m_pLFunc[LTASK_DESTROY]) = luabridge::getGlobal(m_pLState, "destroytask");
+    *(m_pLFunc[LTASK_INIT]) = luabridge::getGlobal(m_pLState, "initTask");
+    *(m_pLFunc[LTASK_RUN]) = luabridge::getGlobal(m_pLState, "runTask");
+    *(m_pLFunc[LTASK_DESTROY]) = luabridge::getGlobal(m_pLState, "destroyTask");
 
     try
     {

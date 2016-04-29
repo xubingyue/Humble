@@ -33,6 +33,11 @@ public:
 private:
     CWorker *getFreeWorker(void);
     CWorkerTask* getWorkerTask(std::string *pstrName);
+    void stopNet(void);
+    void stopWorker(void);
+    void runSurpTask(void);
+    void destroyTask(void);
+    void closeChan(void);
 
 private:
     H_DISALLOWCOPY(CWorkerDisp);
@@ -61,9 +66,9 @@ private:
     CRWLock m_objChanLock;
     chan_map m_mapChan;
     task_map m_mapTask;
-    pthread_mutex_t m_dispTaskLock;
-    pthread_cond_t m_dispTaskCond;
-    std::queue<std::string*> m_quDisTask;
+    pthread_mutex_t m_taskLock;
+    pthread_cond_t m_taskCond;
+    std::queue<std::string*> m_quTask;
 };
 
 H_ENAMSP

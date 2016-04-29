@@ -102,7 +102,7 @@ void CRecvTask<T>::Run(void)
 template <typename T>
 void CRecvTask<T>::waitStart(void)
 {
-    for (unsigned int uiTime = 0; uiTime < 1000; uiTime += 10)
+    for (;;)
     {
         if (H_INIT_NUMBER != H_AtomicGet(&m_lCount))
         {
@@ -111,8 +111,6 @@ void CRecvTask<T>::waitStart(void)
 
         H_Sleep(10);
     }
-
-    H_Printf("%s", "waitStart error.");
 }
 
 template <typename T>

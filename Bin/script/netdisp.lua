@@ -9,40 +9,53 @@ require("macros")
 local serialize = require("serialize")
 local humble = require("humble")
 local table = table
-local pnetworker = g_pNetWorker
-local channam = channam
-local socktype = socktype
+local pNet = g_pNetWorker--g_pNetWorker的c++函数只能在该模块使用
+local ChanNam = ChanNam
+local SockType = SockType
 
 if not g_tChan then
     g_tChan = {}    
 end
 local tChan = g_tChan
 
-function onstart()
+--初始化
+function onStart()
     --net 初始化
-    --pnetworker:tcpListen(ustype, strhost, usport)
-    --pnetworker:addTcpLink(ustype, strhost, usport)
+    --pNet:tcpListen(ustype, strhost, usport)
+    --pNet:addTcpLink(ustype, strhost, usport)
     
-    tChan.close = humble.regrecvchan(channam.closesock, "netdisp", 0)
-    tChan.timer = humble.regsendchan(channam.timer, "netdisp", 0)
+    tChan.Close = humble.regRecvChan(ChanNam.CloseSock, "netdisp", 1024)
+    tChan.testTimer = humble.regSendChan("testtimer", "netdisp", 10)
+    
+    --
+    humble.regTask("test")
 end
 
-function ontcplinked(pSession)
-    
+--退出，主要清理掉连接
+function onStop()
+    print("net onStop")
 end
 
-function ontcpclose(pSession)
-    
-end
-
-function ontcpread(pSession)
-    
-end
-
-function ontimer(uiTick, uiCount)
-    tChan.timer:Send(serialize.pack({uiTick, uiCount}))
-    
-    if tChan.close:canRecv() then
-        pnetworker:closeSock(table.unpack(serialize.unpack(tChan.close:Recv())))
+function onTimer(uiTick, uiCount)
+    if tChan.testTimer:canSend() then
+        tChan.testTimer:Send(serialize.pack({uiTick, uiCount}))
     end
+    
+    if tChan.Close:canRecv() then
+        local tval = serialize.unpack(tChan.Close:Recv())
+        table.print(tval)
+        pNet:closeSock(table.unpack(tval))
+    end
+end
+
+function onTcpLinked(pSession)
+    
+end
+
+function onTcpClose(pSession)
+    
+end
+
+function onTcpRead(pSession)
+    
 end
