@@ -255,6 +255,7 @@ void CWorkerDisp::Run(void)
             }
             if (H_INIT_NUMBER != pWorkerTask->getRef())
             {
+                m_quTask.push(pTaskNam);
                 continue;
             }
 

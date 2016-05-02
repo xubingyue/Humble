@@ -592,6 +592,9 @@
     <ClInclude Include="Worker.h">
       <Filter>Service</Filter>
     </ClInclude>
+    <ClInclude Include="LinkMonitor.h">
+      <Filter>Service</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="jwsmtp\compat.cpp">
@@ -1082,6 +1085,9 @@
     </ClCompile>
     <ClCompile Include="luaserialize\serialize.c">
       <Filter>3rd\lua\serialize</Filter>
+    </ClCompile>
+    <ClCompile Include="LinkMonitor.cpp">
+      <Filter>Service</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
