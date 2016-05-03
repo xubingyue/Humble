@@ -17,8 +17,8 @@ function initTask()
     tChan.echo = humble.regRecvChan("echochan", "echo")
 end
 
-function runTask()
-    local varRecv = tChan.echo:Recv()
+function runTask(pChan)
+    local varRecv = pChan:Recv()
     if varRecv then
         local sock, uiSession, strMsg = table.unpack(serialize.unpack(varRecv))
         humble.Send(sock, uiSession, strMsg)

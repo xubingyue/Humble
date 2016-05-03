@@ -1,5 +1,5 @@
 --[[
-网络、定时器服务
+网络器服务
 --]]
 
 local strpubdir = string.format("%s%s%s", g_strScriptPath, "public", "/")
@@ -23,10 +23,10 @@ function onStart()
     tChan.echo = humble.regSendChan("echochan", "netdisp")
     
     humble.tcpListen(1, "0.0.0.0", 15000)
-    humble.addTcpLink(1, "127.0.0.1", 15000)
-    --
-    humble.regTask("test")
+    --humble.addTcpLink(1, "127.0.0.1", 15000)    --
+    
     humble.regTask("echo")
+    humble.regTask("test")
 end
 
 --退出，主要清理掉连接

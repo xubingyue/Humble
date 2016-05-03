@@ -172,10 +172,14 @@ CWorkerTask* CWorkerDisp::getWorkerTask(std::string *pstrName)
     return itTask->second;
 }
 
-void CWorkerDisp::Notify(std::string *pstrName)
+void CWorkerDisp::Notify(std::string *pstrName, CChan *pChan)
 {
+    CurTask stCurTask;
+    stCurTask.pChan = pChan;
+    stCurTask.pTaskName = pstrName;
+
     CLckThis objLckThis(&m_taskLock);
-    m_quTask.push(pstrName);
+    m_quTask.push(stCurTask);
     pthread_cond_signal(&m_taskCond);
 }
 
@@ -200,19 +204,19 @@ void CWorkerDisp::stopWorker(void)
 void CWorkerDisp::runSurpTask(void)
 {
     CWorkerTask *pWorkerTask = NULL;
-    std::string *pTaskNam = NULL;
+    CurTask stCurTask;
 
     while (!m_quTask.empty())
     {
-        pTaskNam = m_quTask.front();
+        stCurTask = m_quTask.front();
         m_quTask.pop();
-        pWorkerTask = getWorkerTask(pTaskNam);
+        pWorkerTask = getWorkerTask(stCurTask.pTaskName);
         if (NULL == pWorkerTask)
         {
             continue;
         }
 
-        pWorkerTask->runTask();
+        pWorkerTask->runTask(stCurTask.pChan);
     }
 }
 
@@ -236,7 +240,7 @@ void CWorkerDisp::Run(void)
 {
     CWorker *pWorker = NULL;
     CWorkerTask *pWorkerTask = NULL;
-    std::string *pTaskNam = NULL;
+    CurTask stCurTask;
 
     H_AtomicAdd(&m_lCount, 1);
 
@@ -246,19 +250,20 @@ void CWorkerDisp::Run(void)
         CLckThis objLckThis(&m_taskLock);
         if (!m_quTask.empty())
         {
-            pTaskNam = m_quTask.front();
+            stCurTask = m_quTask.front();
             m_quTask.pop();
-            pWorkerTask = getWorkerTask(pTaskNam);
+            pWorkerTask = getWorkerTask(stCurTask.pTaskName);
             if (NULL == pWorkerTask)
             {
                 continue;
             }
             if (H_INIT_NUMBER != pWorkerTask->getRef())
             {
-                m_quTask.push(pTaskNam);
+                m_quTask.push(stCurTask);
                 continue;
             }
 
+            pWorkerTask->setCurChan(stCurTask.pChan);
             pWorker = getFreeWorker();
             pWorker->setBusy();
             pWorker->addWorker(pWorkerTask);
@@ -269,7 +274,7 @@ void CWorkerDisp::Run(void)
         }
     }
 
-    //停止网络、定时器
+    //停止网络
     stopNet();
     //停止工作线程
     stopWorker();

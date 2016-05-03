@@ -19,6 +19,7 @@ public:
     void onTcpRead(struct H_Session *pSession);
 
 private:
+    H_DISALLOWCOPY(CLNetDisp);
     enum
     {
         LOnstart = 0,

@@ -10,10 +10,6 @@ class CTickIntf
 public:
     CTickIntf(void) {};
     virtual ~CTickIntf(void) {};
-    virtual void onStart(void)
-    {
-
-    };
     virtual void onTime(const unsigned int &uiTick, const unsigned int &uiCount)
     {
 

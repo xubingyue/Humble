@@ -29,7 +29,20 @@ void CChan::Send(void *pszVal)
     m_quData.push(pszVal);
     m_quLock.unLock();
 
-    CWorkerDisp::getSingletonPtr()->Notify(&m_strRecvTask);
+    CWorkerDisp::getSingletonPtr()->Notify(&m_strRecvTask, this);
+}
+
+bool CChan::canRecv(void)
+{
+    bool bCan(false);
+    m_quLock.Lock();
+    if (!m_quData.empty())
+    {
+        bCan = true;
+    }
+    m_quLock.unLock();
+
+    return bCan;
 }
 
 void *CChan::Recv(void)
@@ -47,7 +60,7 @@ void *CChan::Recv(void)
     if (H_INIT_NUMBER == H_AtomicGet(&m_uiClose)
         && NULL != pVal)
     {
-        CWorkerDisp::getSingletonPtr()->Notify(&m_strSendTask);
+        CWorkerDisp::getSingletonPtr()->Notify(&m_strSendTask, this);
     }
 
     return pVal;

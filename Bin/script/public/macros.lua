@@ -27,6 +27,7 @@ LogLV = table.enum(LogLV, 1)
 
 ChanNam = {
     CloseSock = "closesockchan",
+    Timer = "timerchan",
 }
 
 SockType = {

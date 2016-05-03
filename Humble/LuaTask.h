@@ -13,7 +13,7 @@ public:
     ~CLuaTask(void);
 
     void initTask(const char *pName);
-    void runTask(void);
+    void runTask(CChan *pChan);
     void destroyTask(void);
 
 private:

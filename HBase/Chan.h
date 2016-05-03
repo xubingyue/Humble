@@ -13,6 +13,7 @@ public:
     ~CChan(void);
 
     void Send(void *pszVal);
+    bool canRecv(void);
     void *Recv(void);
 
     void Close(void);

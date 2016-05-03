@@ -74,7 +74,6 @@ struct event *CTick::intiTick(const unsigned int &uiMS)
 
 void CTick::onStart(void)
 {
-    m_pIntf->onStart();
     m_pTickEvent = intiTick(m_uiTick);
 }
 

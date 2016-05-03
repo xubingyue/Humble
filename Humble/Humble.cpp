@@ -1,4 +1,5 @@
 #include "LNetDisp.h"
+#include "LTick.h"
 using namespace Humble;
 
 #ifdef H_OS_WIN
@@ -163,8 +164,10 @@ int main(int argc, char *argv[])
     CSender *pSender = CSender::getSingletonPtr(); 
     CTick *pTick = CTick::getSingletonPtr();
     CLNetDisp objNetIntf;
+    CLTick objTickIntf;
 
     pNet->setIntf(&objNetIntf);
+    pTick->setIntf(&objTickIntf);
 
     CThread::Creat(pLog);
     pLog->waitStart();

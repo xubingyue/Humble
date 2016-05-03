@@ -9,8 +9,6 @@
 
 H_BNAMSP
 
-#define H_TICKCHAN  "timer"
-
 class CTick : public CNetBase, public CSingleton<CTick>
 {
 public:

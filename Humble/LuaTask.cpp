@@ -77,11 +77,11 @@ void CLuaTask::initTask(const char *pName)
     }
 }
 
-void CLuaTask::runTask(void)
+void CLuaTask::runTask(CChan *pChan)
 {
     try
     {
-        (*(m_pLFunc[LTASK_RUN]))();
+        (*(m_pLFunc[LTASK_RUN]))(pChan);
     }
     catch (luabridge::LuaException &e)
     {

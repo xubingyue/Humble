@@ -3,6 +3,7 @@
 #define H_WORKER_H_
 
 #include "RecvTask.h"
+#include "Chan.h"
 
 H_BNAMSP
 
@@ -22,11 +23,11 @@ public:
 
     void Run(void)
     {
-        runTask();
+        runTask(m_pChan);
     };
 
     virtual void initTask(const char *) = 0;
-    virtual void runTask(void) = 0;
+    virtual void runTask(CChan *pChan) = 0;
     virtual void destroyTask(void) = 0;
 
     void addRef(void)
@@ -49,9 +50,14 @@ public:
     {
         return m_strName.c_str();
     };
+    void setCurChan(CChan *pChan)
+    {
+        m_pChan = pChan;
+    };
 
 private:
     unsigned int m_uiRef;
+    CChan *m_pChan;
     std::string m_strName;
 };
 

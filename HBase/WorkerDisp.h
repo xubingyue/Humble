@@ -28,7 +28,7 @@ public:
     void Join(void);
     void waitStart(void);
 
-    void Notify(std::string *pstrName);
+    void Notify(std::string *pstrName, CChan *pChan);
 
 private:
     CWorker *getFreeWorker(void);
@@ -57,6 +57,11 @@ private:
         RS_RUN = 0,
         RS_STOP,
     };
+    struct CurTask
+    {
+        std::string *pTaskName;
+        CChan *pChan;
+    };
 
 private:
     unsigned short m_usThreadNum;
@@ -68,7 +73,7 @@ private:
     task_map m_mapTask;
     pthread_mutex_t m_taskLock;
     pthread_cond_t m_taskCond;
-    std::queue<std::string*> m_quTask;
+    std::queue<CurTask> m_quTask;
 };
 
 H_ENAMSP
