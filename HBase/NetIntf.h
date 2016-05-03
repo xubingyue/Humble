@@ -20,9 +20,6 @@ public:
     {
 
     };
-    virtual void onTimer(const unsigned uiTick, const unsigned uiCount)
-    {
-    };
     virtual void onTcpLinked(struct H_Session *pSession) 
     {
     };

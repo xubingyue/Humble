@@ -2,20 +2,17 @@
 #ifndef H_CHAN_H_
 #define H_CHAN_H_
 
-#include "LockThis.h"
+#include "Atomic.h"
 
 H_BNAMSP
 
 class CChan
 {
 public:
-    explicit CChan(const unsigned int &uiCount);
+    CChan(void);
     ~CChan(void);
 
-    bool canSend(void);
     void Send(void *pszVal);
-
-    bool canRecv(void);
     void *Recv(void);
 
     void Close(void);
@@ -26,17 +23,11 @@ public:
 
 private:
     H_DISALLOWCOPY(CChan);
-    CChan(void);
 
 private:
-    bool m_bClose;
-    unsigned int m_uiCount;
-    unsigned int m_uiRWait;
-    unsigned int m_uiWWait;
+    unsigned int m_uiClose;
     std::queue<void *> m_quData;
-    pthread_mutex_t m_quLock;
-    pthread_cond_t m_pWCond;
-    pthread_cond_t m_pRCond;
+    CAtomic m_quLock;
     std::string m_strSendTask;
     std::string m_strRecvTask;
     std::string m_strChanNam;

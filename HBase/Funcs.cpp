@@ -1,5 +1,6 @@
 
 #include "Funcs.h"
+#include "NETAddr.h"
 #include "event2/util.h"
 
 H_BNAMSP
@@ -390,6 +391,234 @@ void H_GetTimeOfDay(struct timeval &stTime)
 {
     evutil_timerclear(&stTime);
     (void)evutil_gettimeofday(&stTime, NULL);
+}
+
+void H_KeepAlive(H_SOCK &fd, const unsigned int iKeepIdle, const unsigned int iKeepInterval)
+{
+    int iKeepAlive = 1;
+    if (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, (char *)&iKeepAlive, (int)sizeof(iKeepAlive)) < 0)
+    {
+        H_Printf("%s", "setsockopt SO_KEEPALIVE error!");
+    }
+
+#ifdef H_OS_WIN
+    unsigned long ulBytesReturn = H_INIT_NUMBER;
+    tcp_keepalive stAliveIn = { 0 };
+    tcp_keepalive stAliveOut = { 0 };
+
+    stAliveIn.onoff = 1;
+    stAliveIn.keepalivetime = iKeepIdle * 1000;
+    stAliveIn.keepaliveinterval = iKeepInterval * 1000;
+    if (SOCKET_ERROR == WSAIoctl(fd, SIO_KEEPALIVE_VALS, &stAliveIn, sizeof(stAliveIn),
+        &stAliveOut, sizeof(stAliveOut), &ulBytesReturn, NULL, NULL))
+    {
+        H_Printf("%s", "WSAIoctl set error!");
+    }
+#else 
+    int ikeepCount = H_TCPKEEPCOUNT;//判定断开前的KeepAlive探测次数
+
+    if (setsockopt(fd, SOL_TCP, TCP_KEEPIDLE, (void *)&iKeepIdle, sizeof(iKeepIdle)) < 0)
+    {
+        H_Printf("%s", "setsockopt TCP_KEEPIDLE error!");
+    }
+    if (setsockopt(fd, SOL_TCP, TCP_KEEPINTVL, (void *)&iKeepInterval, sizeof(iKeepInterval)) < 0)
+    {
+        H_Printf("%s", "setsockopt TCP_KEEPINTVL error!");
+    }
+    if (setsockopt(fd, SOL_TCP, TCP_KEEPCNT, (void *)&ikeepCount, sizeof(ikeepCount)) < 0)
+    {
+        H_Printf("%s", "setsockopt TCP_KEEPCNT error!");
+    }
+#endif
+}
+
+static int creatListener(H_SOCK &fdListener)
+{
+    CNETAddr objListen_addr;
+    int iRtn = H_RTN_OK;
+
+    iRtn = objListen_addr.setAddr("127.0.0.1", 0);
+    if (H_RTN_OK != iRtn)
+    {
+        H_Printf("set socket addr error. error code %d.", iRtn);
+
+        return iRtn;
+    }
+
+    fdListener = socket(AF_INET, SOCK_STREAM, 0);
+    if (H_INVALID_SOCK == fdListener)
+    {
+        iRtn = H_SockError();
+        H_Printf("create socket error. error code %d, message %s ", iRtn, H_SockError2Str(iRtn));
+
+        return H_RTN_FAILE;
+    }
+
+    if (H_RTN_FAILE == bind(fdListener, objListen_addr.getAddr(), (int)objListen_addr.getAddrSize()))
+    {
+        iRtn = H_SockError();
+        H_Printf("bind port error. error code %d, message %s ", iRtn, H_SockError2Str(iRtn));
+
+        evutil_closesocket(fdListener);
+
+        return H_RTN_FAILE;
+    }
+
+    if (H_RTN_FAILE == listen(fdListener, 1))
+    {
+        iRtn = H_SockError();
+        H_Printf("listen error. error code %d, message %s ", iRtn, H_SockError2Str(iRtn));
+
+        evutil_closesocket(fdListener);
+
+        return H_RTN_FAILE;
+    }
+
+    return H_RTN_OK;
+}
+int H_SockPair(H_SOCK acSock[2])
+{
+    H_SOCK fdListener = H_INVALID_SOCK;
+    H_SOCK fdConnector = H_INVALID_SOCK;
+    H_SOCK fdAcceptor = H_INVALID_SOCK;
+    ev_socklen_t iSize = H_INIT_NUMBER;
+    struct sockaddr_in connect_addr;
+    struct sockaddr_in listen_addr;
+    int iKeepAlive = 1;
+    int iRtn = H_RTN_OK;
+
+    if (H_RTN_OK != creatListener(fdListener))
+    {
+        return H_RTN_FAILE;
+    }
+
+    fdConnector = socket(AF_INET, SOCK_STREAM, 0);
+    if (H_INVALID_SOCK == fdConnector)
+    {
+        iRtn = H_SockError();
+        H_Printf("create socket error. error code %d, message %s ", iRtn, H_SockError2Str(iRtn));
+        evutil_closesocket(fdListener);
+
+        return H_RTN_FAILE;
+    }
+
+    iSize = sizeof(connect_addr);
+    if (H_RTN_FAILE == getsockname(fdListener, (struct sockaddr *) &connect_addr, &iSize))
+    {
+        iRtn = H_SockError();
+        H_Printf("getsockname error. error code %d, message %s ", iRtn, H_SockError2Str(iRtn));
+
+        evutil_closesocket(fdListener);
+        evutil_closesocket(fdConnector);
+
+        return H_RTN_FAILE;
+    }
+
+    if (iSize != sizeof(connect_addr))
+    {
+        H_Printf("%s", "addr size not equ.");
+
+        evutil_closesocket(fdListener);
+        evutil_closesocket(fdConnector);
+
+        return H_RTN_FAILE;
+    }
+
+    if (H_RTN_FAILE == connect(fdConnector, (struct sockaddr *) &connect_addr, sizeof(connect_addr)))
+    {
+        iRtn = H_SockError();
+        H_Printf("connect error. error code %d, message %s ", iRtn, H_SockError2Str(iRtn));
+
+        evutil_closesocket(fdListener);
+        evutil_closesocket(fdConnector);
+
+        return H_RTN_FAILE;
+    }
+
+    iSize = sizeof(listen_addr);
+    fdAcceptor = accept(fdListener, (struct sockaddr *) &listen_addr, &iSize);
+    if (H_INVALID_SOCK == fdAcceptor)
+    {
+        iRtn = H_SockError();
+        H_Printf("accept error. error code %d, message %s ", iRtn, H_SockError2Str(iRtn));
+
+        evutil_closesocket(fdListener);
+        evutil_closesocket(fdConnector);
+
+        return H_RTN_FAILE;
+    }
+
+    evutil_closesocket(fdListener);
+
+    if (H_RTN_FAILE == getsockname(fdConnector, (struct sockaddr *) &connect_addr, &iSize))
+    {
+        iRtn = H_SockError();
+        H_Printf("getsockname error. error code %d, message %s ", iRtn, H_SockError2Str(iRtn));
+
+        evutil_closesocket(fdAcceptor);
+        evutil_closesocket(fdConnector);
+
+        return H_RTN_FAILE;
+    }
+
+    if (iSize != sizeof(connect_addr)
+        || listen_addr.sin_family != connect_addr.sin_family
+        || listen_addr.sin_addr.s_addr != connect_addr.sin_addr.s_addr
+        || listen_addr.sin_port != connect_addr.sin_port)
+    {
+        H_Printf("%s", "addr not equ.");
+
+        evutil_closesocket(fdAcceptor);
+        evutil_closesocket(fdConnector);
+
+        return H_RTN_FAILE;
+    }
+
+    int iFlag = 1;
+    if (setsockopt(fdConnector, IPPROTO_TCP, TCP_NODELAY, (char *)&iFlag, sizeof(iFlag)) < 0)
+    {
+        H_Printf("%s", "setsockopt TCP_NODELAY error!");
+    }
+    if (setsockopt(fdAcceptor, IPPROTO_TCP, TCP_NODELAY, (char *)&iFlag, sizeof(iFlag)) < 0)
+    {
+        H_Printf("%s", "setsockopt TCP_NODELAY error!");
+    }
+    if (setsockopt(fdConnector, SOL_SOCKET, SO_KEEPALIVE, (char *)&iKeepAlive, (int)sizeof(iKeepAlive)))
+    {
+        H_Printf("%s", "setsockopt SO_KEEPALIVE error!");
+    }
+    if (setsockopt(fdAcceptor, SOL_SOCKET, SO_KEEPALIVE, (char *)&iKeepAlive, (int)sizeof(iKeepAlive)))
+    {
+        H_Printf("%s", "setsockopt SO_KEEPALIVE error!");
+    }
+    (void)evutil_make_socket_nonblocking(fdAcceptor);
+    (void)evutil_make_socket_nonblocking(fdConnector);
+
+    acSock[0] = fdAcceptor;
+    acSock[1] = fdConnector;
+
+    return H_RTN_OK;
+}
+
+void H_SockWrite(H_SOCK &fd, const char *pBuf, const size_t &iLens)
+{
+    int iSendSize(H_INIT_NUMBER);
+    size_t iSendTotalSize(H_INIT_NUMBER);
+
+    do
+    {
+        iSendSize = send(fd, pBuf + iSendTotalSize, (int)(iLens - iSendTotalSize), 0);
+        if (iSendSize <= 0)
+        {
+            int iRtn = H_SockError();
+            H_Printf("send error. error code %d, message %s ", iRtn, H_SockError2Str(iRtn));
+
+            return;
+        }
+
+        iSendTotalSize += (size_t)iSendSize;
+
+    } while (iLens > iSendTotalSize);
 }
 
 H_ENAMSP

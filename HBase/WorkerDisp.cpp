@@ -51,7 +51,7 @@ void CWorkerDisp::setThreadNum(const unsigned short usNum)
     }
 }
 
-CChan *CWorkerDisp::regSendChan(const char *pszChanName, const char *pszTaskName, const unsigned int uiCount)
+CChan *CWorkerDisp::regSendChan(const char *pszChanName, const char *pszTaskName)
 {
     H_ASSERT(NULL != pszChanName && 0 != strlen(pszChanName), "chan name error.");
     H_ASSERT(NULL != pszTaskName && 0 != strlen(pszTaskName), "task name error.");
@@ -63,7 +63,7 @@ CChan *CWorkerDisp::regSendChan(const char *pszChanName, const char *pszTaskName
     chanit itChan = m_mapChan.find(strName);
     if (m_mapChan.end() == itChan)
     {
-        pChan = new(std::nothrow) CChan(uiCount);
+        pChan = new(std::nothrow) CChan();
         H_ASSERT(NULL != pChan, "malloc memory error.");
         pChan->setChanNam(pszChanName);
         pChan->setSendTaskNam(pszTaskName);
@@ -80,7 +80,7 @@ CChan *CWorkerDisp::regSendChan(const char *pszChanName, const char *pszTaskName
     return pChan;
 }
 
-CChan *CWorkerDisp::regRecvChan(const char *pszChanName, const char *pszTaskName, const unsigned int uiCount)
+CChan *CWorkerDisp::regRecvChan(const char *pszChanName, const char *pszTaskName)
 {
     H_ASSERT(NULL != pszChanName && 0 != strlen(pszChanName), "chan name error.");
     H_ASSERT(NULL != pszTaskName && 0 != strlen(pszTaskName), "task name error.");
@@ -92,7 +92,7 @@ CChan *CWorkerDisp::regRecvChan(const char *pszChanName, const char *pszTaskName
     chanit itChan = m_mapChan.find(strName);
     if (m_mapChan.end() == itChan)
     {
-        pChan = new(std::nothrow) CChan(uiCount);
+        pChan = new(std::nothrow) CChan();
         H_ASSERT(NULL != pChan, "malloc memory error.");
         pChan->setChanNam(pszChanName);
         pChan->setRecvTaskNam(pszTaskName);
@@ -182,10 +182,10 @@ void CWorkerDisp::Notify(std::string *pstrName)
 void CWorkerDisp::stopNet(void)
 {
     CNetWorker *pNet = CNetWorker::getSingletonPtr();
-    pNet->setReadyStop(RSTOP_RUN);
+    pNet->readyStop();
     while (RSTOP_RAN != pNet->getReadyStop())
     {
-        H_Sleep(pNet->getTick());
+        H_Sleep(10);
     }
 }
 

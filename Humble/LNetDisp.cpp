@@ -39,7 +39,6 @@ CLNetDisp::CLNetDisp(void) : m_pLState(NULL), m_pLFunc(NULL)
 
     *(m_pLFunc[LOnstart]) = luabridge::getGlobal(m_pLState, "onStart");
     *(m_pLFunc[LOnStop]) = luabridge::getGlobal(m_pLState, "onStop");
-    *(m_pLFunc[LOnTimer]) = luabridge::getGlobal(m_pLState, "onTimer");
     *(m_pLFunc[LOnTcpLinked]) = luabridge::getGlobal(m_pLState, "onTcpLinked");
     *(m_pLFunc[LOnTcpClose]) = luabridge::getGlobal(m_pLState, "onTcpClose");
     *(m_pLFunc[LOnTcpRead]) = luabridge::getGlobal(m_pLState, "onTcpRead");
@@ -89,18 +88,6 @@ void CLNetDisp::onStop(void)
     }
 }
 
-void CLNetDisp::onTimer(const unsigned uiTick, const unsigned uiCount)
-{
-    try
-    {
-        (*(m_pLFunc[LOnTimer]))(uiTick, uiCount);
-    }
-    catch (luabridge::LuaException &e)
-    {
-        H_LOG(LOGLV_ERROR, "%s", e.what());
-    }
-}
-
 void CLNetDisp::onTcpLinked(struct H_Session *pSession)
 {
     try
@@ -130,7 +117,7 @@ void CLNetDisp::onTcpRead(struct H_Session *pSession)
     try
     {
         m_objTcpEvBuffer.setEvBuf(pSession->pBev);
-        (*(m_pLFunc[LOnTcpClose]))(pSession);
+        (*(m_pLFunc[LOnTcpRead]))(pSession);
     }
     catch (luabridge::LuaException &e)
     {

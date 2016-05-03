@@ -14,14 +14,14 @@ end
 local tChan = g_tChan
 
 function initTask()
-    tChan.timer = humble.regRecvChan("testtimer", "test")
+    tChan.echo = humble.regRecvChan("echochan", "echo")
 end
 
-function runTask()    
-    local varRecv = tChan.timer:Recv()
+function runTask()
+    local varRecv = tChan.echo:Recv()
     if varRecv then
-        local itick, icount = table.unpack(serialize.unpack(varRecv))
-        print(string.format("timer task tick %d count %d", itick, icount))
+        local sock, uiSession, strMsg = table.unpack(serialize.unpack(varRecv))
+        humble.Send(sock, uiSession, strMsg)
     end
 end
 

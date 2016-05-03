@@ -45,7 +45,6 @@ public:
     void delSock(H_SOCK sock, const unsigned int uiSession);
 
 private:
-    void sockWrite(H_SOCK &fd, const char *pBuf, const size_t &iLens);
     void sendToSock(H_SOCK &fd, const unsigned int &uiSession, const char *pBuf, const size_t &iLens);
     void broadCast(H_SenderSock *pSock, const int &iCount, const char *pBuf, const size_t &iLens);
 

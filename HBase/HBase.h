@@ -34,7 +34,9 @@
 #include "Sender.h"
 #include "Log.h"
 #include "Mail.h"
+#include "Linker.h"
 #include "WorkerDisp.h"
+#include "Tick.h"
 
 #include "jwsmtp/mailer.h"
 #include "pugixml/pugixml.hpp"

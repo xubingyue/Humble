@@ -73,7 +73,8 @@ public:
 
     //byte
     void setByte(const char *pszVal, const unsigned int iLens);
-    std::string getByte(const unsigned int iLens);
+    std::string getLByte(const unsigned int iLens);
+    const char *getByte(const unsigned int &iLens);
 
     std::string getWritedBuf(void)
     {

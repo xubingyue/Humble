@@ -14,7 +14,6 @@ public:
 
     void onStart(void);
     void onStop(void);
-    void onTimer(const unsigned uiTick, const unsigned uiCount);
     void onTcpLinked(struct H_Session *pSession);
     void onTcpClose(struct H_Session *pSession);
     void onTcpRead(struct H_Session *pSession);
@@ -24,7 +23,6 @@ private:
     {
         LOnstart = 0,
         LOnStop,
-        LOnTimer,
         LOnTcpLinked,
         LOnTcpClose,
         LOnTcpRead,

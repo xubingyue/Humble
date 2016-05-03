@@ -51,7 +51,7 @@
     <ClInclude Include="jwsmtp\jwsmtp_base64.h" />
     <ClInclude Include="jwsmtp\mailer.h" />
     <ClInclude Include="Library.h" />
-    <ClInclude Include="LinkMonitor.h" />
+    <ClInclude Include="Linker.h" />
     <ClInclude Include="LockThis.h" />
     <ClInclude Include="Log.h" />
     <ClInclude Include="lpeg\lpcap.h" />
@@ -111,6 +111,7 @@
     <ClInclude Include="Mail.h" />
     <ClInclude Include="md5.h" />
     <ClInclude Include="NETAddr.h" />
+    <ClInclude Include="NetBase.h" />
     <ClInclude Include="NetIntf.h" />
     <ClInclude Include="NetWorker.h" />
     <ClInclude Include="pbc\alloc.h" />
@@ -150,6 +151,8 @@
     <ClInclude Include="TableFile.h" />
     <ClInclude Include="Task.h" />
     <ClInclude Include="Thread.h" />
+    <ClInclude Include="Tick.h" />
+    <ClInclude Include="TickIntf.h" />
     <ClInclude Include="uchardet\CharDistribution.h" />
     <ClInclude Include="uchardet\JpCntx.h" />
     <ClInclude Include="uchardet\nsBig5Prober.h" />
@@ -212,7 +215,7 @@
     <ClCompile Include="jwsmtp\jwsmtp_base64.cpp" />
     <ClCompile Include="jwsmtp\mailer.cpp" />
     <ClCompile Include="Library.cpp" />
-    <ClCompile Include="LinkMonitor.cpp" />
+    <ClCompile Include="Linker.cpp" />
     <ClCompile Include="Log.cpp" />
     <ClCompile Include="lpeg\lpcap.c" />
     <ClCompile Include="lpeg\lpcode.c" />
@@ -262,6 +265,7 @@
     <ClCompile Include="Mail.cpp" />
     <ClCompile Include="md5.cpp" />
     <ClCompile Include="NETAddr.cpp" />
+    <ClCompile Include="NetBase.cpp" />
     <ClCompile Include="NetWorker.cpp" />
     <ClCompile Include="pbc\alloc.cpp" />
     <ClCompile Include="pbc\array.cpp" />
@@ -302,6 +306,7 @@
     <ClCompile Include="sproto\sproto.cpp" />
     <ClCompile Include="TableFile.cpp" />
     <ClCompile Include="Thread.cpp" />
+    <ClCompile Include="Tick.cpp" />
     <ClCompile Include="uchardet\CharDistribution.cpp" />
     <ClCompile Include="uchardet\JpCntx.cpp" />
     <ClCompile Include="uchardet\LangModels\LangArabicModel.cpp" />

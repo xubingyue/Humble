@@ -70,8 +70,6 @@ void H_RegChan(struct lua_State *pLState)
         .beginClass<CChan>("CChan")
             .addFunction("Send", &CChan::Send)
             .addFunction("Recv", &CChan::Recv)
-            .addFunction("canSend", &CChan::canSend)
-            .addFunction("canRecv", &CChan::canRecv)
         .endClass();
 }
 
@@ -279,7 +277,7 @@ void H_RegBinary(struct lua_State *pLState)
             .addFunction("getString", &CBinary::getString)
 
             .addFunction("setByte", &CBinary::setByte)
-            .addFunction("getByte", &CBinary::getByte)
+            .addFunction("getByte", &CBinary::getLByte)
         .endClass();
 }
 
@@ -320,8 +318,7 @@ void H_RegNetWorker(struct lua_State *pLState)
             .addFunction("tcpListen", &CNetWorker::tcpListen)
             .addFunction("addTcpLink", &CNetWorker::addTcpLink)
             .addFunction("closeSock", &CNetWorker::closeSock)
-            //.addFunction("udpListen", &CNetWorker::udpListen)
-            //.addFunction("sendTo", &CNetWorker::sendTo)
+            .addFunction("closeByType", &CNetWorker::closeByType)
         .endClass();
 }
 

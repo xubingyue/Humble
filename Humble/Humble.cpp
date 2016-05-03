@@ -86,6 +86,7 @@ int init()
     CMail *pMail = CMail::getSingletonPtr();
     CNetWorker *pNet = CNetWorker::getSingletonPtr();
     CWorkerDisp *pWorker = CWorkerDisp::getSingletonPtr();
+    CTick *pTick = CTick::getSingletonPtr();
 
     std::string strConfFile = H_FormatStr("%s%s%s%s", g_strProPath.c_str(), "config", H_PATH_SEPARATOR, "config.ini");
     CIniFile objIni(strConfFile.c_str());
@@ -115,7 +116,7 @@ int init()
 
     if (objIni.haveNode("Main"))
     {
-        pNet->setTick(objIni.getIntValue("Main", "tick"));
+        pTick->setTick(objIni.getIntValue("Main", "tick"));
         pWorker->setThreadNum(objIni.getIntValue("Main", "thread"));
     }
     else
@@ -156,9 +157,11 @@ int main(int argc, char *argv[])
 
     CLog *pLog = CLog::getSingletonPtr();
     CMail *pMail = CMail::getSingletonPtr();
+    CLinker *pLinker = CLinker::getSingletonPtr();
     CNetWorker *pNet = CNetWorker::getSingletonPtr();
     CWorkerDisp *pWorker = CWorkerDisp::getSingletonPtr();
     CSender *pSender = CSender::getSingletonPtr(); 
+    CTick *pTick = CTick::getSingletonPtr();
     CLNetDisp objNetIntf;
 
     pNet->setIntf(&objNetIntf);
@@ -170,24 +173,27 @@ int main(int argc, char *argv[])
         CThread::Creat(pMail);
         pMail->waitStart();
     }
+    CThread::Creat(pLinker);
+    pLinker->waitStart();
     CThread::Creat(pSender);
     pSender->waitStart();
-    CThread::Creat(pWorker);
-    pWorker->waitStart();
     CThread::Creat(pNet);
     pNet->waitStart();
-
     CThread::Creat(pWorker);
     pWorker->waitStart();
+    CThread::Creat(pTick);
+    pTick->waitStart();
 
     {
         CLckThis objLckThis(&g_objExitMu);
         pthread_cond_wait(&g_ExitCond, objLckThis.getMutex());
     }
     
+    pTick->Join();
     pWorker->Join();
     pNet->Join();
     pSender->Join();
+    pLinker->Join();
     if (pMail->getSetted())
     {
         pMail->Join();

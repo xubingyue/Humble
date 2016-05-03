@@ -187,18 +187,25 @@ void CBinary::setByte(const char *pszVal, const unsigned int iLens)
     setVal(pszVal, iLens);
 }
 
-std::string CBinary::getByte(const unsigned int iLens)
+const char *CBinary::getByte(const unsigned int &iLens)
 {
     if ((m_iCurParseLens + iLens) > m_iParseBufLens)
     {
-        return std::string("");
+        return NULL;
     }
 
-    std::string strVal(m_pParseBuffer + m_iCurParseLens, iLens);
+    char *pBuf = m_pParseBuffer + m_iCurParseLens;
 
     m_iCurParseLens += iLens;
 
-    return strVal;
+    return pBuf;
+}
+
+std::string CBinary::getLByte(const unsigned int iLens)
+{
+    const char *pBuf = getByte(iLens);
+
+    return ((NULL == pBuf) ? "" : std::string(pBuf, iLens));
 }
 
 H_ENAMSP

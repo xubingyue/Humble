@@ -1,5 +1,6 @@
 
 #include "Sender.h"
+#include "Funcs.h"
 
 H_BNAMSP
 
@@ -24,27 +25,6 @@ CSender::~CSender(void)
 
 }
 
-void CSender::sockWrite(H_SOCK &fd, const char *pBuf, const size_t &iLens)
-{
-    int iSendSize(H_INIT_NUMBER);
-    size_t iSendTotalSize(H_INIT_NUMBER);
-
-    do
-    {
-        iSendSize = send(fd, pBuf + iSendTotalSize, (int)(iLens - iSendTotalSize), 0);
-        if (iSendSize <= 0)
-        {
-            int iRtn = H_SockError();
-            H_Printf("send error. error code %d, message %s ", iRtn, H_SockError2Str(iRtn));
-
-            return;
-        }
-
-        iSendTotalSize += (size_t)iSendSize;
-
-    } while (iLens > iSendTotalSize);
-}
-
 void CSender::sendToSock(H_SOCK &fd, const unsigned int &uiSession, const char *pBuf, const size_t &iLens)
 {
     senderit itSender;
@@ -53,7 +33,7 @@ void CSender::sendToSock(H_SOCK &fd, const unsigned int &uiSession, const char *
     {
         if (uiSession == itSender->second)
         {
-            sockWrite(fd, pBuf, iLens);
+            H_SockWrite(fd, pBuf, iLens);
         }
     }
 }
