@@ -36,6 +36,8 @@ CLTick::CLTick(void)
         H_ASSERT(false, pError);
     }
 
+    *(m_pLFunc[LOnStart]) = luabridge::getGlobal(m_pLState, "onStart");
+    *(m_pLFunc[LOnStop]) = luabridge::getGlobal(m_pLState, "onStop");
     *(m_pLFunc[LOnTime]) = luabridge::getGlobal(m_pLState, "onTimer");
 }
 
@@ -56,6 +58,30 @@ CLTick::~CLTick(void)
     {
         lua_close(m_pLState);
         m_pLState = NULL;
+    }
+}
+
+void CLTick::onStart(void)
+{
+    try
+    {
+        (*(m_pLFunc[LOnStart]))();
+    }
+    catch (luabridge::LuaException &e)
+    {
+        H_LOG(LOGLV_ERROR, "%s", e.what());
+    }
+}
+
+void CLTick::onStop(void)
+{
+    try
+    {
+        (*(m_pLFunc[LOnStop]))();
+    }
+    catch (luabridge::LuaException &e)
+    {
+        H_LOG(LOGLV_ERROR, "%s", e.what());
     }
 }
 

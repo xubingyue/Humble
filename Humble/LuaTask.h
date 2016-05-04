@@ -13,7 +13,7 @@ public:
     ~CLuaTask(void);
 
     void initTask(const char *pName);
-    void runTask(CChan *pChan);
+    void runTask(void);
     void destroyTask(void);
 
 private:
@@ -30,7 +30,6 @@ private:
 private:    
     struct lua_State *m_pLState;
     luabridge::LuaRef **m_pLFunc;
-    std::string m_strName;
 };
 
 H_ENAMSP

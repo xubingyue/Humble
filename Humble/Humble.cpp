@@ -18,7 +18,7 @@ std::string g_strProPath;
 std::string g_strScriptPath;
 pthread_cond_t g_ExitCond;
 pthread_mutex_t g_objExitMu;
-CCoreDump m_objDump();
+CCoreDump g_objDump();
 
 void freeCondMu(void)
 {
@@ -65,7 +65,7 @@ BOOL WINAPI consoleHandler(DWORD msgType)
 
     if (bRtn)
     {
-        CLckThis objLckThis(&g_objExitMu);
+        H_LOG(LOGLV_INFO, "catch console signal %d.", msgType);
         pthread_cond_signal(&g_ExitCond);
     }
 
@@ -85,7 +85,6 @@ int init()
 {
     CLog *pLog = CLog::getSingletonPtr();
     CMail *pMail = CMail::getSingletonPtr();
-    CNetWorker *pNet = CNetWorker::getSingletonPtr();
     CWorkerDisp *pWorker = CWorkerDisp::getSingletonPtr();
     CTick *pTick = CTick::getSingletonPtr();
 
@@ -119,6 +118,7 @@ int init()
     {
         pTick->setTick(objIni.getIntValue("Main", "tick"));
         pWorker->setThreadNum(objIni.getIntValue("Main", "thread"));
+        pTick->setThreadNum(pWorker->getThreadNum());
     }
     else
     {
@@ -177,30 +177,32 @@ int main(int argc, char *argv[])
         pMail->waitStart();
     }
     CThread::Creat(pLinker);
-    pLinker->waitStart();
-    CThread::Creat(pSender);
-    pSender->waitStart();
+    pLinker->waitStart();    
     CThread::Creat(pNet);
     pNet->waitStart();
+    CThread::Creat(pSender);
+    pSender->waitStart();
     CThread::Creat(pWorker);
     pWorker->waitStart();
     CThread::Creat(pTick);
     pTick->waitStart();
 
     {
+        H_LOG(LOGLV_INFO, "%s", "start service successfully.");
         CLckThis objLckThis(&g_objExitMu);
         pthread_cond_wait(&g_ExitCond, objLckThis.getMutex());
     }
     
     pTick->Join();
     pWorker->Join();
-    pNet->Join();
     pSender->Join();
+    pNet->Join();    
     pLinker->Join();
     if (pMail->getSetted())
     {
         pMail->Join();
     }
+    H_LOG(LOGLV_INFO, "%s", "stop service successfully.");
     pLog->Join();
 
     return H_RTN_OK;

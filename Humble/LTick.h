@@ -6,19 +6,23 @@
 
 H_BNAMSP
 
-class CLTick : public CTickIntf
+class CLTick : public CSVIntf
 {
 public:
     CLTick(void);
     ~CLTick(void);
 
+    void onStart(void);
+    void onStop(void);
     void onTime(const unsigned int &uiTick, const unsigned int &uiCount);
 
 private:
     H_DISALLOWCOPY(CLTick);
     enum
     {
-        LOnTime = 0,
+        LOnStart = 0,
+        LOnStop,
+        LOnTime,
 
         LCount,
     };

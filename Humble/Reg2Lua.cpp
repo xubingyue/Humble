@@ -70,6 +70,7 @@ void H_RegChan(struct lua_State *pLState)
         .beginClass<CChan>("CChan")
             .addFunction("Send", &CChan::Send)
             .addFunction("Recv", &CChan::Recv)
+            .addFunction("canSend", &CChan::canSend)
             .addFunction("canRecv", &CChan::canRecv)
         .endClass();
 }
@@ -307,8 +308,6 @@ void H_RegEvbuffer(struct lua_State *pLState)
             .addFunction("getTotalLens", &CEvBuffer::getTotalLens)
             .addFunction("readBuffer", &CEvBuffer::readBuffer)
             .addFunction("delBuffer", &CEvBuffer::delBuffer)
-            .addFunction("readBuffer", &CEvBuffer::readBuffer)
-            .addFunction("readBuffer", &CEvBuffer::readBuffer)
         .endClass();
 }
 

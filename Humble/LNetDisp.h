@@ -6,7 +6,7 @@
 
 H_BNAMSP
 
-class CLNetDisp : public CNetIntf
+class CLNetDisp : public CSVIntf
 {
 public:
     CLNetDisp(void);

@@ -53,7 +53,8 @@ CLuaTask::~CLuaTask(void)
 
 void CLuaTask::initTask(const char *pName)
 {
-    m_strName = pName;
+    setName(pName);
+
     std::string strLuaFile = H_FormatStr("%s%s.lua", g_strScriptPath.c_str(), pName);
     if (H_RTN_OK != luaL_dofile(m_pLState, strLuaFile.c_str()))
     {
@@ -77,11 +78,11 @@ void CLuaTask::initTask(const char *pName)
     }
 }
 
-void CLuaTask::runTask(CChan *pChan)
+void CLuaTask::runTask(void)
 {
     try
     {
-        (*(m_pLFunc[LTASK_RUN]))(pChan);
+        (*(m_pLFunc[LTASK_RUN]))();
     }
     catch (luabridge::LuaException &e)
     {
