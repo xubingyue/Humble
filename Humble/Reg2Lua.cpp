@@ -13,6 +13,24 @@ void LSleep(const unsigned int uiMs)
     H_Sleep(uiMs);
 }
 
+std::string md5Str(const char *pszVal, const size_t iLens)
+{
+    CMD5 objMD5;
+
+    objMD5.update(pszVal, iLens);
+
+    return objMD5.toString();
+}
+
+std::string md5File(const char *pszFile)
+{
+    CMD5 objMD5;
+
+    objMD5.updatefile(pszFile);
+
+    return objMD5.toString();
+}
+
 CWorkerTask *newLuaTask(void)
 {
     return new CLuaTask();
@@ -223,6 +241,8 @@ void H_RegFuncs(struct lua_State *pLState)
         .addFunction("zlibDecode", H_ZDecode)
         .addFunction("b64Encode", H_B64Encode)
         .addFunction("b64Decode", H_B64Decode)
+        .addFunction("md5Str", md5Str)
+        .addFunction("md5File", md5File)
         .addFunction("newLuaTask", newLuaTask);
 }
 

@@ -17,6 +17,8 @@ local zlibEncode = zlibEncode
 local zlibDecode = zlibDecode
 local b64Encode = b64Encode
 local b64Decode = b64Decode
+local md5Str = md5Str
+local md5File = md5File
 
 function utile.Sleep(uims)
     Sleep(uims)
@@ -57,6 +59,14 @@ end
 
 function utile.b64Decode(strval)
     return b64Decode(strval, string.len(strval))
+end
+
+function utile.md5Str(strval)
+    return md5Str(strval, string.len(strval))
+end
+
+function utile.md5File(strFile)
+    return md5File(strFile)
 end
 
 function string.split(str, delimiter)
