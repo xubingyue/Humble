@@ -14,12 +14,12 @@ end
 local tChan = g_tChan
 
 function initTask()
-    tChan.echo = humble.regRecvChan("echochan", "echo")
+    tChan.echo = humble.regRecvChan("echochan", "echo", 10)
 end
 
-function runTask(pChan)
-    local varRecv = pChan:Recv()
-    if varRecv then
+function runTask()    
+    if tChan.echo:canRecv() then
+        local varRecv = tChan.echo:Recv()
         local sock, uiSession, strMsg = table.unpack(serialize.unpack(varRecv))
         humble.Send(sock, uiSession, strMsg)
     end

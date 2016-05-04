@@ -11,11 +11,20 @@ local humble = require("humble")
 local ChanNam = ChanNam
 
 if not g_tChan then
-    g_tChan = {}
-    g_tChan.timer = humble.regSendChan(ChanNam.Timer, "tick")
+    g_tChan = {}    
 end
 local tChan = g_tChan
 
+function onStart()   
+    tChan.timer = humble.regSendChan(ChanNam.Timer, "tick", 10)
+end
+
+function onStop()
+    print("net onStop")
+end
+
 function onTimer(uiTick, uiCount)
-    tChan.timer:Send(serialize.pack({uiTick, uiCount}))
+    if tChan.timer:canSend() then
+        tChan.timer:Send(serialize.pack({uiTick, uiCount}))
+    end
 end

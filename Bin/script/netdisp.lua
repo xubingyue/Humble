@@ -20,7 +20,7 @@ local tChan = g_tChan
 
 --≥ı ºªØ
 function onStart()   
-    tChan.echo = humble.regSendChan("echochan", "netdisp")
+    tChan.echo = humble.regSendChan("echochan", "netdisp", 10)
     
     humble.tcpListen(1, "0.0.0.0", 15000)
     --humble.addTcpLink(1, "127.0.0.1", 15000)    --

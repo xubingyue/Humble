@@ -14,13 +14,15 @@ end
 local tChan = g_tChan
 
 function initTask()
-    tChan.timer = humble.regRecvChan(ChanNam.Timer, "test")
+    tChan.timer = humble.regRecvChan(ChanNam.Timer, "test", 10)
 end
 
-function runTask(pChan)
-    local varRecv = pChan:Recv()
-    local itick, icount = table.unpack(serialize.unpack(varRecv))
-    print(string.format("timer task tick %d count %d", itick, icount))
+function runTask()
+    if tChan.timer:canRecv() then
+        local varRecv = tChan.timer:Recv()
+        local itick, icount = table.unpack(serialize.unpack(varRecv))
+        print(string.format("timer task tick %d count %d", itick, icount))
+    end
 end
 
 function destroyTask()
