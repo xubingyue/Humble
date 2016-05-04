@@ -82,6 +82,7 @@ public:
     };
 
 private:
+    H_DISALLOWCOPY(CBinary);
     void setVal(const void *pszBuf, const size_t iLens);
     template<typename T>
     T readNumber(void)

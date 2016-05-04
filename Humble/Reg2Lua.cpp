@@ -34,7 +34,6 @@ void H_RegAll(struct lua_State *pLState)
     H_RegTableFile(pLState);
     H_RegUUID(pLState);
     H_RegAES(pLState);
-    H_RegBase64(pLState);
     H_RegRSA(pLState);
     H_RegWorkerDisp(pLState);
     H_RegWorkerTask(pLState);
@@ -109,16 +108,6 @@ void H_RegRSA(struct lua_State *pLState)
             .addFunction("priDecrypt", &CRSA::priDecrypt)
             .addFunction("priEncrypt", &CRSA::priEncrypt)
             .addFunction("pubDecrypt", &CRSA::pubDecrypt)
-        .endClass();
-}
-
-void H_RegBase64(struct lua_State *pLState)
-{
-    luabridge::getGlobalNamespace(pLState)
-        .beginClass<CBase64>("CBase64")
-            .addConstructor<void(*) (void)>()
-            .addStaticFunction("Encode", &CBase64::Encode)
-            .addStaticFunction("Decode", &CBase64::Decode)
         .endClass();
 }
 
@@ -232,6 +221,8 @@ void H_RegFuncs(struct lua_State *pLState)
         .addFunction("urlDecode", H_UDecode)
         .addFunction("zlibEncode", H_ZEncode)
         .addFunction("zlibDecode", H_ZDecode)
+        .addFunction("b64Encode", H_B64Encode)
+        .addFunction("b64Decode", H_B64Decode)
         .addFunction("newLuaTask", newLuaTask);
 }
 

@@ -15,6 +15,8 @@ local urlEncode = urlEncode
 local urlDecode = urlDecode
 local zlibEncode = zlibEncode
 local zlibDecode = zlibDecode
+local b64Encode = b64Encode
+local b64Decode = b64Decode
 
 function utile.Sleep(uims)
     Sleep(uims)
@@ -47,6 +49,14 @@ end
 
 function utile.zlibDecode(strval)
     return zlibDecode(strval, string.len(strval))
+end
+
+function utile.b64Encode(strval)
+    return b64Encode(strval, string.len(strval))
+end
+
+function utile.b64Decode(strval)
+    return b64Decode(strval, string.len(strval))
 end
 
 function string.split(str, delimiter)

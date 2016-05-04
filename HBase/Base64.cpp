@@ -17,15 +17,8 @@ static inline bool is_base64(unsigned char c)
     return (isalnum(c) || (c == '+') || (c == '/'));
 }
 
-CBase64::CBase64(void)
-{
-}
 
-CBase64::~CBase64(void)
-{
-}
-
-std::string CBase64::Encode(const unsigned char *pszData, const size_t iLens)
+std::string H_B64Encode(const unsigned char *pszData, const size_t iLens)
 {
     std::string ret;
     int i(0);
@@ -81,7 +74,7 @@ std::string CBase64::Encode(const unsigned char *pszData, const size_t iLens)
     return ret;
 }
 
-std::string CBase64::Decode(const unsigned char *pszData, const size_t iLens)
+std::string H_B64Decode(const unsigned char *pszData, const size_t iLens)
 {
     size_t in_len(iLens);
     int i(0);
