@@ -46,12 +46,13 @@ void CWorkerDisp::setThreadNum(const unsigned short usNum)
 
     for (unsigned short usI = H_INIT_NUMBER; usI < m_usThreadNum; ++usI)
     {
+        m_pWorker[usI].setIndex(usI);
         CThread::Creat(&m_pWorker[usI]);
         m_pWorker[usI].waitStart();
     }
 }
 
-CChan *CWorkerDisp::regSendChan(const char *pszChanName, const char *pszTaskName)
+CChan *CWorkerDisp::regSendChan(const char *pszChanName, const char *pszTaskName, const unsigned int uiCount)
 {
     H_ASSERT(NULL != pszChanName && 0 != strlen(pszChanName), "chan name error.");
     H_ASSERT(NULL != pszTaskName && 0 != strlen(pszTaskName), "task name error.");
@@ -63,7 +64,7 @@ CChan *CWorkerDisp::regSendChan(const char *pszChanName, const char *pszTaskName
     chanit itChan = m_mapChan.find(strName);
     if (m_mapChan.end() == itChan)
     {
-        pChan = new(std::nothrow) CChan();
+        pChan = new(std::nothrow) CChan(uiCount);
         H_ASSERT(NULL != pChan, "malloc memory error.");
         pChan->setChanNam(pszChanName);
         pChan->setSendTaskNam(pszTaskName);
@@ -80,7 +81,7 @@ CChan *CWorkerDisp::regSendChan(const char *pszChanName, const char *pszTaskName
     return pChan;
 }
 
-CChan *CWorkerDisp::regRecvChan(const char *pszChanName, const char *pszTaskName)
+CChan *CWorkerDisp::regRecvChan(const char *pszChanName, const char *pszTaskName, const unsigned int uiCount)
 {
     H_ASSERT(NULL != pszChanName && 0 != strlen(pszChanName), "chan name error.");
     H_ASSERT(NULL != pszTaskName && 0 != strlen(pszTaskName), "task name error.");
@@ -92,7 +93,7 @@ CChan *CWorkerDisp::regRecvChan(const char *pszChanName, const char *pszTaskName
     chanit itChan = m_mapChan.find(strName);
     if (m_mapChan.end() == itChan)
     {
-        pChan = new(std::nothrow) CChan();
+        pChan = new(std::nothrow) CChan(uiCount);
         H_ASSERT(NULL != pChan, "malloc memory error.");
         pChan->setChanNam(pszChanName);
         pChan->setRecvTaskNam(pszTaskName);
@@ -145,7 +146,7 @@ void CWorkerDisp::regTask(const char *pszName, CWorkerTask *pTask)
     }
 }
 
-CWorker *CWorkerDisp::getFreeWorker(void)
+CWorker *CWorkerDisp::getFreeWorker(unsigned short &usIndex)
 {
     while (true)
     {
@@ -153,9 +154,12 @@ CWorker *CWorkerDisp::getFreeWorker(void)
         {
             if (WS_FREE == m_pWorker[usI].getStatus())
             {
+                usIndex = usI;
                 return &m_pWorker[usI];
             }
         }
+
+        H_Sleep(0);
     }
 
     return NULL;
@@ -172,14 +176,10 @@ CWorkerTask* CWorkerDisp::getWorkerTask(std::string *pstrName)
     return itTask->second;
 }
 
-void CWorkerDisp::Notify(std::string *pstrName, CChan *pChan)
+void CWorkerDisp::Notify(std::string *pstrName)
 {
-    CurTask stCurTask;
-    stCurTask.pChan = pChan;
-    stCurTask.pTaskName = pstrName;
-
     CLckThis objLckThis(&m_taskLock);
-    m_quTask.push(stCurTask);
+    m_quTask.push(pstrName);
     pthread_cond_signal(&m_taskCond);
 }
 
@@ -204,19 +204,26 @@ void CWorkerDisp::stopWorker(void)
 void CWorkerDisp::runSurpTask(void)
 {
     CWorkerTask *pWorkerTask = NULL;
-    CurTask stCurTask;
+    std::string *pTaskNam;
+    for (chanit itChan = m_mapChan.begin(); m_mapChan.end() != itChan; ++itChan)
+    {
+        for (size_t i = H_INIT_NUMBER; i < itChan->second->getSize(); ++i)
+        {
+            m_quTask.push(itChan->second->getRecvTaskNam());
+        }
+    }
 
     while (!m_quTask.empty())
     {
-        stCurTask = m_quTask.front();
+        pTaskNam = m_quTask.front();
         m_quTask.pop();
-        pWorkerTask = getWorkerTask(stCurTask.pTaskName);
+        pWorkerTask = getWorkerTask(pTaskNam);
         if (NULL == pWorkerTask)
         {
             continue;
         }
 
-        pWorkerTask->runTask(stCurTask.pChan);
+        pWorkerTask->runTask();
     }
 }
 
@@ -240,7 +247,8 @@ void CWorkerDisp::Run(void)
 {
     CWorker *pWorker = NULL;
     CWorkerTask *pWorkerTask = NULL;
-    CurTask stCurTask;
+    std::string *pTaskNam;
+    unsigned short usIndex(H_INIT_NUMBER);
 
     H_AtomicAdd(&m_lCount, 1);
 
@@ -250,21 +258,20 @@ void CWorkerDisp::Run(void)
         CLckThis objLckThis(&m_taskLock);
         if (!m_quTask.empty())
         {
-            stCurTask = m_quTask.front();
+            pTaskNam = m_quTask.front();
             m_quTask.pop();
-            pWorkerTask = getWorkerTask(stCurTask.pTaskName);
+            pWorkerTask = getWorkerTask(pTaskNam);
             if (NULL == pWorkerTask)
             {
                 continue;
             }
             if (H_INIT_NUMBER != pWorkerTask->getRef())
             {
-                m_quTask.push(stCurTask);
+                m_quTask.push(pTaskNam);
                 continue;
             }
 
-            pWorkerTask->setCurChan(stCurTask.pChan);
-            pWorker = getFreeWorker();
+            pWorker = getFreeWorker(usIndex);
             pWorker->setBusy();
             pWorker->addWorker(pWorkerTask);
         }

@@ -288,6 +288,15 @@ void CNetBase::closeByType(const unsigned short usSockType)
 
 void CNetBase::Join(void)
 {
+    if (RSTOP_NONE == getReadyStop())
+    {
+        readyStop();
+        while (RSTOP_RAN != getReadyStop())
+        {
+            H_Sleep(10);
+        }
+    }    
+
     H_Order stOrder;
     stOrder.usCmd = ORDER_STOP;
     sendOrder(&stOrder, sizeof(stOrder));

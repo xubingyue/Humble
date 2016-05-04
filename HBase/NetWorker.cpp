@@ -38,12 +38,12 @@ CNetWorker::~CNetWorker(void)
     m_lstTcpLink.clear();
 }
 
-void CNetWorker::setIntf(CNetIntf *pIntf)
+void CNetWorker::setIntf(CSVIntf *pIntf)
 {
     m_pIntf = pIntf;
 }
 
-CNetIntf *CNetWorker::getIntf(void)
+CSVIntf *CNetWorker::getIntf(void)
 {
     return m_pIntf;
 }

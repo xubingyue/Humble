@@ -23,11 +23,11 @@ public:
 
     void Run(void)
     {
-        runTask(m_pChan);
+        runTask();
     };
 
     virtual void initTask(const char *) = 0;
-    virtual void runTask(CChan *pChan) = 0;
+    virtual void runTask(void) = 0;
     virtual void destroyTask(void) = 0;
 
     void addRef(void)
@@ -50,14 +50,12 @@ public:
     {
         return m_strName.c_str();
     };
-    void setCurChan(CChan *pChan)
-    {
-        m_pChan = pChan;
-    };
+
+private:
+    H_DISALLOWCOPY(CWorkerTask);
 
 private:
     unsigned int m_uiRef;
-    CChan *m_pChan;
     std::string m_strName;
 };
 
@@ -76,11 +74,16 @@ public:
 
     unsigned int getStatus(void);
     void setBusy(void);
+    void setIndex(const unsigned short &usIndex)
+    {
+        m_usIndex = usIndex;
+    };
 
 private:
     H_DISALLOWCOPY(CWorker);
 
 private:
+    unsigned short m_usIndex;
     unsigned int m_uiStatus;
 };
 

@@ -96,6 +96,19 @@ void CRecvTask<T>::Run(void)
         }
     }
 
+    CLckThis objLckThis(&m_quLock);
+    while (!m_vcTask.empty())
+    {
+        pNode = m_vcTask.front();
+        m_vcTask.pop();
+
+        runTask(pNode);
+        if (m_bDel)
+        {
+            H_SafeDelete(pNode);
+        }
+    }
+
     H_AtomicAdd(&m_lCount, -1);
 }
 

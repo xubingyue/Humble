@@ -529,9 +529,6 @@
     <ClInclude Include="NETAddr.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="NetIntf.h">
-      <Filter>Service</Filter>
-    </ClInclude>
     <ClInclude Include="NetWorker.h">
       <Filter>Service</Filter>
     </ClInclude>
@@ -601,7 +598,7 @@
     <ClInclude Include="Tick.h">
       <Filter>Service</Filter>
     </ClInclude>
-    <ClInclude Include="TickIntf.h">
+    <ClInclude Include="SVIntf.h">
       <Filter>Service</Filter>
     </ClInclude>
   </ItemGroup>

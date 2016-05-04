@@ -16,11 +16,15 @@ public:
     CWorkerDisp(void);
     ~CWorkerDisp(void);
 
-    CChan *regSendChan(const char *pszChanName, const char *pszTaskName);
-    CChan *regRecvChan(const char *pszChanName, const char *pszTaskName);
+    CChan *regSendChan(const char *pszChanName, const char *pszTaskName, const unsigned int uiCount);
+    CChan *regRecvChan(const char *pszChanName, const char *pszTaskName, const unsigned int uiCount);
     CChan *getChan(const char *pszChanName);
 
     void setThreadNum(const unsigned short usNum);
+    unsigned short getThreadNum(void)
+    {
+        return m_usThreadNum;
+    };
 
     void regTask(const char *pszName, CWorkerTask *pTask);
 
@@ -28,10 +32,10 @@ public:
     void Join(void);
     void waitStart(void);
 
-    void Notify(std::string *pstrName, CChan *pChan);
+    void Notify(std::string *pstrName);
 
 private:
-    CWorker *getFreeWorker(void);
+    CWorker *getFreeWorker(unsigned short &usIndex);
     CWorkerTask* getWorkerTask(std::string *pstrName);
     void stopNet(void);
     void stopWorker(void);
@@ -73,7 +77,7 @@ private:
     task_map m_mapTask;
     pthread_mutex_t m_taskLock;
     pthread_cond_t m_taskCond;
-    std::queue<CurTask> m_quTask;
+    std::queue<std::string *> m_quTask;
 };
 
 H_ENAMSP

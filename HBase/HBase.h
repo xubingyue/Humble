@@ -39,7 +39,6 @@
 #include "Tick.h"
 
 #include "jwsmtp/mailer.h"
-#include "pugixml/pugixml.hpp"
 
 extern std::string g_strProPath;
 extern std::string g_strScriptPath;

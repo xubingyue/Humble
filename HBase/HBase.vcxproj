@@ -112,7 +112,6 @@
     <ClInclude Include="md5.h" />
     <ClInclude Include="NETAddr.h" />
     <ClInclude Include="NetBase.h" />
-    <ClInclude Include="NetIntf.h" />
     <ClInclude Include="NetWorker.h" />
     <ClInclude Include="pbc\alloc.h" />
     <ClInclude Include="pbc\array.h" />
@@ -148,11 +147,11 @@
     <ClInclude Include="SnowFlake.h" />
     <ClInclude Include="sproto\msvcint.h" />
     <ClInclude Include="sproto\sproto.h" />
+    <ClInclude Include="SVIntf.h" />
     <ClInclude Include="TableFile.h" />
     <ClInclude Include="Task.h" />
     <ClInclude Include="Thread.h" />
     <ClInclude Include="Tick.h" />
-    <ClInclude Include="TickIntf.h" />
     <ClInclude Include="uchardet\CharDistribution.h" />
     <ClInclude Include="uchardet\JpCntx.h" />
     <ClInclude Include="uchardet\nsBig5Prober.h" />

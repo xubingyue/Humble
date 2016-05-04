@@ -5,65 +5,110 @@
 
 H_BNAMSP
 
-CChan::CChan(void) : m_uiClose(H_INIT_NUMBER)
+CChan::CChan(const unsigned int &uiCount) : m_bClose(false), m_uiRWait(H_INIT_NUMBER),
+    m_uiWWait(H_INIT_NUMBER)
 {
+    H_ASSERT(uiCount >0 , "count must big than zero.");
+    m_uiCount = uiCount;
+
+    pthread_mutex_init(&m_quLock, NULL);
+    pthread_cond_init(&m_pWCond, NULL);
+    pthread_cond_init(&m_pRCond, NULL);
 }
 
 CChan::~CChan(void)
 {
+    pthread_cond_destroy(&m_pWCond);
+    pthread_cond_destroy(&m_pRCond);
+    pthread_mutex_destroy(&m_quLock);
 }
 
 void CChan::Close(void)
 {
-    H_AtomicAdd(&m_uiClose, 1);
+    CLckThis objLock(&m_quLock);
+    m_bClose = true;
+    pthread_cond_broadcast(&m_pWCond);
+    pthread_cond_broadcast(&m_pRCond);
+}
+
+bool CChan::canSend(void)
+{
+    CLckThis objLock(&m_quLock);
+    return  m_bClose ? false : (m_quData.size() < m_uiCount);
 }
 
 void CChan::Send(void *pszVal)
 {
-    if (H_INIT_NUMBER != H_AtomicGet(&m_uiClose))
+    CLckThis objLock(&m_quLock);
+    if (m_bClose)
     {
         return;
     }
 
-    m_quLock.Lock();
-    m_quData.push(pszVal);
-    m_quLock.unLock();
+    while (m_quData.size() == m_uiCount)
+    {
+        if (m_bClose)
+        {
+            return;
+        }
 
-    CWorkerDisp::getSingletonPtr()->Notify(&m_strRecvTask, this);
+        ++m_uiWWait;
+        pthread_cond_wait(&m_pWCond, objLock.getMutex());
+        --m_uiWWait;
+    }
+
+    m_quData.push(pszVal);
+    CWorkerDisp::getSingletonPtr()->Notify(&m_strRecvTask);
+
+    if (m_uiRWait > H_INIT_NUMBER)
+    {
+        pthread_cond_signal(&m_pRCond);
+    }
 }
 
 bool CChan::canRecv(void)
 {
-    bool bCan(false);
-    m_quLock.Lock();
-    if (!m_quData.empty())
-    {
-        bCan = true;
-    }
-    m_quLock.unLock();
-
-    return bCan;
+    CLckThis objLock(&m_quLock);
+    return m_bClose ? false : !(m_quData.empty());
 }
 
 void *CChan::Recv(void)
 {
     void *pVal = NULL;
 
-    m_quLock.Lock();
-    if (!m_quData.empty())
+    CLckThis objLock(&m_quLock);
+    while (m_quData.empty())
     {
-        pVal = m_quData.front();
-        m_quData.pop();
+        if (m_bClose)
+        {
+            return NULL;
+        }
+
+        ++m_uiRWait;
+        pthread_cond_wait(&m_pRCond, objLock.getMutex());
+        --m_uiRWait;        
+    }
+
+    pVal = m_quData.front();
+    m_quData.pop();
+
+    if (!m_bClose)
+    {
+        CWorkerDisp::getSingletonPtr()->Notify(&m_strSendTask);
     }    
-    m_quLock.unLock();
-    
-    if (H_INIT_NUMBER == H_AtomicGet(&m_uiClose)
-        && NULL != pVal)
+
+    if (m_uiWWait > H_INIT_NUMBER)
     {
-        CWorkerDisp::getSingletonPtr()->Notify(&m_strSendTask, this);
+        pthread_cond_signal(&m_pWCond);
     }
 
     return pVal;
+}
+
+size_t CChan::getSize(void)
+{
+    CLckThis objLock(&m_quLock);
+    return m_quData.size();
 }
 
 void CChan::setChanNam(const char *pszName)
@@ -93,6 +138,11 @@ void CChan::setRecvTaskNam(const char *pszName)
     }
 
     m_strRecvTask = pszName;
+}
+
+std::string *CChan::getRecvTaskNam(void)
+{
+    return &m_strRecvTask;
 }
 
 H_ENAMSP

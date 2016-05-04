@@ -5,7 +5,7 @@
 #include "NetBase.h"
 #include "Singleton.h"
 #include "Chan.h"
-#include "TickIntf.h"
+#include "SVIntf.h"
 
 H_BNAMSP
 
@@ -16,12 +16,13 @@ public:
     ~CTick(void);
 
     void onStart(void);
+    void onReadyStop(void);
 
-    void setIntf(class CTickIntf *pIntf)
+    void setIntf(class CSVIntf *pIntf)
     {
         m_pIntf = pIntf;
     };
-    class CTickIntf * getIntf(void)
+    class CSVIntf * getIntf(void)
     {
         return m_pIntf;
     };
@@ -32,17 +33,34 @@ public:
     void addTickCount(void);
     unsigned int getTickCount(void);
 
+    void setThreadNum(const unsigned short usNum);
+    void Monitor(void);
+    void monitorTrigger(const unsigned short &usIndex, const char *pName);
+
+public:
     static void timeCB(H_SOCK, short, void *arg);
+    static void monitorCB(H_SOCK, short, void *arg);
 
 private:
     H_DISALLOWCOPY(CTick);
-    struct event *intiTick(const unsigned int &uiMS);
+    struct event *initTimeEv(const unsigned int uiMS, event_callback_fn func);
+    struct ThreadMonitor
+    {
+        unsigned int uiVersion;
+        unsigned int uiCheckVersion;
+        char *pName;
+        ThreadMonitor(void) : uiVersion(H_INIT_NUMBER), uiCheckVersion(H_INIT_NUMBER), pName(NULL)
+        {};
+    };
 
 private:
+    unsigned short m_usMonitorNum;
     unsigned int m_uiTick;
     unsigned int m_uiTickCount;
     struct event *m_pTickEvent;
-    CTickIntf *m_pIntf;
+    struct event *m_pMonitorEv;
+    CSVIntf *m_pIntf;
+    ThreadMonitor *m_pMonitor;
 };
 
 H_ENAMSP

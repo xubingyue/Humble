@@ -458,8 +458,7 @@ struct Stack <void *>
     }
     static inline void* get(lua_State* L, int index)
     {
-        void *pval = lua_touserdata(L, index);
-        return pval;
+        return lua_touserdata(L, index);
     }
 };
 

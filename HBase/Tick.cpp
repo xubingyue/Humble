@@ -1,14 +1,15 @@
 
 #include "Tick.h"
 #include "WorkerDisp.h"
+#include "Log.h"
 
 H_BNAMSP
 
 SINGLETON_INIT(CTick)
 CTick objTick;
 
-CTick::CTick(void) : m_uiTick(H_INIT_NUMBER), m_uiTickCount(H_INIT_NUMBER), 
-    m_pTickEvent(NULL), m_pIntf(NULL)
+CTick::CTick(void) : m_usMonitorNum(H_INIT_NUMBER), m_uiTick(H_INIT_NUMBER), m_uiTickCount(H_INIT_NUMBER),
+    m_pTickEvent(NULL), m_pMonitorEv(NULL), m_pIntf(NULL), m_pMonitor(NULL)
 {
 
 }
@@ -20,6 +21,13 @@ CTick::~CTick(void)
         event_free(m_pTickEvent);
         m_pTickEvent = NULL;
     }
+    if (NULL != m_pMonitorEv)
+    {
+        event_free(m_pMonitorEv);
+        m_pMonitorEv = NULL;
+    }
+
+    H_SafeDelArray(m_pMonitor);
 }
 
 void CTick::setTick(const unsigned int uiMS)
@@ -43,6 +51,43 @@ unsigned int CTick::getTickCount(void)
     return m_uiTickCount;
 }
 
+void CTick::setThreadNum(const unsigned short usNum)
+{
+    m_usMonitorNum = usNum;
+    m_pMonitor = new(std::nothrow) ThreadMonitor[m_usMonitorNum];
+    H_ASSERT(NULL != m_pMonitor, "malloc memory error.");
+}
+
+void CTick::monitorTrigger(const unsigned short &usIndex, const char *pName)
+{
+    ThreadMonitor *pMonitor = &m_pMonitor[usIndex];
+    pMonitor->pName = (char*)pName;
+    H_AtomicAdd(&(pMonitor->uiVersion), 1);
+}
+
+void CTick::Monitor(void)
+{
+    unsigned int uiVer(H_INIT_NUMBER);
+    ThreadMonitor *pMonitor = NULL;
+
+    for (unsigned short usI = H_INIT_NUMBER;  usI < m_usMonitorNum; ++usI)
+    {
+        pMonitor = &m_pMonitor[usI];
+        uiVer = H_AtomicGet(&(pMonitor->uiVersion));
+        if (uiVer == pMonitor->uiCheckVersion)
+        {
+            if (NULL != pMonitor->pName)
+            {
+                H_LOG(LOGLV_WARN, "task %s maybe in an endless loop.", pMonitor->pName);
+            }
+        }
+        else
+        {
+            pMonitor->uiCheckVersion = uiVer;
+        }
+    }
+}
+
 void CTick::timeCB(H_SOCK, short, void *arg)
 {
     CTick *pTick = (CTick *)arg;
@@ -50,7 +95,13 @@ void CTick::timeCB(H_SOCK, short, void *arg)
     pTick->getIntf()->onTime(pTick->getTick(), pTick->getTickCount());
 }
 
-struct event *CTick::intiTick(const unsigned int &uiMS)
+void CTick::monitorCB(H_SOCK, short, void *arg)
+{
+    CTick *pTick = (CTick *)arg;
+    pTick->Monitor();
+}
+
+struct event *CTick::initTimeEv(const unsigned int uiMS, event_callback_fn func)
 {
     timeval tVal;
     evutil_timerclear(&tVal);
@@ -65,7 +116,7 @@ struct event *CTick::intiTick(const unsigned int &uiMS)
     }
 
     struct event *pEvent = event_new(getBase(),
-        -1, EV_PERSIST, timeCB, this);
+        -1, EV_PERSIST, func, this);
     H_ASSERT(NULL != pEvent, "event_new error.");
     (void)event_add(pEvent, &tVal);
 
@@ -74,7 +125,14 @@ struct event *CTick::intiTick(const unsigned int &uiMS)
 
 void CTick::onStart(void)
 {
-    m_pTickEvent = intiTick(m_uiTick);
+    m_pIntf->onStart();
+    m_pTickEvent = initTimeEv(m_uiTick, timeCB);
+    m_pMonitorEv = initTimeEv(5000, monitorCB);
+}
+
+void CTick::onReadyStop(void)
+{
+    m_pIntf->onStop();
 }
 
 H_ENAMSP

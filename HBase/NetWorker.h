@@ -3,7 +3,7 @@
 #define H_NETWORKER_H_
 
 #include "NetBase.h"
-#include "NetIntf.h"
+#include "SVIntf.h"
 #include "Singleton.h"
 
 H_BNAMSP
@@ -30,8 +30,8 @@ public:
     void onLinked(H_Session *pSession);
     void onRead(H_Session *pSession);
 
-    void setIntf(CNetIntf *pIntf);
-    CNetIntf *getIntf(void);    
+    void setIntf(CSVIntf *pIntf);
+    CSVIntf *getIntf(void);
 
     void tcpListen(const unsigned short usSockType, const char *pszHost, const unsigned short usPort);
     void addTcpLink(const unsigned short usSockType, const char *pszHost, const unsigned short usPort);
@@ -61,7 +61,7 @@ private:
 
 private:
     unsigned int m_uiLinkID;
-    CNetIntf *m_pIntf;
+    CSVIntf *m_pIntf;
     listener_map m_mapLstType;
     std::vector<struct evconnlistener *> m_vcListener;
     std::list<H_TcpLink*> m_lstTcpLink;
