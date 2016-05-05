@@ -7,6 +7,16 @@ H_BNAMSP
 
 #define H_TCPKEEPCOUNT    5
 
+#ifdef H_OS_WIN
+    #define IS_EAGAIN(e) (WSAEWOULDBLOCK == (e) || EAGAIN == (e))
+#else
+    #if EAGAIN == EWOULDBLOCK
+        #define IS_EAGAIN(e) (EAGAIN == (e))
+    #else
+        #define IS_EAGAIN(e) (EAGAIN == (e) || EWOULDBLOCK == (e))
+    #endif
+#endif
+
 //¥Û–°∂À
 static union  
 {
@@ -600,7 +610,27 @@ int H_SockPair(H_SOCK acSock[2])
     return H_RTN_OK;
 }
 
-void H_SockWrite(H_SOCK &fd, const char *pBuf, const size_t &iLens)
+static bool selectWrite(H_SOCK &fd)
+{
+    int iRtn(H_RTN_OK);
+    struct timeval stTime;    
+    fd_set fdWrite;
+
+    FD_ZERO(&fdWrite);
+    FD_SET(fd, &fdWrite);
+    stTime.tv_sec = 1;
+    stTime.tv_usec = 0;
+
+    iRtn = select(fd + 1, NULL, &fdWrite, NULL, &stTime);
+    if (iRtn <= 0)
+    {
+        return false;
+    }
+
+    return ((H_INIT_NUMBER == FD_ISSET(fd, &fdWrite)) ? false : true);
+}
+
+bool H_SockWrite(H_SOCK &fd, const char *pBuf, const size_t &iLens)
 {
     int iSendSize(H_INIT_NUMBER);
     size_t iSendTotalSize(H_INIT_NUMBER);
@@ -610,15 +640,24 @@ void H_SockWrite(H_SOCK &fd, const char *pBuf, const size_t &iLens)
         iSendSize = send(fd, pBuf + iSendTotalSize, (int)(iLens - iSendTotalSize), 0);
         if (iSendSize <= 0)
         {
-            int iRtn = H_SockError();
-            H_Printf("send error. error code %d, message %s ", iRtn, H_SockError2Str(iRtn));
+            int iRtn = H_SockError();            
+            if (IS_EAGAIN(iRtn))
+            {
+                if (selectWrite(fd))
+                {
+                    continue;
+                }
+            }
 
-            return;
+            H_Printf("send error. error code %d, message %s ", iRtn, H_SockError2Str(iRtn));
+            return false;
         }
 
         iSendTotalSize += (size_t)iSendSize;
 
     } while (iLens > iSendTotalSize);
+
+    return true;
 }
 
 H_ENAMSP

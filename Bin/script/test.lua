@@ -6,7 +6,6 @@ local serialize = require("serialize")
 local humble = require("humble")
 local table = table
 local string = string
-local ChanNam = ChanNam
 
 if not g_tChan then
     g_tChan = {}    
@@ -14,14 +13,14 @@ end
 local tChan = g_tChan
 
 function initTask()
-    tChan.timer = humble.regRecvChan(ChanNam.Timer, "test", 10)
+    tChan.timer = humble.getRecvChan("timetick", "test")
 end
 
 function runTask()
     if tChan.timer:canRecv() then
         local varRecv = tChan.timer:Recv()
         local itick, icount = table.unpack(serialize.unpack(varRecv))
-        print(string.format("timer task tick %d count %d", itick, icount))
+        --print(string.format("timer task tick %d count %d", itick, icount))
     end
 end
 

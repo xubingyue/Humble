@@ -16,9 +16,9 @@ public:
     CWorkerDisp(void);
     ~CWorkerDisp(void);
 
-    CChan *regSendChan(const char *pszChanName, const char *pszTaskName, const unsigned int uiCount);
-    CChan *regRecvChan(const char *pszChanName, const char *pszTaskName, const unsigned int uiCount);
-    CChan *getChan(const char *pszChanName);
+    void regChan(const char *pszChanName, const unsigned int uiCount);
+    CChan *getSendChan(const char *pszChanName, const char *pszTaskName);
+    CChan *getRecvChan(const char *pszChanName, const char *pszTaskName);
 
     void setThreadNum(const unsigned short usNum);
     unsigned short getThreadNum(void)
@@ -73,6 +73,7 @@ private:
     long m_lCount;
     CWorker *m_pWorker;
     CRWLock m_objChanLock;
+    CRWLock m_objLockTask;
     chan_map m_mapChan;
     task_map m_mapTask;
     pthread_mutex_t m_taskLock;

@@ -37,9 +37,8 @@ struct H_Session
     struct bufferevent *pBev;
     class CNetBase *pNetBase;
     H_SOCK sock;
-    uint64_t uiID;
     H_Session(void) : bLinker(false), usSockType(H_INIT_NUMBER), usStatus(H_INIT_NUMBER), uiSession(H_INIT_NUMBER),
-        pBev(NULL), pNetBase(NULL), sock(H_INVALID_SOCK), uiID(H_INIT_NUMBER)
+        pBev(NULL), pNetBase(NULL), sock(H_INVALID_SOCK)
     { };
 };
 

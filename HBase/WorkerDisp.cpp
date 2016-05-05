@@ -3,6 +3,7 @@
 #include "Thread.h"
 #include "LockThis.h"
 #include "NetWorker.h"
+#include "Log.h"
 
 H_BNAMSP
 
@@ -52,66 +53,33 @@ void CWorkerDisp::setThreadNum(const unsigned short usNum)
     }
 }
 
-CChan *CWorkerDisp::regSendChan(const char *pszChanName, const char *pszTaskName, const unsigned int uiCount)
+void CWorkerDisp::regChan(const char *pszChanName, const unsigned int uiCount)
 {
     H_ASSERT(NULL != pszChanName && 0 != strlen(pszChanName), "chan name error.");
-    H_ASSERT(NULL != pszTaskName && 0 != strlen(pszTaskName), "task name error.");
-
     std::string strName(pszChanName);
-    CChan *pChan = NULL;
 
     m_objChanLock.wLock();
     chanit itChan = m_mapChan.find(strName);
     if (m_mapChan.end() == itChan)
     {
-        pChan = new(std::nothrow) CChan(uiCount);
+        CChan *pChan = new(std::nothrow) CChan(uiCount);
         H_ASSERT(NULL != pChan, "malloc memory error.");
         pChan->setChanNam(pszChanName);
-        pChan->setSendTaskNam(pszTaskName);
 
         m_mapChan.insert(std::make_pair(strName, pChan));
     }
     else
-    {        
-        pChan = itChan->second;
-        pChan->setSendTaskNam(pszTaskName);        
+    {
+        H_ASSERT(false, H_FormatStr("chan %s already register.", pszChanName).c_str());
     }
     m_objChanLock.unLock();
-
-    return pChan;
 }
 
-CChan *CWorkerDisp::regRecvChan(const char *pszChanName, const char *pszTaskName, const unsigned int uiCount)
+CChan *CWorkerDisp::getSendChan(const char *pszChanName, const char *pszTaskName)
 {
     H_ASSERT(NULL != pszChanName && 0 != strlen(pszChanName), "chan name error.");
     H_ASSERT(NULL != pszTaskName && 0 != strlen(pszTaskName), "task name error.");
 
-    std::string strName(pszChanName);
-    CChan *pChan = NULL;
-
-    m_objChanLock.wLock();
-    chanit itChan = m_mapChan.find(strName);
-    if (m_mapChan.end() == itChan)
-    {
-        pChan = new(std::nothrow) CChan(uiCount);
-        H_ASSERT(NULL != pChan, "malloc memory error.");
-        pChan->setChanNam(pszChanName);
-        pChan->setRecvTaskNam(pszTaskName);
-
-        m_mapChan.insert(std::make_pair(strName, pChan));
-    }
-    else
-    {
-        pChan = itChan->second;
-        pChan->setRecvTaskNam(pszTaskName);
-    }
-    m_objChanLock.unLock();
-
-    return pChan;
-}
-
-CChan *CWorkerDisp::getChan(const char *pszChanName)
-{
     std::string strName(pszChanName);
     CChan *pChan = NULL;
 
@@ -120,6 +88,27 @@ CChan *CWorkerDisp::getChan(const char *pszChanName)
     if (m_mapChan.end() != itChan)
     {
         pChan = itChan->second;
+        pChan->setSendTaskNam(pszTaskName);
+    }
+    m_objChanLock.unLock();
+
+    return pChan;
+}
+
+CChan *CWorkerDisp::getRecvChan(const char *pszChanName, const char *pszTaskName)
+{
+    H_ASSERT(NULL != pszChanName && 0 != strlen(pszChanName), "chan name error.");
+    H_ASSERT(NULL != pszTaskName && 0 != strlen(pszTaskName), "task name error.");
+
+    std::string strName(pszChanName);
+    CChan *pChan = NULL;
+
+    m_objChanLock.rLock();
+    chanit itChan = m_mapChan.find(strName);
+    if (m_mapChan.end() != itChan)
+    {
+        pChan = itChan->second;
+        pChan->setRecvTaskNam(pszTaskName);
     }
     m_objChanLock.unLock();
 
@@ -133,6 +122,7 @@ void CWorkerDisp::regTask(const char *pszName, CWorkerTask *pTask)
 
     std::string strName(pszName);
 
+    m_objLockTask.wLock();
     taskit itTask = m_mapTask.find(strName);
     if (m_mapTask.end() == itTask)
     {
@@ -144,6 +134,7 @@ void CWorkerDisp::regTask(const char *pszName, CWorkerTask *pTask)
         std::string strErro = H_FormatStr("task name %s already exist.", pszName);
         H_ASSERT(false, strErro.c_str());
     }
+    m_objLockTask.unLock();
 }
 
 CWorker *CWorkerDisp::getFreeWorker(unsigned short &usIndex)
@@ -167,13 +158,17 @@ CWorker *CWorkerDisp::getFreeWorker(unsigned short &usIndex)
 
 CWorkerTask* CWorkerDisp::getWorkerTask(std::string *pstrName)
 {
+    CWorkerTask *pWorkerTask = NULL;
+
+    m_objLockTask.rLock();
     taskit itTask = m_mapTask.find(*pstrName);
-    if (m_mapTask.end() == itTask)
+    if (m_mapTask.end() != itTask)
     {
-        return NULL;
+        pWorkerTask = itTask->second;
     }
+    m_objLockTask.unLock();
     
-    return itTask->second;
+    return pWorkerTask;
 }
 
 void CWorkerDisp::Notify(std::string *pstrName)
@@ -204,26 +199,39 @@ void CWorkerDisp::stopWorker(void)
 void CWorkerDisp::runSurpTask(void)
 {
     CWorkerTask *pWorkerTask = NULL;
-    std::string *pTaskNam;
+    std::string *pTaskNam; 
+
     for (chanit itChan = m_mapChan.begin(); m_mapChan.end() != itChan; ++itChan)
     {
         for (size_t i = H_INIT_NUMBER; i < itChan->second->getSize(); ++i)
         {
+            CLckThis objLckThis(&m_taskLock);
             m_quTask.push(itChan->second->getRecvTaskNam());
         }
     }
-
-    while (!m_quTask.empty())
+   
+    while (true)
     {
-        pTaskNam = m_quTask.front();
-        m_quTask.pop();
-        pWorkerTask = getWorkerTask(pTaskNam);
-        if (NULL == pWorkerTask)
+        pTaskNam = NULL;
         {
-            continue;
+            CLckThis objLckThis(&m_taskLock);
+            if (!m_quTask.empty())
+            {
+                pTaskNam = m_quTask.front();
+                m_quTask.pop();
+            }
         }
 
-        pWorkerTask->runTask();
+        if (NULL == pTaskNam)
+        {
+            break;
+        }
+
+        pWorkerTask = getWorkerTask(pTaskNam);
+        if (NULL != pWorkerTask)
+        {
+            pWorkerTask->runTask();
+        }
     }
 }
 
@@ -255,30 +263,36 @@ void CWorkerDisp::Run(void)
     //正常调度
     while (RS_RUN == H_AtomicGet(&m_lExit))
     {
-        CLckThis objLckThis(&m_taskLock);
-        if (!m_quTask.empty())
+        pTaskNam = NULL;
         {
-            pTaskNam = m_quTask.front();
-            m_quTask.pop();
-            pWorkerTask = getWorkerTask(pTaskNam);
-            if (NULL == pWorkerTask)
+            CLckThis objLckThis(&m_taskLock);
+            if (!m_quTask.empty())
             {
+                pTaskNam = m_quTask.front();
+                m_quTask.pop();
+            }
+            else
+            {
+                pthread_cond_wait(&m_taskCond, objLckThis.getMutex());
                 continue;
             }
-            if (H_INIT_NUMBER != pWorkerTask->getRef())
-            {
-                m_quTask.push(pTaskNam);
-                continue;
-            }
+        }
 
-            pWorker = getFreeWorker(usIndex);
-            pWorker->setBusy();
-            pWorker->addWorker(pWorkerTask);
-        }
-        else
+        pWorkerTask = getWorkerTask(pTaskNam);
+        if (NULL == pWorkerTask)
         {
-            pthread_cond_wait(&m_taskCond, objLckThis.getMutex());
+            continue;
         }
+        if (H_INIT_NUMBER != pWorkerTask->getRef())
+        {
+            CLckThis objLckThis(&m_taskLock);
+            m_quTask.push(pTaskNam);
+            continue;
+        }
+
+        pWorker = getFreeWorker(usIndex);
+        pWorker->setBusy();
+        pWorker->addWorker(pWorkerTask);        
     }
 
     //停止网络

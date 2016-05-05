@@ -35,7 +35,7 @@ void H_GetTimeOfDay(struct timeval &stTime);
 
 void H_KeepAlive(H_SOCK &fd, const unsigned int iKeepIdle, const unsigned int iKeepInterval);
 int H_SockPair(H_SOCK acSock[2]);
-void H_SockWrite(H_SOCK &fd, const char *pBuf, const size_t &iLens);
+bool H_SockWrite(H_SOCK &fd, const char *pBuf, const size_t &iLens);
 
 /*×ª×Ö·û´®*/
 template<typename T>

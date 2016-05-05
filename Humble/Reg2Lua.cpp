@@ -74,9 +74,9 @@ void H_RegWorkerDisp(struct lua_State *pLState)
 {
     luabridge::getGlobalNamespace(pLState)
         .beginClass<CWorkerDisp>("CWorkerDisp")
-            .addFunction("regSendChan", &CWorkerDisp::regSendChan)
-            .addFunction("regRecvChan", &CWorkerDisp::regRecvChan)
-            .addFunction("getChan", &CWorkerDisp::getChan)
+            .addFunction("regChan", &CWorkerDisp::regChan)
+            .addFunction("getSendChan", &CWorkerDisp::getSendChan)
+            .addFunction("getRecvChan", &CWorkerDisp::getRecvChan)
             .addFunction("regTask", &CWorkerDisp::regTask)
         .endClass();
 }
@@ -302,7 +302,6 @@ void H_RegSession(struct lua_State *pLState)
             .addData("status", &H_Session::usStatus)
             .addData("session", &H_Session::uiSession)
             .addData("sock", &H_Session::sock)
-            .addData("id", &H_Session::uiID)
         .endClass();
 }
 
@@ -325,11 +324,13 @@ void H_RegEvbuffer(struct lua_State *pLState)
 void H_RegNetWorker(struct lua_State *pLState)
 {
     luabridge::getGlobalNamespace(pLState)
-        .beginClass<CNetWorker>("CNetWorker")
+        .beginClass<CNetBase>("CNetBase")
+            .addFunction("closeSock", &CNetBase::closeSock)
+            .addFunction("closeByType", &CNetBase::closeByType)
+        .endClass()
+        .deriveClass<CNetWorker, CNetBase>("CNetWorker")
             .addFunction("tcpListen", &CNetWorker::tcpListen)
             .addFunction("addTcpLink", &CNetWorker::addTcpLink)
-            .addFunction("closeSock", &CNetWorker::closeSock)
-            .addFunction("closeByType", &CNetWorker::closeByType)
         .endClass();
 }
 

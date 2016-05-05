@@ -40,14 +40,14 @@ function humble.sendMail(strMail)
 end
 
 --chan×¢²á
-function humble.regSendChan(strChanNam, strTaskNam, uiCount)
-    return pWorkerMgr:regSendChan(strChanNam, strTaskNam, uiCount)
+function humble.getSendChan(strChanNam, strTaskNam)
+    return pWorkerMgr:getSendChan(strChanNam, strTaskNam)
 end
-function humble.regRecvChan(strChanNam, strTaskNam, uiCount)
-    return pWorkerMgr:regRecvChan(strChanNam, strTaskNam, uiCount)
+function humble.getRecvChan(strChanNam, strTaskNam)
+    return pWorkerMgr:getRecvChan(strChanNam, strTaskNam)
 end
-function humble.getChan(strChanNam)
-    return pWorkerMgr:getChan(strChanNam)
+function humble.regChan(strChanNam, uiCount)
+    pWorkerMgr:regChan(strChanNam, uiCount)
 end
 function humble.regTask(strNam)
     return pWorkerMgr:regTask(strNam, newLuaTask())

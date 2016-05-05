@@ -25,7 +25,7 @@ void CWorker::runTask(CWorkerTask *pMsg)
     pMsg->Run();
     CTick::getSingletonPtr()->monitorTrigger(m_usIndex, NULL);
     H_AtomicSet(&m_uiStatus, WS_FREE);
-    pMsg->subRef();    
+    pMsg->subRef();
 }
 
 unsigned int CWorker::getStatus(void)

@@ -63,7 +63,7 @@ void CNetBase::freeSession(H_Session *pSession)
 void CNetBase::sendOrder(const void *pBuf, const size_t iLens)
 {
     m_objOrderLock.Lock();
-    H_SockWrite(m_sockOrder[1], (const char*)pBuf, iLens);
+    (void)H_SockWrite(m_sockOrder[1], (const char*)pBuf, iLens);
     m_objOrderLock.unLock();
 }
 
@@ -162,7 +162,6 @@ H_Session *CNetBase::addTcpEv(H_SOCK &sock, const unsigned short &usSockType)
     pSession->usSockType = usSockType;
     pSession->usStatus = H_INIT_NUMBER;
     pSession->pBev = pBev;
-    pSession->uiID = H_INIT_NUMBER;
 
     bufferevent_setcb(pBev, tcpReadCB, NULL, tcpEventCB, pSession);
     (void)bufferevent_enable(pBev, EV_READ);
@@ -199,9 +198,12 @@ void CNetBase::orderReadCB(struct bufferevent *bev, void *arg)
         {
             case ORDER_RSTOP:
             {
-                pBase->setReadyStop(RSTOP_RUN);
-                pBase->onReadyStop();
-                pBase->setReadyStop(RSTOP_RAN);
+                if (RSTOP_NONE == pBase->getReadyStop())
+                {
+                    pBase->setReadyStop(RSTOP_RUN);
+                    pBase->onReadyStop();
+                    pBase->setReadyStop(RSTOP_RAN);
+                }                
             }
             break;
             case ORDER_STOP:
@@ -239,9 +241,10 @@ void CNetBase::orderReadCB(struct bufferevent *bev, void *arg)
 }
 
 void CNetBase::Run(void)
-{
-    H_AtomicAdd(&m_uiCount, 1);
+{    
     onStart();
+
+    H_AtomicAdd(&m_uiCount, 1);
     (void)event_base_dispatch(m_pBase);
     H_AtomicAdd(&m_uiCount, -1);
 }

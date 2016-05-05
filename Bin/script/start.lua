@@ -9,7 +9,6 @@ require("macros")
 local serialize = require("serialize")
 local humble = require("humble")
 local table = table
-local ChanNam = ChanNam
 local SockType = SockType
 local pTcpBuffer = g_pTcpBuffer
 
@@ -19,33 +18,38 @@ end
 local tChan = g_tChan
 
 --初始化
-function onStart()   
-    tChan.echo = humble.regSendChan("echochan", "netdisp", 10)
-    
+function onStart()
     humble.tcpListen(1, "0.0.0.0", 15000)
-    --humble.addTcpLink(1, "127.0.0.1", 15000)    --
+    --humble.addTcpLink(1, "127.0.0.1", 15000)  
+    
+    humble.regChan("echochan", 1024)
+    humble.regChan("timetick", 1024)
     
     humble.regTask("echo")
-    humble.regTask("test")
+    humble.regTask("test")      
+    
+    tChan.echo = humble.getSendChan("echochan", "start")
 end
 
 --退出，主要清理掉连接
 function onStop()
-    print("net onStop")
+    humble.closeByType(1)
 end
 
 function onTcpLinked(pSession)
-    print("onTcpLinked")
+    
 end
 
 function onTcpClose(pSession)
-    print("onTcpClose")
+    
 end
 
 function onTcpRead(pSession)
     local iLens = pTcpBuffer:getTotalLens()
     local objBinary = pTcpBuffer:readBuffer(iLens)
     local strMsg = objBinary:getByte(objBinary:getSurpLens())
-    tChan.echo:Send(serialize.pack({pSession.sock, pSession.session, strMsg}))
+    --if tChan.echo:canSend() then
+        tChan.echo:Send(serialize.pack({pSession.sock, pSession.session, strMsg}))
+    --end
     pTcpBuffer:delBuffer(iLens)
 end

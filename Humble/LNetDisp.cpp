@@ -30,7 +30,7 @@ CLNetDisp::CLNetDisp(void) : m_pLState(NULL), m_pLFunc(NULL)
         H_ASSERT(false, e.what());
     }
 
-    std::string strLuaFile = g_strScriptPath +  "netdisp.lua";
+    std::string strLuaFile = g_strScriptPath +  "start.lua";
     if (H_RTN_OK != luaL_dofile(m_pLState, strLuaFile.c_str()))
     {
         const char *pError = lua_tostring(m_pLState, -1);
