@@ -113,6 +113,63 @@
     <ClInclude Include="NETAddr.h" />
     <ClInclude Include="NetBase.h" />
     <ClInclude Include="NetWorker.h" />
+    <ClInclude Include="ObjectPool.h" />
+    <ClInclude Include="oolua2.0.1\char_arrays.h" />
+    <ClInclude Include="oolua2.0.1\class_from_stack.h" />
+    <ClInclude Include="oolua2.0.1\default_trait_caller.h" />
+    <ClInclude Include="oolua2.0.1\dsl_va_args.h" />
+    <ClInclude Include="oolua2.0.1\lua_includes.h" />
+    <ClInclude Include="oolua2.0.1\lvd_types.h" />
+    <ClInclude Include="oolua2.0.1\lvd_type_traits.h" />
+    <ClInclude Include="oolua2.0.1\oolua.h" />
+    <ClInclude Include="oolua2.0.1\oolua_boilerplate.h" />
+    <ClInclude Include="oolua2.0.1\oolua_check_result.h" />
+    <ClInclude Include="oolua2.0.1\oolua_chunk.h" />
+    <ClInclude Include="oolua2.0.1\oolua_config.h" />
+    <ClInclude Include="oolua2.0.1\oolua_dsl.h" />
+    <ClInclude Include="oolua2.0.1\oolua_dsl_export.h" />
+    <ClInclude Include="oolua2.0.1\oolua_error.h" />
+    <ClInclude Include="oolua2.0.1\oolua_exception.h" />
+    <ClInclude Include="oolua2.0.1\oolua_function.h" />
+    <ClInclude Include="oolua2.0.1\oolua_helpers.h" />
+    <ClInclude Include="oolua2.0.1\oolua_open.h" />
+    <ClInclude Include="oolua2.0.1\oolua_pull.h" />
+    <ClInclude Include="oolua2.0.1\oolua_push.h" />
+    <ClInclude Include="oolua2.0.1\oolua_ref.h" />
+    <ClInclude Include="oolua2.0.1\oolua_registration.h" />
+    <ClInclude Include="oolua2.0.1\oolua_registration_fwd.h" />
+    <ClInclude Include="oolua2.0.1\oolua_script.h" />
+    <ClInclude Include="oolua2.0.1\oolua_stack.h" />
+    <ClInclude Include="oolua2.0.1\oolua_stack_dump.h" />
+    <ClInclude Include="oolua2.0.1\oolua_stack_fwd.h" />
+    <ClInclude Include="oolua2.0.1\oolua_string.h" />
+    <ClInclude Include="oolua2.0.1\oolua_table.h" />
+    <ClInclude Include="oolua2.0.1\oolua_traits.h" />
+    <ClInclude Include="oolua2.0.1\oolua_traits_fwd.h" />
+    <ClInclude Include="oolua2.0.1\oolua_version.h" />
+    <ClInclude Include="oolua2.0.1\platform_check.h" />
+    <ClInclude Include="oolua2.0.1\proxy_base_checker.h" />
+    <ClInclude Include="oolua2.0.1\proxy_caller.h" />
+    <ClInclude Include="oolua2.0.1\proxy_class.h" />
+    <ClInclude Include="oolua2.0.1\proxy_constructor.h" />
+    <ClInclude Include="oolua2.0.1\proxy_constructor_param_tester.h" />
+    <ClInclude Include="oolua2.0.1\proxy_function_dispatch.h" />
+    <ClInclude Include="oolua2.0.1\proxy_function_exports.h" />
+    <ClInclude Include="oolua2.0.1\proxy_member_function.h" />
+    <ClInclude Include="oolua2.0.1\proxy_none_member_function.h" />
+    <ClInclude Include="oolua2.0.1\proxy_operators.h" />
+    <ClInclude Include="oolua2.0.1\proxy_public_member.h" />
+    <ClInclude Include="oolua2.0.1\proxy_stack_helper.h" />
+    <ClInclude Include="oolua2.0.1\proxy_storage.h" />
+    <ClInclude Include="oolua2.0.1\proxy_tags.h" />
+    <ClInclude Include="oolua2.0.1\proxy_tag_info.h" />
+    <ClInclude Include="oolua2.0.1\proxy_test.h" />
+    <ClInclude Include="oolua2.0.1\proxy_userdata.h" />
+    <ClInclude Include="oolua2.0.1\push_pointer_internal.h" />
+    <ClInclude Include="oolua2.0.1\stack_get.h" />
+    <ClInclude Include="oolua2.0.1\typelist_structs.h" />
+    <ClInclude Include="oolua2.0.1\type_converters.h" />
+    <ClInclude Include="oolua2.0.1\type_list.h" />
     <ClInclude Include="pbc\alloc.h" />
     <ClInclude Include="pbc\array.h" />
     <ClInclude Include="pbc\bootstrap.h" />
@@ -266,6 +323,26 @@
     <ClCompile Include="NETAddr.cpp" />
     <ClCompile Include="NetBase.cpp" />
     <ClCompile Include="NetWorker.cpp" />
+    <ClCompile Include="oolua2.0.1\class_from_stack.cpp" />
+    <ClCompile Include="oolua2.0.1\oolua.cpp" />
+    <ClCompile Include="oolua2.0.1\oolua_check_result.cpp" />
+    <ClCompile Include="oolua2.0.1\oolua_chunk.cpp" />
+    <ClCompile Include="oolua2.0.1\oolua_error.cpp" />
+    <ClCompile Include="oolua2.0.1\oolua_exception.cpp" />
+    <ClCompile Include="oolua2.0.1\oolua_function.cpp" />
+    <ClCompile Include="oolua2.0.1\oolua_helpers.cpp" />
+    <ClCompile Include="oolua2.0.1\oolua_open.cpp" />
+    <ClCompile Include="oolua2.0.1\oolua_pull.cpp" />
+    <ClCompile Include="oolua2.0.1\oolua_push.cpp" />
+    <ClCompile Include="oolua2.0.1\oolua_ref.cpp" />
+    <ClCompile Include="oolua2.0.1\oolua_registration.cpp" />
+    <ClCompile Include="oolua2.0.1\oolua_script.cpp" />
+    <ClCompile Include="oolua2.0.1\oolua_stack_dump.cpp" />
+    <ClCompile Include="oolua2.0.1\oolua_string.cpp" />
+    <ClCompile Include="oolua2.0.1\oolua_table.cpp" />
+    <ClCompile Include="oolua2.0.1\proxy_storage.cpp" />
+    <ClCompile Include="oolua2.0.1\push_pointer_internal.cpp" />
+    <ClCompile Include="oolua2.0.1\stack_get.cpp" />
     <ClCompile Include="pbc\alloc.cpp" />
     <ClCompile Include="pbc\array.cpp" />
     <ClCompile Include="pbc\bootstrap.cpp" />
@@ -443,7 +520,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;_WINSOCK_DEPRECATED_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../HBase;../HBase/bson;../HBase/event2;../HBase/jwsmtp;../HBase/lpeg;../HBase/lua5.3;../HBase/luabridge;../HBase/luacjson;../HBase/luasql;../HBase/mysql;../HBase/pbc;../HBase/pugixml;../HBase/rijndael;../HBase/RSAEuro;../HBase/sproto;../HBase/uchardet;../HBase/zlib;../HBase/redisrand;../HBase/jsoncpp;../HBase/luaserialize;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../HBase;../HBase/bson;../HBase/event2;../HBase/jwsmtp;../HBase/lpeg;../HBase/lua5.3;../HBase/luabridge;../HBase/luacjson;../HBase/luasql;../HBase/mysql;../HBase/pbc;../HBase/pugixml;../HBase/rijndael;../HBase/RSAEuro;../HBase/sproto;../HBase/uchardet;../HBase/zlib;../HBase/redisrand;../HBase/jsoncpp;../HBase/luaserialize;../HBase/oolua2.0.1;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -456,7 +533,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;_WINSOCK_DEPRECATED_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../HBase;../HBase/bson;../HBase/event2;../HBase/jwsmtp;../HBase/lpeg;../HBase/lua5.3;../HBase/luabridge;../HBase/luacjson;../HBase/luasql;../HBase/mysql;../HBase/pbc;../HBase/pugixml;../HBase/rijndael;../HBase/RSAEuro;../HBase/sproto;../HBase/uchardet;../HBase/zlib;../HBase/redisrand;../HBase/jsoncpp;../HBase/luaserialize;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../HBase;../HBase/bson;../HBase/event2;../HBase/jwsmtp;../HBase/lpeg;../HBase/lua5.3;../HBase/luabridge;../HBase/luacjson;../HBase/luasql;../HBase/mysql;../HBase/pbc;../HBase/pugixml;../HBase/rijndael;../HBase/RSAEuro;../HBase/sproto;../HBase/uchardet;../HBase/zlib;../HBase/redisrand;../HBase/jsoncpp;../HBase/luaserialize;../HBase/oolua2.0.1;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -471,7 +548,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;_WINSOCK_DEPRECATED_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../HBase;../HBase/bson;../HBase/event2;../HBase/jwsmtp;../HBase/lpeg;../HBase/lua5.3;../HBase/luabridge;../HBase/luacjson;../HBase/luasql;../HBase/mysql;../HBase/pbc;../HBase/pugixml;../HBase/rijndael;../HBase/RSAEuro;../HBase/sproto;../HBase/uchardet;../HBase/zlib;../HBase/redisrand;../HBase/jsoncpp;../HBase/luaserialize;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../HBase;../HBase/bson;../HBase/event2;../HBase/jwsmtp;../HBase/lpeg;../HBase/lua5.3;../HBase/luabridge;../HBase/luacjson;../HBase/luasql;../HBase/mysql;../HBase/pbc;../HBase/pugixml;../HBase/rijndael;../HBase/RSAEuro;../HBase/sproto;../HBase/uchardet;../HBase/zlib;../HBase/redisrand;../HBase/jsoncpp;../HBase/luaserialize;../HBase/oolua2.0.1;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -488,7 +565,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;_WINSOCK_DEPRECATED_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../HBase;../HBase/bson;../HBase/event2;../HBase/jwsmtp;../HBase/lpeg;../HBase/lua5.3;../HBase/luabridge;../HBase/luacjson;../HBase/luasql;../HBase/mysql;../HBase/pbc;../HBase/pugixml;../HBase/rijndael;../HBase/RSAEuro;../HBase/sproto;../HBase/uchardet;../HBase/zlib;../HBase/redisrand;../HBase/jsoncpp;../HBase/luaserialize;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../HBase;../HBase/bson;../HBase/event2;../HBase/jwsmtp;../HBase/lpeg;../HBase/lua5.3;../HBase/luabridge;../HBase/luacjson;../HBase/luasql;../HBase/mysql;../HBase/pbc;../HBase/pugixml;../HBase/rijndael;../HBase/RSAEuro;../HBase/sproto;../HBase/uchardet;../HBase/zlib;../HBase/redisrand;../HBase/jsoncpp;../HBase/luaserialize;../HBase/oolua2.0.1;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

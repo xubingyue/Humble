@@ -18,7 +18,7 @@
 static void	
 init_winsock() {
 	WSADATA wsaData;
-	WSAStartup(MAKEWORD(2,2), &wsaData);
+	(void)WSAStartup(MAKEWORD(2,2), &wsaData);
 }
 
 #else

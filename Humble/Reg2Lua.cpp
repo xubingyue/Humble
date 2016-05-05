@@ -40,7 +40,6 @@ void H_RegAll(struct lua_State *pLState)
 {
     H_RegBinary(pLState);
     H_RegEvbuffer(pLState);
-    H_RegSession(pLState);
     H_RegNetWorker(pLState);
     H_RegSender(pLState);
     H_RegMail(pLState);
@@ -291,17 +290,6 @@ void H_RegBinary(struct lua_State *pLState)
 
             .addFunction("setByte", &CBinary::setByte)
             .addFunction("getByte", &CBinary::getLByte)
-        .endClass();
-}
-
-void H_RegSession(struct lua_State *pLState)
-{
-    luabridge::getGlobalNamespace(pLState)
-        .beginClass<H_Session>("H_Session")
-            .addData("sockType", &H_Session::usSockType)
-            .addData("status", &H_Session::usStatus)
-            .addData("session", &H_Session::uiSession)
-            .addData("sock", &H_Session::sock)
         .endClass();
 }
 

@@ -85,7 +85,7 @@ void CLTick::onStop(void)
     }
 }
 
-void CLTick::onTime(const unsigned int &uiTick, const unsigned int &uiCount)
+H_INLINE void CLTick::onTime(const unsigned int &uiTick, const unsigned int &uiCount)
 {
     try
     {

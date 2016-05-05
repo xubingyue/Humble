@@ -88,11 +88,11 @@ void CLNetDisp::onStop(void)
     }
 }
 
-void CLNetDisp::onTcpLinked(struct H_Session *pSession)
+H_INLINE void CLNetDisp::onTcpLinked(struct H_Session *pSession)
 {
     try
     {
-        (*(m_pLFunc[LOnTcpLinked]))(pSession);
+        (*(m_pLFunc[LOnTcpLinked]))(pSession->sock, pSession->uiSession);
     }
     catch (luabridge::LuaException &e)
     {
@@ -100,11 +100,11 @@ void CLNetDisp::onTcpLinked(struct H_Session *pSession)
     }
 }
 
-void CLNetDisp::onTcpClose(struct H_Session *pSession)
+H_INLINE void CLNetDisp::onTcpClose(struct H_Session *pSession)
 {
     try
     {
-        (*(m_pLFunc[LOnTcpClose]))(pSession);
+        (*(m_pLFunc[LOnTcpClose]))(pSession->sock, pSession->uiSession);
     }
     catch (luabridge::LuaException &e)
     {
@@ -112,12 +112,12 @@ void CLNetDisp::onTcpClose(struct H_Session *pSession)
     }
 }
 
-void CLNetDisp::onTcpRead(struct H_Session *pSession)
+H_INLINE void CLNetDisp::onTcpRead(struct H_Session *pSession)
 {
     try
     {
         m_objTcpEvBuffer.setEvBuf(pSession->pBev);
-        (*(m_pLFunc[LOnTcpRead]))(pSession);
+        (*(m_pLFunc[LOnTcpRead]))(pSession->sock, pSession->uiSession);
     }
     catch (luabridge::LuaException &e)
     {

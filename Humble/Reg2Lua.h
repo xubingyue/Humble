@@ -21,7 +21,6 @@ void H_RegTableFile(struct lua_State *pLState);
 void H_RegUUID(struct lua_State *pLState);
 void H_RegAES(struct lua_State *pLState);
 void H_RegRSA(struct lua_State *pLState);
-void H_RegSession(struct lua_State *pLState);
 void H_RegChan(struct lua_State *pLState);
 void H_RegWorkerTask(struct lua_State *pLState);
 void H_RegWorkerDisp(struct lua_State *pLState);

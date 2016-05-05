@@ -36,20 +36,20 @@ function onStop()
     humble.closeByType(1)
 end
 
-function onTcpLinked(pSession)
+function onTcpLinked(sock, uiSession)
     
 end
 
-function onTcpClose(pSession)
+function onTcpClose(sock, uiSession)
     
 end
 
-function onTcpRead(pSession)
+function onTcpRead(sock, uiSession)
     local iLens = pTcpBuffer:getTotalLens()
     local objBinary = pTcpBuffer:readBuffer(iLens)
     local strMsg = objBinary:getByte(objBinary:getSurpLens())
     --if tChan.echo:canSend() then
-        tChan.echo:Send(serialize.pack({pSession.sock, pSession.session, strMsg}))
+        tChan.echo:Send(serialize.pack({sock, uiSession, strMsg}))
     --end
     pTcpBuffer:delBuffer(iLens)
 end
