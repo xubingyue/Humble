@@ -36,15 +36,15 @@ function onStop()
     humble.closeByType(1)
 end
 
-function onTcpLinked(sock, uiSession)
+function onTcpLinked(sock, uiSession, usType)
     
 end
 
-function onTcpClose(sock, uiSession)
+function onTcpClose(sock, uiSession, usType)
     
 end
 
-function onTcpRead(sock, uiSession)
+function onTcpRead(sock, uiSession, usType)
     local iLens = pTcpBuffer:getTotalLens()
     local objBinary = pTcpBuffer:readBuffer(iLens)
     local strMsg = objBinary:getByte(objBinary:getSurpLens())

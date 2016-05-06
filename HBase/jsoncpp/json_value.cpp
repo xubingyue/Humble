@@ -25,7 +25,6 @@
 #pragma warning(disable:4715)
 #pragma warning(disable : 4267)
 #endif
-
 namespace Json {
 
 // This is a walkaround to avoid the static initialization of Value::null.
@@ -34,12 +33,13 @@ namespace Json {
 #if defined(__ARMEL__)
 #define ALIGNAS(byte_alignment) __attribute__((aligned(byte_alignment)))
 #else
+// This exists for binary compatibility only. Use nullRef.
+const Value Value::null;
 #define ALIGNAS(byte_alignment)
 #endif
 static const unsigned char ALIGNAS(8) kNull[sizeof(Value)] = { 0 };
 const unsigned char& kNullRef = kNull[0];
-const Value& Value::null = reinterpret_cast<const Value&>(kNullRef);
-const Value& Value::nullRef = null;
+const Value& Value::nullRef = reinterpret_cast<const Value&>(kNullRef);
 
 const Int Value::minInt = Int(~(UInt(-1) / 2));
 const Int Value::maxInt = Int(UInt(-1) / 2);
@@ -113,7 +113,7 @@ static inline char* duplicateAndPrefixStringValue(
   JSON_ASSERT_MESSAGE(length <= (unsigned)Value::maxInt - sizeof(unsigned) - 1U,
                       "in Json::Value::duplicateAndPrefixStringValue(): "
                       "length too big for prefixing");
-  unsigned actualLength = length + sizeof(unsigned) + 1U;
+  unsigned actualLength = length + static_cast<unsigned>(sizeof(unsigned)) + 1U;
   char* newString = static_cast<char*>(malloc(actualLength));
   if (newString == 0) {
     throwRuntimeError(
@@ -130,7 +130,7 @@ inline static void decodePrefixedString(
     unsigned* length, char const** value)
 {
   if (!isPrefixed) {
-    *length = strlen(prefixed);
+    *length = static_cast<unsigned>(strlen(prefixed));
     *value = prefixed;
   } else {
     *length = *reinterpret_cast<unsigned const*>(prefixed);
@@ -157,23 +157,6 @@ static inline void releaseStringValue(char* value) { free(value); }
 
 namespace Json {
 
-class JSON_API Exception : public std::exception {
-public:
-  Exception(std::string const& msg);
-  virtual ~Exception() throw();
-  virtual char const* what() const throw();
-protected:
-  std::string const msg_;
-};
-class JSON_API RuntimeError : public Exception {
-public:
-  RuntimeError(std::string const& msg);
-};
-class JSON_API LogicError : public Exception {
-public:
-  LogicError(std::string const& msg);
-};
-
 Exception::Exception(std::string const& msg)
   : msg_(msg)
 {}
@@ -189,11 +172,11 @@ RuntimeError::RuntimeError(std::string const& msg)
 LogicError::LogicError(std::string const& msg)
   : Exception(msg)
 {}
-void throwRuntimeError(std::string const& msg)
+JSONCPP_NORETURN void throwRuntimeError(std::string const& msg)
 {
   throw RuntimeError(msg);
 }
-void throwLogicError(std::string const& msg)
+JSONCPP_NORETURN void throwLogicError(std::string const& msg)
 {
   throw LogicError(msg);
 }
@@ -237,14 +220,14 @@ void Value::CommentInfo::setComment(const char* text, size_t len) {
 // Notes: policy_ indicates if the string was allocated when
 // a string is stored.
 
-Value::CZString::CZString(ArrayIndex index) : cstr_(0), index_(index) {}
+Value::CZString::CZString(ArrayIndex aindex) : cstr_(0), index_(aindex) {}
 
-Value::CZString::CZString(char const* str, unsigned length, DuplicationPolicy allocate)
+Value::CZString::CZString(char const* str, unsigned ulength, DuplicationPolicy allocate)
     : cstr_(str)
 {
   // allocate != duplicate
-  storage_.policy_ = allocate;
-  storage_.length_ = length;
+  storage_.policy_ = allocate & 0x3;
+  storage_.length_ = ulength & 0x3FFFFFFF;
 }
 
 Value::CZString::CZString(const CZString& other)
@@ -253,9 +236,9 @@ Value::CZString::CZString(const CZString& other)
                 : other.cstr_)
 {
   storage_.policy_ = (other.cstr_
-                 ? (other.storage_.policy_ == noDuplication
+                 ? (static_cast<DuplicationPolicy>(other.storage_.policy_) == noDuplication
                      ? noDuplication : duplicate)
-                 : other.storage_.policy_);
+                 : static_cast<DuplicationPolicy>(other.storage_.policy_));
   storage_.length_ = other.storage_.length_;
 }
 
@@ -317,9 +300,9 @@ bool Value::CZString::isStaticString() const { return storage_.policy_ == noDupl
  * memset( this, 0, sizeof(Value) )
  * This optimization is used in ValueInternalMap fast allocator.
  */
-Value::Value(ValueType type) {
-  initBasic(type);
-  switch (type) {
+Value::Value(ValueType vtype) {
+  initBasic(vtype);
+  switch (vtype) {
   case nullValue:
     break;
   case intValue:
@@ -406,7 +389,7 @@ Value::Value(bool value) {
 Value::Value(Value const& other)
     : type_(other.type_), allocated_(false)
       ,
-      comments_(0), start_(other.start_), limit_(other.limit_)
+      comments_(0)
 {
   switch (type_) {
   case nullValue:
@@ -471,8 +454,9 @@ Value::~Value() {
     delete[] comments_;
 }
 
-Value& Value::operator=(Value other) {
-  swap(other);
+Value &Value::operator=(const Value &other) {
+  Value temp(other);
+  swap(temp);
   return *this;
 }
 
@@ -483,14 +467,12 @@ void Value::swapPayload(Value& other) {
   std::swap(value_, other.value_);
   int temp2 = allocated_;
   allocated_ = other.allocated_;
-  other.allocated_ = temp2;
+  other.allocated_ = temp2 & 0x1;
 }
 
 void Value::swap(Value& other) {
   swapPayload(other);
   std::swap(comments_, other.comments_);
-  std::swap(start_, other.start_);
-  std::swap(limit_, other.limit_);
 }
 
 ValueType Value::type() const { return type_; }
@@ -611,12 +593,12 @@ const char* Value::asCString() const {
   return this_str;
 }
 
-bool Value::getString(char const** str, char const** end) const {
+bool Value::getString(char const** str, char const** cend) const {
   if (type_ != stringValue) return false;
   if (value_.string_ == 0) return false;
   unsigned length;
   decodePrefixedString(this->allocated_, this->value_.string_, &length, str);
-  *end = *str + length;
+  *cend = *str + length;
   return true;
 }
 
@@ -815,7 +797,8 @@ bool Value::asBool() const {
   case uintValue:
     return value_.uint_ ? true : false;
   case realValue:
-    return value_.real_ ? true : false;
+    // This is kind of strange. Not recommended.
+    return (value_.real_ != 0.0) ? true : false;
   default:
     break;
   }
@@ -892,8 +875,6 @@ void Value::clear() {
   JSON_ASSERT_MESSAGE(type_ == nullValue || type_ == arrayValue ||
                           type_ == objectValue,
                       "in Json::Value::clear(): requires complex value");
-  start_ = 0;
-  limit_ = 0;
   switch (type_) {
   case arrayValue:
   case objectValue:
@@ -965,12 +946,10 @@ const Value& Value::operator[](int index) const {
   return (*this)[ArrayIndex(index)];
 }
 
-void Value::initBasic(ValueType type, bool allocated) {
-  type_ = type;
+void Value::initBasic(ValueType vtype, bool allocated) {
+  type_ = vtype;
   allocated_ = allocated;
   comments_ = 0;
-  start_ = 0;
-  limit_ = 0;
 }
 
 // Access an object value by name, create a null member if it does not exist.
@@ -995,7 +974,7 @@ Value& Value::resolveReference(const char* key) {
 }
 
 // @param key is not null-terminated.
-Value& Value::resolveReference(char const* key, char const* end)
+Value& Value::resolveReference(char const* key, char const* cend)
 {
   JSON_ASSERT_MESSAGE(
       type_ == nullValue || type_ == objectValue,
@@ -1003,7 +982,7 @@ Value& Value::resolveReference(char const* key, char const* end)
   if (type_ == nullValue)
     *this = Value(objectValue);
   CZString actualKey(
-      key, static_cast<unsigned>(end-key), CZString::duplicateOnCopy);
+      key, static_cast<unsigned>(cend-key), CZString::duplicateOnCopy);
   ObjectValues::iterator it = value_.map_->lower_bound(actualKey);
   if (it != value_.map_->end() && (*it).first == actualKey)
     return (*it).second;
@@ -1021,13 +1000,13 @@ Value Value::get(ArrayIndex index, const Value& defaultValue) const {
 
 bool Value::isValidIndex(ArrayIndex index) const { return index < size(); }
 
-Value const* Value::find(char const* key, char const* end) const
+Value const* Value::find(char const* key, char const* cend) const
 {
   JSON_ASSERT_MESSAGE(
       type_ == nullValue || type_ == objectValue,
       "in Json::Value::find(key, end, found): requires objectValue or nullValue");
   if (type_ == nullValue) return NULL;
-  CZString actualKey(key, static_cast<unsigned>(end-key), CZString::noDuplication);
+  CZString actualKey(key, static_cast<unsigned>(cend-key), CZString::noDuplication);
   ObjectValues::const_iterator it = value_.map_->find(actualKey);
   if (it == value_.map_->end()) return NULL;
   return &(*it).second;
@@ -1071,9 +1050,9 @@ Value const& Value::operator[](CppTL::ConstString const& key) const
 
 Value& Value::append(const Value& value) { return (*this)[size()] = value; }
 
-Value Value::get(char const* key, char const* end, Value const& defaultValue) const
+Value Value::get(char const* key, char const* cend, Value const& defaultValue) const
 {
-  Value const* found = find(key, end);
+  Value const* found = find(key, cend);
   return !found ? defaultValue : *found;
 }
 Value Value::get(char const* key, Value const& defaultValue) const
@@ -1086,12 +1065,12 @@ Value Value::get(std::string const& key, Value const& defaultValue) const
 }
 
 
-bool Value::removeMember(const char* key, const char* end, Value* removed)
+bool Value::removeMember(const char* key, const char* cend, Value* removed)
 {
   if (type_ != objectValue) {
     return false;
   }
-  CZString actualKey(key, static_cast<unsigned>(end-key), CZString::noDuplication);
+  CZString actualKey(key, static_cast<unsigned>(cend-key), CZString::noDuplication);
   ObjectValues::iterator it = value_.map_->find(actualKey);
   if (it == value_.map_->end())
     return false;
@@ -1136,8 +1115,8 @@ bool Value::removeIndex(ArrayIndex index, Value* removed) {
   ArrayIndex oldSize = size();
   // shift left all items left, into the place of the "removed"
   for (ArrayIndex i = index; i < (oldSize - 1); ++i){
-    CZString key(i);
-    (*value_.map_)[key] = (*this)[i + 1];
+    CZString keey(i);
+    (*value_.map_)[keey] = (*this)[i + 1];
   }
   // erase the last one ("leftover")
   CZString keyLast(oldSize - 1);
@@ -1153,9 +1132,9 @@ Value Value::get(const CppTL::ConstString& key,
 }
 #endif
 
-bool Value::isMember(char const* key, char const* end) const
+bool Value::isMember(char const* key, char const* cend) const
 {
-  Value const* value = find(key, end);
+  Value const* value = find(key, cend);
   return NULL != value;
 }
 bool Value::isMember(char const* key) const
@@ -1339,14 +1318,6 @@ std::string Value::getComment(CommentPlacement placement) const {
     return comments_[placement].comment_;
   return "";
 }
-
-void Value::setOffsetStart(size_t start) { start_ = start; }
-
-void Value::setOffsetLimit(size_t limit) { limit_ = limit; }
-
-size_t Value::getOffsetStart() const { return start_; }
-
-size_t Value::getOffsetLimit() const { return limit_; }
 
 std::string Value::toStyledString() const {
   StyledWriter writer;

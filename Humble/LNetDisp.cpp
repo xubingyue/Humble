@@ -49,7 +49,7 @@ CLNetDisp::~CLNetDisp(void)
     if (NULL != m_pLFunc)
     {
         luabridge::LuaRef *pRef = NULL;
-        for (int i = 0; i < LCount; i++)
+        for (int i = 0; i < LCount; ++i)
         {
             pRef = m_pLFunc[i];
             H_SafeDelete(pRef);
@@ -92,7 +92,7 @@ H_INLINE void CLNetDisp::onTcpLinked(struct H_Session *pSession)
 {
     try
     {
-        (*(m_pLFunc[LOnTcpLinked]))(pSession->sock, pSession->uiSession);
+        (*(m_pLFunc[LOnTcpLinked]))(pSession->sock, pSession->uiSession, pSession->usSockType);
     }
     catch (luabridge::LuaException &e)
     {
@@ -104,7 +104,7 @@ H_INLINE void CLNetDisp::onTcpClose(struct H_Session *pSession)
 {
     try
     {
-        (*(m_pLFunc[LOnTcpClose]))(pSession->sock, pSession->uiSession);
+        (*(m_pLFunc[LOnTcpClose]))(pSession->sock, pSession->uiSession, pSession->usSockType);
     }
     catch (luabridge::LuaException &e)
     {
@@ -117,7 +117,7 @@ H_INLINE void CLNetDisp::onTcpRead(struct H_Session *pSession)
     try
     {
         m_objTcpEvBuffer.setEvBuf(pSession->pBev);
-        (*(m_pLFunc[LOnTcpRead]))(pSession->sock, pSession->uiSession);
+        (*(m_pLFunc[LOnTcpRead]))(pSession->sock, pSession->uiSession, pSession->usSockType);
     }
     catch (luabridge::LuaException &e)
     {

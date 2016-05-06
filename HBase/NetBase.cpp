@@ -126,18 +126,6 @@ void CNetBase::removByType(const unsigned short &usSockType)
     }
 }
 
-void CNetBase::tcpReadCB(struct bufferevent *bev, void *arg)
-{
-    H_Session *pSession = (H_Session *)arg;
-    pSession->pNetBase->onRead(pSession);
-}
-
-void CNetBase::tcpEventCB(struct bufferevent *bev, short, void *arg)
-{
-    H_Session *pSession = (H_Session *)arg;
-    pSession->pNetBase->delSession(pSession->sock);
-}
-
 H_Session *CNetBase::addTcpEv(H_SOCK &sock, const unsigned short &usSockType)
 {
     int iFlag = 1;
@@ -165,6 +153,18 @@ H_Session *CNetBase::addTcpEv(H_SOCK &sock, const unsigned short &usSockType)
     addSession(sock, pSession);
 
     return pSession;
+}
+
+void CNetBase::tcpReadCB(struct bufferevent *bev, void *arg)
+{
+    H_Session *pSession = (H_Session *)arg;
+    pSession->pNetBase->onRead(pSession);
+}
+
+void CNetBase::tcpEventCB(struct bufferevent *bev, short, void *arg)
+{
+    H_Session *pSession = (H_Session *)arg;
+    pSession->pNetBase->delSession(pSession->sock);
 }
 
 void CNetBase::orderReadCB(struct bufferevent *bev, void *arg)

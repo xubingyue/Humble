@@ -111,7 +111,7 @@ void CSender::lbroadCast(luabridge::LuaRef lTable, const char *pBuf, const size_
         return;
     }
 
-    H_SenderSock *pSock = new(std::nothrow) H_SenderSock[lTable.length()];
+    H_SenderSock *pSock = new(std::nothrow) H_SenderSock[iCount];
     H_ASSERT(NULL != pSock, "malloc momory error.");
     for (int i = 1; i <= iCount; ++i)
     {

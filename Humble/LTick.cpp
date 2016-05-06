@@ -46,7 +46,7 @@ CLTick::~CLTick(void)
     if (NULL != m_pLFunc)
     {
         luabridge::LuaRef *pRef = NULL;
-        for (int i = 0; i < LCount; i++)
+        for (int i = 0; i < LCount; ++i)
         {
             pRef = m_pLFunc[i];
             H_SafeDelete(pRef);

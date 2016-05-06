@@ -31,6 +31,10 @@ function humble.Send(sock, uiSession, strBuf)
 end
 --tsock: {{sock,session},...}
 function humble.broadCast(tSock, strBuf)
+    if 0 == #tSock then
+        return
+    end
+    
     pSender:broadCast(tSock, strBuf, string.len(strBuf))
 end
 
