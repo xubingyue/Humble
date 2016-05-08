@@ -52,6 +52,7 @@ void H_RegAll(struct lua_State *pLState)
     H_RegUUID(pLState);
     H_RegAES(pLState);
     H_RegRSA(pLState);
+    H_RegSha1(pLState);
     H_RegWorkerDisp(pLState);
     H_RegWorkerTask(pLState);
     H_RegChan(pLState);
@@ -136,6 +137,19 @@ void H_RegAES(struct lua_State *pLState)
             .addFunction("setKey", &CAES::setKey)
             .addFunction("Encode", &CAES::Encode)
             .addFunction("Decode", &CAES::Decode)
+        .endClass();
+}
+
+void H_RegSha1(struct lua_State *pLState)
+{
+    luabridge::getGlobalNamespace(pLState)
+        .beginClass<CSHA1>("CSHA1")
+            .addConstructor<void(*) (void)>()
+            .addFunction("reSet", &CSHA1::Reset)
+            .addFunction("upDate", &CSHA1::Update)
+            .addFunction("hashFile", &CSHA1::HashFile)
+            .addFunction("Final", &CSHA1::Final)
+            .addFunction("getHash", &CSHA1::getHash)
         .endClass();
 }
 

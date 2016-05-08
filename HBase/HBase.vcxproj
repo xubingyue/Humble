@@ -145,6 +145,7 @@
     <ClInclude Include="RSAKey.h" />
     <ClInclude Include="RWLock.h" />
     <ClInclude Include="Sender.h" />
+    <ClInclude Include="SHA1.h" />
     <ClInclude Include="SnowFlake.h" />
     <ClInclude Include="sproto\msvcint.h" />
     <ClInclude Include="sproto\sproto.h" />
@@ -301,6 +302,7 @@
     <ClCompile Include="RSAKey.cpp" />
     <ClCompile Include="RWLock.cpp" />
     <ClCompile Include="Sender.cpp" />
+    <ClCompile Include="SHA1.cpp" />
     <ClCompile Include="SnowFlake.cpp" />
     <ClCompile Include="sproto\lsproto.cpp" />
     <ClCompile Include="sproto\sproto.cpp" />

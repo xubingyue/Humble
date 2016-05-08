@@ -604,6 +604,9 @@
     <ClInclude Include="ObjectPool.h">
       <Filter>Common</Filter>
     </ClInclude>
+    <ClInclude Include="SHA1.h">
+      <Filter>Encrypt</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="jwsmtp\compat.cpp">
@@ -1103,6 +1106,9 @@
     </ClCompile>
     <ClCompile Include="Tick.cpp">
       <Filter>Service</Filter>
+    </ClCompile>
+    <ClCompile Include="SHA1.cpp">
+      <Filter>Encrypt</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
