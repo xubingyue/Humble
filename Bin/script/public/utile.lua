@@ -2,10 +2,11 @@
 utile
 --]]
 
-local utile = {}
-local string = string
-local table = table
+require("macros")
 local type = type
+local table = table
+local string = string
+local xpcall = xpcall
 local assert = assert
 local Sleep = Sleep
 local H_LOG = H_LOG
@@ -19,9 +20,20 @@ local b64Encode = b64Encode
 local b64Decode = b64Decode
 local md5Str = md5Str
 local md5File = md5File
+local LogLV = LogLV
+local bDebug = true
+
+local utile = {}
 
 function utile.Sleep(uims)
     Sleep(uims)
+end
+
+function utile.Debug(fmt, ...)
+    if bDebug then
+        local strMsg = string.format(fmt, table.unpack({...}))
+        print(string.format("[%s][LDebug] %s", os.date(), strMsg))
+    end
 end
 
 function utile.Log(loglv, fmt, ...)
@@ -67,6 +79,18 @@ end
 
 function utile.md5File(strFile)
     return md5File(strFile)
+end
+
+function utile.callFunc(Func, ...)
+    assert("function" == type(Func))
+
+    local function onExcept(strMsg)
+        local strStack = debug.traceback()
+        utile.Log(LogLV.Err, "%s", strMsg)
+        utile.Log(LogLV.Err, "%s", strStack)
+    end
+    
+    return xpcall(Func, onExcept, table.unpack({...}))
 end
 
 function string.split(str, delimiter)
@@ -163,16 +187,5 @@ function table.copy(tTable)
     
     return tNewTab
 end
-
-function table.enum(tMsg, iBegin) 
-    assert("table" == type(tMsg))    
-    local tEnum = {} 
-    local iEnumIndex = iBegin or 0 
-    for key, val in pairs(tMsg) do 
-        tEnum[val] = iEnumIndex + key - 1
-    end 
-    
-    return tEnum 
-end 
 
 return utile

@@ -4,10 +4,12 @@
 
 H_BNAMSP
 
+#define H_LINEEFLAG "\r\n"
+
 CBinary::CBinary(void) : m_pParseBuffer(NULL),
     m_iParseBufLens(H_INIT_NUMBER), m_iCurParseLens(H_INIT_NUMBER)
 {
-
+    m_iLEFLens = strlen(H_LINEEFLAG);
 }
 
 CBinary::~CBinary(void)
@@ -170,12 +172,20 @@ void CBinary::setString(const char *pszVal)
 }
 std::string CBinary::getString(void)
 {
+    //³¬³¤
     if (m_iCurParseLens >= m_iParseBufLens)
     {
         return std::string("");
     }
 
-    std::string strVal(m_pParseBuffer + m_iCurParseLens);
+    char *pBuf = m_pParseBuffer + m_iCurParseLens;
+    std::string strVal(pBuf);
+    //³¬³¤
+    if (m_iCurParseLens + strVal.size() + 1 > m_iParseBufLens)
+    {
+        m_iCurParseLens = m_iParseBufLens;
+        return std::string(pBuf, getSurpLens());
+    }
 
     m_iCurParseLens += (strVal.size() + 1);
 
@@ -206,6 +216,30 @@ std::string CBinary::getLByte(const unsigned int iLens)
     const char *pBuf = getByte(iLens);
 
     return ((NULL == pBuf) ? "" : std::string(pBuf, iLens));
+}
+
+std::string CBinary::readLine(void)
+{
+    if (m_iCurParseLens >= m_iParseBufLens)
+    {
+        return std::string("");
+    }
+
+    char *pBuf = m_pParseBuffer + m_iCurParseLens;
+    char *pPos = strstr(pBuf, H_LINEEFLAG);
+    if (NULL == pPos)
+    {
+        std::string strVal(pBuf, getSurpLens());
+        m_iCurParseLens = m_iParseBufLens;
+        return strVal;
+    }
+
+    size_t iLens(pPos - pBuf + m_iLEFLens);
+    std::string strVal(pBuf, iLens);
+
+    m_iCurParseLens += iLens;
+
+    return strVal;
 }
 
 H_ENAMSP

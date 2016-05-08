@@ -2,8 +2,19 @@
 宏定义
 --]]
 
-require("utile")
 local table = table
+local assert = assert
+
+function table.enum(tMsg, iBegin) 
+    assert("table" == type(tMsg))    
+    local tEnum = {} 
+    local iEnumIndex = iBegin or 0 
+    for key, val in pairs(tMsg) do 
+        tEnum[val] = iEnumIndex + key - 1
+    end 
+    
+    return tEnum 
+end 
 
 --无效ID
 Invalid_ID = -1

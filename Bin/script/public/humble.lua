@@ -2,16 +2,15 @@
 C++È«¾Öº¯Êý
 --]]
 
-require("macros")
 local serialize = require("serialize")
-local humble = {}
 local string = string
 local pWorkerMgr = g_pWorkerMgr
 local pNet = g_pNetWorker
 local pSender = g_pSender
 local pEmail = g_pEmail
 local newLuaTask = newLuaTask
-local ChanNam = ChanNam
+
+local humble = {}
 
 --ÍøÂç
 function humble.tcpListen(usSockType, strHost, usPort)

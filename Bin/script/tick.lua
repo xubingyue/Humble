@@ -24,10 +24,15 @@ function onStop()
     
 end
 
-function onTimer(uiTick, uiCount)
+function onTimer(uiTick, uiCount) 
     if tChan.timer:canSend() then
         tChan.timer:Send(serialize.pack({uiTick, uiCount}))
     else
         utile.Log(LogLV.Warn, "%s", "service maybe overloaded.")
+    end
+    
+    --1√Î
+    if 0 == ((uiTick * uiCount) % 1000) then 
+        print("1 sec")
     end
 end

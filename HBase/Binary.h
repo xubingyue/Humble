@@ -15,9 +15,13 @@ public:
 
     //设置要解析的数据
     void setReadBuffer(const char *pszBuf, const size_t iLens);
-    unsigned int getRBufLens(void)
+    size_t getRBufLens(void)
     {
         return (unsigned int)m_iParseBufLens;
+    };
+    size_t getReadedLens(void)
+    {
+        return m_iCurParseLens;
     };
 
     //重置写
@@ -76,6 +80,8 @@ public:
     std::string getLByte(const unsigned int iLens);
     const char *getByte(const unsigned int &iLens);
 
+    std::string readLine(void);
+
     std::string getWritedBuf(void)
     {
         return m_strWritBuffer;
@@ -103,6 +109,7 @@ private:
     char *m_pParseBuffer;//要解析的buffer
     size_t m_iParseBufLens;//要解析的buffer长度
     size_t m_iCurParseLens;//已经解析的长度
+    size_t m_iLEFLens;
     std::string m_strWritBuffer;//写buffer
 };
 
