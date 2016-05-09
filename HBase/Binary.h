@@ -82,9 +82,11 @@ public:
 
     std::string readLine(void);
 
-    std::string getWritedBuf(void)
+    int Find(const char *pFlag);
+
+    std::string *getWritedBuf(void)
     {
-        return m_strWritBuffer;
+        return &m_strWritBuffer;
     };
 
 private:

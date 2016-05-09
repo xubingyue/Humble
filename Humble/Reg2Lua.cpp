@@ -263,6 +263,8 @@ void H_RegBinary(struct lua_State *pLState)
 {
     luabridge::getGlobalNamespace(pLState)
         .beginClass<CBinary>("CBinary")
+            .addConstructor<void(*) (void)>()
+
             .addFunction("getRBufLens", &CBinary::getRBufLens)
             .addFunction("getReadedLens", &CBinary::getReadedLens)
 
@@ -307,6 +309,7 @@ void H_RegBinary(struct lua_State *pLState)
             .addFunction("getByte", &CBinary::getLByte)
             
             .addFunction("readLine", &CBinary::readLine)
+            .addFunction("Find", &CBinary::Find)
         .endClass();
 }
 
@@ -344,7 +347,9 @@ void H_RegSender(struct lua_State *pLState)
     luabridge::getGlobalNamespace(pLState)
         .beginClass<CSender>("CSender")
             .addFunction("Send", &CSender::Send)
+            .addFunction("sendB", &CSender::sendBinary)
             .addFunction("broadCast", &CSender::lbroadCast)
+            .addFunction("broadCastB", &CSender::broadCastBinary)
         .endClass();
 }
 

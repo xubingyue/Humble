@@ -5,12 +5,9 @@
 
 H_BNAMSP
 
-CChan::CChan(const unsigned int &uiCount) : m_bClose(false), m_uiRWait(H_INIT_NUMBER),
+CChan::CChan(const unsigned int &uiCount) : m_bClose(false), m_uiCount(uiCount), m_uiRWait(H_INIT_NUMBER),
     m_uiWWait(H_INIT_NUMBER)
 {
-    H_ASSERT(uiCount >0 , "count must big than zero.");
-    m_uiCount = uiCount;
-
     pthread_mutex_init(&m_quLock, NULL);
     pthread_cond_init(&m_pWCond, NULL);
     pthread_cond_init(&m_pRCond, NULL);
@@ -34,7 +31,7 @@ void CChan::Close(void)
 bool CChan::canSend(void)
 {
     CLckThis objLock(&m_quLock);
-    return  m_bClose ? false : (m_quData.size() < m_uiCount);
+    return  m_bClose ? false : (H_INIT_NUMBER == m_uiCount ? true : (m_quData.size() < m_uiCount));
 }
 
 void CChan::Send(void *pszVal)
@@ -45,7 +42,8 @@ void CChan::Send(void *pszVal)
         return;
     }
 
-    while (m_quData.size() == m_uiCount)
+    while (m_quData.size() == m_uiCount
+        && H_INIT_NUMBER != m_uiCount)
     {
         if (m_bClose)
         {

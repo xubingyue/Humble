@@ -3,6 +3,7 @@ utile
 --]]
 
 require("macros")
+local serialize = require("serialize")
 local type = type
 local table = table
 local string = string
@@ -75,6 +76,18 @@ end
 
 function utile.md5Str(strval)
     return md5Str(strval, string.len(strval))
+end
+
+function utile.md5File(strFile)
+    return md5File(strFile)
+end
+
+function utile.Pack(tVal)
+    return serialize.pack(tVal)
+end
+
+function utile.unPack(pVal)
+    return serialize.unpack(pVal)
 end
 
 function utile.md5File(strFile)

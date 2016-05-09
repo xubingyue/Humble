@@ -6,9 +6,12 @@ local strpubdir = string.format("%s%s%s", g_strScriptPath, "public", "/")
 package.path = string.format("%s;%s?.lua", package.path, strpubdir)
 
 require("macros")
-local serialize = require("serialize")
 local humble = require("humble")
+local utile = require("utile")
+local tcp = require("tcp")
+local httpd = require("httpd")
 local table = table
+local pairs = pairs
 local SockType = SockType
 local pTcpBuffer = g_pTcpBuffer
 
@@ -45,11 +48,20 @@ function onTcpClose(sock, uiSession, usType)
 end
 
 function onTcpRead(sock, uiSession, usType)
-    local iLens = pTcpBuffer:getTotalLens()
-    local objBinary = pTcpBuffer:readBuffer(iLens)
-    local strMsg = objBinary:getByte(objBinary:getSurpLens())
-    --if tChan.echo:canSend() then
-        tChan.echo:Send(serialize.pack({sock, uiSession, strMsg}))
-    --end
-    pTcpBuffer:delBuffer(iLens)
+    local iParsed, tInfo = httpd.parsePack(pTcpBuffer)
+    if 0 ~= iParsed then
+        tChan.echo:Send(utile.Pack({sock, uiSession, tInfo}))
+        pTcpBuffer:delBuffer(iParsed)
+    end
+    --[[local iProtocol, strMsg
+    local iParsed, tMsg = tcp.parsePack(pTcpBuffer)
+    if 0 ~= iParsed then
+        for _, val in pairs(tMsg) do
+            iProtocol = val[1]
+            strMsg = val[2]
+            tChan.echo:Send(utile.Pack({sock, uiSession, iProtocol, strMsg}))
+        end
+        
+        pTcpBuffer:delBuffer(iParsed)
+    end--]]    
 end

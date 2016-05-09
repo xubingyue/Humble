@@ -92,6 +92,11 @@ CChan *CWorkerDisp::getSendChan(const char *pszChanName, const char *pszTaskName
     }
     m_objChanLock.unLock();
 
+    if (NULL == pChan)
+    {
+        H_Printf("chan %s not register.", pszChanName);
+    }
+
     return pChan;
 }
 
@@ -111,6 +116,11 @@ CChan *CWorkerDisp::getRecvChan(const char *pszChanName, const char *pszTaskName
         pChan->setRecvTaskNam(pszTaskName);
     }
     m_objChanLock.unLock();
+
+    if (NULL == pChan)
+    {
+        H_Printf("chan %s not register.", pszChanName);
+    }
 
     return pChan;
 }

@@ -28,6 +28,9 @@ end
 function humble.Send(sock, uiSession, strBuf)
     pSender:Send(sock, uiSession, strBuf, string.len(strBuf))
 end
+function humble.SendB(sock, uiSession, pBinary)
+    pSender:sendB(sock, uiSession, pBinary)
+end
 --tsock: {{sock,session},...}
 function humble.broadCast(tSock, strBuf)
     if 0 == #tSock then
@@ -35,6 +38,13 @@ function humble.broadCast(tSock, strBuf)
     end
     
     pSender:broadCast(tSock, strBuf, string.len(strBuf))
+end
+function humble.broadCastB(tSock, pBinary)
+    if 0 == #tSock then
+        return
+    end
+    
+    pSender:broadCast(tSock, pBinary)
 end
 
 --ÓÊ¼þ

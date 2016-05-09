@@ -234,12 +234,23 @@ std::string CBinary::readLine(void)
         return strVal;
     }
 
-    size_t iLens(pPos - pBuf + m_iLEFLens);
-    std::string strVal(pBuf, iLens);
+    std::string strVal(pBuf, (pPos - pBuf));
 
-    m_iCurParseLens += iLens;
+    m_iCurParseLens += (pPos - pBuf + m_iLEFLens);
 
     return strVal;
+}
+
+int CBinary::Find(const char *pFlag)
+{
+    const char *pBuf = m_pParseBuffer + m_iCurParseLens;
+    const char *pPos = H_StrStr(pBuf, pFlag);
+    if (NULL == pPos)
+    {
+        return -1;
+    }
+
+    return pPos - pBuf;
 }
 
 H_ENAMSP

@@ -4,6 +4,7 @@
 
 #include "RecvTask.h"
 #include "Singleton.h"
+#include "Binary.h"
 #include "lua5.3/lua.hpp"
 #include "luabridge/LuaBridge.h"
 
@@ -37,9 +38,19 @@ public:
 
     void runTask(H_Sender *pMsg);
 
-    void Send(H_SOCK sock, const unsigned int uiSession, const char *pBuf, const size_t iLens);    
+    void Send(H_SOCK sock, const unsigned int uiSession, const char *pBuf, const size_t iLens);
+    void sendBinary(H_SOCK sock, const unsigned int uiSession, CBinary *pBinary)
+    {
+        std::string *pBuf = pBinary->getWritedBuf();
+        Send(sock, uiSession, pBuf->c_str(), pBuf->size());
+    };
     //{{sock,session},...}
     void lbroadCast(luabridge::LuaRef lTable, const char *pBuf, const size_t iLens);
+    void broadCastBinary(luabridge::LuaRef lTable, CBinary *pBinary)
+    {
+        std::string *pBuf = pBinary->getWritedBuf();
+        lbroadCast(lTable, pBuf->c_str(), pBuf->size());
+    };
 
     void addSock(H_SOCK sock, const unsigned int uiSession);
     void delSock(H_SOCK sock, const unsigned int uiSession);

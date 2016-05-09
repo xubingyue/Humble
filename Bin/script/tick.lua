@@ -6,7 +6,6 @@ local strpubdir = string.format("%s%s%s", g_strScriptPath, "public", "/")
 package.path = string.format("%s;%s?.lua", package.path, strpubdir)
 
 require("macros")
-local serialize = require("serialize")
 local humble = require("humble")
 local utile = require("utile")
 local LogLV = LogLV
@@ -26,7 +25,7 @@ end
 
 function onTimer(uiTick, uiCount) 
     if tChan.timer:canSend() then
-        tChan.timer:Send(serialize.pack({uiTick, uiCount}))
+        tChan.timer:Send(utile.Pack({uiTick, uiCount}))
     else
         utile.Log(LogLV.Warn, "%s", "service maybe overloaded.")
     end

@@ -52,3 +52,135 @@ local http_status_msg = {
 	[505] = "HTTP Version not supported",
 }
 
+
+local Http_HeadFlag = "\r\n\r\n"
+local Http_ChunkFlag = "\r\n0\r\n\r\n"
+local ContentLength = "content-length"
+local TransferEncoding = "transfer-encoding"
+
+local function parseHead(pBinary)
+    if -1 == pBinary:Find(Http_HeadFlag) then
+        return nil
+    end
+    
+    local tHead = {}
+    local strLine, strUrl, strMethod, strHttpver    
+    local strName, strVal
+    
+    while true do
+        strLine = pBinary:readLine()        
+        if 0 == string.len(strLine) then
+            break
+        end
+        
+        if not strMethod then
+            strMethod, strUrl, strHttpver = string.match(strLine, "^(%a+)%s+(.-)%s+HTTP/([%d%.]+)$")
+            assert(strMethod and strUrl and strHttpver)
+            assert("1.0" == strHttpver or "1.1" == strHttpver)
+        else
+            strName, strVal = string.match(strLine, "^(.-):%s*(.*)")
+            tHead[string.lower(strName)] = string.lower(strVal)
+        end
+    end
+    
+    return strMethod, strUrl, tHead
+end
+
+local function parseChunked(pBinary)
+    if -1 == pBinary:Find(Http_ChunkFlag) then
+        return nil
+    end
+    
+    local strChunked = ""
+    local strLine
+    local iLens = 0
+    while true do
+        strLine = pBinary:readLine()
+        if 0 ~= string.len(strLine) then
+            iLens = tonumber(strLine, 16)
+            if 0 == iLens then
+                pBinary:readLine()                
+                break 
+            end
+            
+            strChunked = strChunked .. pBinary:getByte(iLens)
+        end
+    end
+    
+    return strChunked
+end
+
+function httpd.parsePack(pTcpBuffer)
+    local iParsed = 0
+    local tInfo = {}
+    local strMethod, strUrl, tHead
+    local iTotalLens = pTcpBuffer:getTotalLens()
+    print(string.format("TotalLens %d", iTotalLens))
+    local pBinary = pTcpBuffer:readBuffer(iTotalLens)
+    while true do
+        strMethod, strUrl, tHead = parseHead(pBinary)
+        if not strMethod then
+            break
+        end
+        
+        if tHead[ContentLength] then
+            local iLens = tonumber(tHead[ContentLength])
+            tHead[ContentLength] = iLens
+            if iLens > pBinary:getSurpLens() then
+                break
+            end
+            
+            table.insert(tInfo, {strMethod, strUrl, tHead, pBinary:getByte(iLens)})
+            iParsed = pBinary:getReadedLens()
+        elseif (tHead[TransferEncoding] and "chunked" == tHead[TransferEncoding]) then
+            local strChunked = parseChunked(pBinary)
+            if not strChunked then
+                break
+            end
+            
+            table.insert(tInfo, {strMethod, strUrl, tHead, strChunked})
+            iParsed = pBinary:getReadedLens()
+        else
+            table.insert(tInfo, {strMethod, strUrl, tHead})
+            iParsed = pBinary:getReadedLens()
+        end
+    end
+    
+    return iParsed, tInfo
+end
+
+function httpd.Response(iCode, varBodyFunc, tHeader)
+    local strHttp = string.format("HTTP/1.1 %03d %s\r\n", iCode, http_status_msg[iCode] or "")
+	if tHeader then
+		for key, val in pairs(tHeader) do			
+		    strHttp = strHttp .. string.format("%s: %s\r\n", key, val)
+		end
+	end
+
+	local iType = type(varBodyFunc)
+	if iType == "string" then
+		strHttp = strHttp .. string.format("content-length: %d\r\n\r\n", string.len(varBodyFunc))
+		strHttp = strHttp .. varBodyFunc
+	elseif iType == "function" then
+		strHttp = strHttp .. "transfer-encoding: chunked\r\n"
+        local str
+		while true do
+			local str = varBodyFunc()
+			if str then
+				if str ~= "" then
+					strHttp = strHttp .. string.format("\r\n%x\r\n", string.len(str))
+					strHttp = strHttp .. str
+				end
+			else
+				strHttp = strHttp .. "\r\n0\r\n\r\n"
+				break
+			end
+		end
+	else
+		strHttp = strHttp .. "\r\n"
+	end
+
+    return strHttp
+end
+
+return httpd

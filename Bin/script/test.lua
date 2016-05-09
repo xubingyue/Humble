@@ -2,8 +2,8 @@ local strpubdir = string.format("%s%s%s", g_strScriptPath, "public", "/")
 package.path = string.format("%s;%s?.lua", package.path, strpubdir)
 
 require("macros")
-local serialize = require("serialize")
 local humble = require("humble")
+local utile = require("utile")
 local table = table
 local string = string
 
@@ -19,7 +19,7 @@ end
 function runTask()
     if tChan.timer:canRecv() then
         local varRecv = tChan.timer:Recv()
-        local itick, icount = table.unpack(serialize.unpack(varRecv))
+        local itick, icount = table.unpack(utile.unPack(varRecv))
         --print(string.format("timer task tick %d count %d", itick, icount))
     end
 end
