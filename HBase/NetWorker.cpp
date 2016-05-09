@@ -105,6 +105,7 @@ void CNetWorker::addTcpListen(H_Order *pOrder)
         return;
     }
 
+    H_Printf("listen at host %s port %d", pOrder->acHost, pOrder->usPort);
     m_vcListener.push_back(pListener);
     H_SOCK sock = evconnlistener_get_fd(pListener);
     addMapListener(sock, pOrder->usSockType);

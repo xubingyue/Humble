@@ -48,12 +48,12 @@ function onTcpClose(sock, uiSession, usType)
 end
 
 function onTcpRead(sock, uiSession, usType)
-    local iParsed, tInfo = httpd.parsePack(pTcpBuffer)
+    --[[local iParsed, tInfo = httpd.parsePack(pTcpBuffer)
     if 0 ~= iParsed then
         tChan.echo:Send(utile.Pack({sock, uiSession, tInfo}))
         pTcpBuffer:delBuffer(iParsed)
-    end
-    --[[local iProtocol, strMsg
+    end--]]
+    local iProtocol, strMsg
     local iParsed, tMsg = tcp.parsePack(pTcpBuffer)
     if 0 ~= iParsed then
         for _, val in pairs(tMsg) do
@@ -63,5 +63,5 @@ function onTcpRead(sock, uiSession, usType)
         end
         
         pTcpBuffer:delBuffer(iParsed)
-    end--]]    
+    end    
 end

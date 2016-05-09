@@ -26,15 +26,15 @@ end
 
 function runTask()   
     if tChan.echo:canRecv() then
-        varRecv = tChan.echo:Recv()
+        --[[local varRecv = tChan.echo:Recv()
         local sock, uiSession, tInfo = table.unpack(utile.unPack(varRecv))
         table.print(tInfo)
         local strResp = httpd.Response(200, "hello http")
-        humble.Send(sock, uiSession, strResp)
-        --[[local varRecv = tChan.echo:Recv()
+        humble.Send(sock, uiSession, strResp)--]]
+        local varRecv = tChan.echo:Recv()
         local sock, uiSession, iProtocol, strMsg = table.unpack(utile.unPack(varRecv))
         tcp.creatPack(pBinary, iProtocol, strMsg)
-        humble.SendB(sock, uiSession, pBinary)--]]
+        humble.SendB(sock, uiSession, pBinary)
     end
 end
 
