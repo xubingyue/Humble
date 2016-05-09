@@ -1,4 +1,12 @@
+--[[
+websock
+--]]
+
 local websock = {}
+
+function websock.onConnect(sock)
+
+end
 
 function websock.parsePack(sock, pTcpBuffer)
     
