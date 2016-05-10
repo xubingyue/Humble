@@ -250,7 +250,7 @@ int CBinary::Find(const char *pFlag)
         return -1;
     }
 
-    return pPos - pBuf;
+    return (int)(pPos - pBuf);
 }
 
 H_ENAMSP

@@ -127,12 +127,12 @@ struct event *CNetWorker::monitorLink(H_TcpLink *pTcpLink)
     evutil_timerclear(&tVal);
     if (uiMS >= 1000)
     {
-        tVal.tv_sec = uiMS / 1000;
-        tVal.tv_usec = (uiMS % 1000) * (1000);
+        tVal.tv_sec = (long)uiMS / 1000;
+        tVal.tv_usec = ((long)uiMS % 1000) * (1000);
     }
     else
     {
-        tVal.tv_usec = (uiMS * 1000);
+        tVal.tv_usec = ((long)uiMS * 1000);
     }
 
     struct event *pEvent = event_new(getBase(),

@@ -32,7 +32,15 @@ public:
     void Join(void);
     void waitStart(void);
 
-    void Notify(std::string *pstrName);
+    H_INLINE void Notify(std::string *pstrName)
+    {
+        CLckThis objLckThis(&m_taskLock);
+        m_quTask.push(pstrName);
+        if (m_uiWait > H_INIT_NUMBER)
+        {
+            pthread_cond_signal(&m_taskCond);
+        }
+    };
 
 private:
     CWorker *getFreeWorker(unsigned short &usIndex);
@@ -69,6 +77,7 @@ private:
 
 private:
     unsigned short m_usThreadNum;
+    unsigned int m_uiWait;
     long m_lExit;
     long m_lCount;
     CWorker *m_pWorker;

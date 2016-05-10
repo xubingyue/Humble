@@ -616,6 +616,9 @@ static bool selectWrite(H_SOCK &fd)
     struct timeval stTime;    
     fd_set fdWrite;
 
+#ifdef H_OS_WIN
+#pragma warning(disable:4244)
+#endif // H_OS_WIN
     FD_ZERO(&fdWrite);
     FD_SET(fd, &fdWrite);
     stTime.tv_sec = 1;
@@ -640,7 +643,7 @@ bool H_SockWrite(H_SOCK &fd, const char *pBuf, const size_t &iLens)
         iSendSize = send(fd, pBuf + iSendTotalSize, (int)(iLens - iSendTotalSize), 0);
         if (iSendSize <= 0)
         {
-            int iRtn = H_SockError();            
+            int iRtn = H_SockError();
             if (IS_EAGAIN(iRtn))
             {
                 if (selectWrite(fd))

@@ -189,7 +189,7 @@ void CNetBase::orderReadCB(struct bufferevent *bev, void *arg)
     H_Order *pOrder = NULL;
     for (size_t i = 0; i < iCount; ++i)
     {
-        pOrder = (H_Order*)pBinary->getByte(iMsgLens);
+        pOrder = (H_Order*)pBinary->getByte((unsigned int)iMsgLens);
         switch (pOrder->usCmd)
         {
             case ORDER_RSTOP:

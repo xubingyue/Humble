@@ -23,9 +23,9 @@ void CWorker::runTask(CWorkerTask *pMsg)
 {
     CTick::getSingletonPtr()->monitorTrigger(m_usIndex, pMsg->getName());
     pMsg->Run();
-    CTick::getSingletonPtr()->monitorTrigger(m_usIndex, NULL);
-    H_AtomicSet(&m_uiStatus, WS_FREE);
+    CTick::getSingletonPtr()->monitorTrigger(m_usIndex, NULL);    
     pMsg->subRef();
+    H_AtomicSet(&m_uiStatus, WS_FREE);
 }
 
 unsigned int CWorker::getStatus(void)

@@ -10,8 +10,8 @@ H_BNAMSP
 SINGLETON_INIT(CWorkerDisp)
 CWorkerDisp objWorker;
 
-CWorkerDisp::CWorkerDisp(void) : m_usThreadNum(H_INIT_NUMBER), m_lExit(RS_RUN),
-    m_lCount(H_INIT_NUMBER), m_pWorker(NULL)
+CWorkerDisp::CWorkerDisp(void) : m_usThreadNum(H_INIT_NUMBER), m_uiWait(H_INIT_NUMBER),
+    m_lExit(RS_RUN), m_lCount(H_INIT_NUMBER), m_pWorker(NULL)
 {
     pthread_mutex_init(&m_taskLock, NULL);
     pthread_cond_init(&m_taskCond, NULL);
@@ -181,13 +181,6 @@ CWorkerTask* CWorkerDisp::getWorkerTask(std::string *pstrName)
     return pWorkerTask;
 }
 
-void CWorkerDisp::Notify(std::string *pstrName)
-{
-    CLckThis objLckThis(&m_taskLock);
-    m_quTask.push(pstrName);
-    pthread_cond_signal(&m_taskCond);
-}
-
 void CWorkerDisp::stopNet(void)
 {
     CNetWorker *pNet = CNetWorker::getSingletonPtr();
@@ -283,7 +276,9 @@ void CWorkerDisp::Run(void)
             }
             else
             {
+                ++m_uiWait;
                 pthread_cond_wait(&m_taskCond, objLckThis.getMutex());
+                --m_uiWait;
                 continue;
             }
         }
@@ -302,7 +297,7 @@ void CWorkerDisp::Run(void)
 
         pWorker = getFreeWorker(usIndex);
         pWorker->setBusy();
-        pWorker->addWorker(pWorkerTask);        
+        pWorker->addWorker(pWorkerTask);
     }
 
     //Í£Ö¹ÍøÂç
