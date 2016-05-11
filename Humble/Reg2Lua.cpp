@@ -260,7 +260,8 @@ void H_RegBinary(struct lua_State *pLState)
     luabridge::getGlobalNamespace(pLState)
         .beginClass<CBinary>("CBinary")
             .addConstructor<void(*) (void)>()
-
+            
+            .addFunction("setReadBuffer", &CBinary::setReadBuffer)
             .addFunction("getRBufLens", &CBinary::getRBufLens)
             .addFunction("getReadedLens", &CBinary::getReadedLens)
 

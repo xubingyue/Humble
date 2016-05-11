@@ -8,7 +8,6 @@ local tcp = require("tcp")
 local httpd = require("httpd")
 local table = table
 local string = string
-local ChanNam = ChanNam
 
 if not g_pBinary then
     g_pBinary = CBinary()
