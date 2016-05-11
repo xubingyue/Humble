@@ -1092,9 +1092,6 @@
     <ClCompile Include="Worker.cpp">
       <Filter>Service</Filter>
     </ClCompile>
-    <ClCompile Include="Chan.cpp">
-      <Filter>Service</Filter>
-    </ClCompile>
     <ClCompile Include="luaserialize\serialize.c">
       <Filter>3rd\lua\serialize</Filter>
     </ClCompile>
@@ -1109,6 +1106,9 @@
     </ClCompile>
     <ClCompile Include="SHA1.cpp">
       <Filter>Encrypt</Filter>
+    </ClCompile>
+    <ClCompile Include="Chan.cpp">
+      <Filter>Service</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -74,9 +74,7 @@ void H_RegWorkerDisp(struct lua_State *pLState)
 {
     luabridge::getGlobalNamespace(pLState)
         .beginClass<CWorkerDisp>("CWorkerDisp")
-            .addFunction("regChan", &CWorkerDisp::regChan)
-            .addFunction("getSendChan", &CWorkerDisp::getSendChan)
-            .addFunction("getRecvChan", &CWorkerDisp::getRecvChan)
+            .addFunction("getChan", &CWorkerDisp::getChan)
             .addFunction("regTask", &CWorkerDisp::regTask)
         .endClass();
 }
@@ -87,8 +85,6 @@ void H_RegChan(struct lua_State *pLState)
         .beginClass<CChan>("CChan")
             .addFunction("Send", &CChan::Send)
             .addFunction("Recv", &CChan::Recv)
-            .addFunction("canSend", &CChan::canSend)
-            .addFunction("canRecv", &CChan::canRecv)
         .endClass();
 }
 

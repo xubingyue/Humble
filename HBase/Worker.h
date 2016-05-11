@@ -45,10 +45,16 @@ public:
     void setName(const char *pszName)
     {
         m_strName = pszName;
+        m_objChan.setTaskNam(&m_strName);
     };
-    const char * getName(void)
+    std::string *getName(void)
     {
-        return m_strName.c_str();
+        return &m_strName;
+    };
+
+    CChan *getChan(void)
+    {
+        return &m_objChan;
     };
 
 private:
@@ -56,6 +62,7 @@ private:
 
 private:
     unsigned int m_uiRef;
+    CChan m_objChan;
     std::string m_strName;
 };
 

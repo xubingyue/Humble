@@ -82,7 +82,7 @@ void CLuaTask::runTask(void)
 {
     try
     {
-        (*(m_pLFunc[LTASK_RUN]))();
+        (*(m_pLFunc[LTASK_RUN]))(getChan());
     }
     catch (luabridge::LuaException &e)
     {

@@ -21,7 +21,7 @@ void CWorker::setBusy(void)
 
 void CWorker::runTask(CWorkerTask *pMsg)
 {
-    CTick::getSingletonPtr()->monitorTrigger(m_usIndex, pMsg->getName());
+    CTick::getSingletonPtr()->monitorTrigger(m_usIndex, pMsg->getName()->c_str());
     pMsg->Run();
     CTick::getSingletonPtr()->monitorTrigger(m_usIndex, NULL);    
     pMsg->subRef();

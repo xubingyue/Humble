@@ -16,19 +16,15 @@ end
 local tChan = g_tChan
 
 function onStart()
-    tChan.timer = humble.getSendChan("timetick", "tick")
+    tChan.timer = humble.getChan("test")
 end
 
 function onStop()
     
 end
 
-function onTimer(uiTick, uiCount) 
-    if tChan.timer:canSend() then
-        tChan.timer:Send(utile.Pack({uiTick, uiCount}))
-    else
-        utile.Log(LogLV.Warn, "%s", "service maybe overloaded.")
-    end
+function onTimer(uiTick, uiCount)
+    tChan.timer:Send(utile.Pack({uiTick, uiCount}))
     
     --1√Î
     if 0 == ((uiTick * uiCount) % 1000) then 

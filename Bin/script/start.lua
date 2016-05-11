@@ -25,13 +25,10 @@ function onStart()
     humble.tcpListen(1, "0.0.0.0", 15000)
     --humble.addTcpLink(1, "127.0.0.1", 15000)  
     
-    humble.regChan("echochan", 1024)
-    humble.regChan("timetick", 1024)
-    
     humble.regTask("echo")
     humble.regTask("test")      
     
-    tChan.echo = humble.getSendChan("echochan", "start")
+    tChan.echo = humble.getChan("echo")
 end
 
 --退出，主要清理掉连接

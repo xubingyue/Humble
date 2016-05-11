@@ -41,6 +41,7 @@ private:
 
 private:
     bool m_bDel;
+    unsigned int m_uiWait;
     long m_lExit;
     long m_lCanAdd;
     long m_lCount;
@@ -50,7 +51,7 @@ private:
 };
 
 template <typename T>
-CRecvTask<T>::CRecvTask(void) : m_bDel(true), m_lExit(RS_RUN), m_lCanAdd(CANADD),
+CRecvTask<T>::CRecvTask(void) : m_bDel(true), m_uiWait(H_INIT_NUMBER), m_lExit(RS_RUN), m_lCanAdd(CANADD),
     m_lCount(H_INIT_NUMBER)
 {
     pthread_mutex_init(&m_quLock, NULL);
@@ -92,7 +93,9 @@ void CRecvTask<T>::Run(void)
         }
         else
         {
+            ++m_uiWait;
             pthread_cond_wait(&m_objCond, objLckThis.getMutex());
+            --m_uiWait;
         }
     }
 
@@ -138,7 +141,10 @@ void CRecvTask<T>::addTask(T *pMsg)
 
     CLckThis objLckThis(&m_quLock);
     m_vcTask.push(pMsg);
-    pthread_cond_signal(&m_objCond);
+    if (m_uiWait > H_INIT_NUMBER)
+    {
+        pthread_cond_signal(&m_objCond);
+    }    
 }
 
 template <typename T>
