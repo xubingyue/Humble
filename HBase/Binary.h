@@ -113,6 +113,7 @@ private:
 
 private:
     char *m_pParseBuffer;//要解析的buffer
+    char m_acZero[H_ONEK];
     size_t m_iParseBufLens;//要解析的buffer长度
     size_t m_iCurParseLens;//已经解析的长度
     size_t m_iLEFLens;

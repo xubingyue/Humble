@@ -38,17 +38,15 @@ void CBinary::skipRead(const unsigned int iLens)
 
 void CBinary::skipWrite(const unsigned int iLens)
 {
-    if (H_INIT_NUMBER == iLens)
+    if (H_INIT_NUMBER == iLens
+        || iLens > H_ONEK)
     {
+        H_Printf("skip write lens %d must big than zero and less than 1024", iLens);
         return;
     }
-
-    char *pBuf = new(std::nothrow) char[iLens];
-    H_Zero(pBuf, iLens);
-
-    setVal(pBuf, iLens);
-
-    H_SafeDelete(pBuf);
+    
+    H_Zero(m_acZero, iLens);
+    setVal(m_acZero, iLens);
 }
 
 size_t CBinary::getSurpLens(void)
