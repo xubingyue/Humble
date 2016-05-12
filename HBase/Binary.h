@@ -88,6 +88,10 @@ public:
     {
         return &m_strWritBuffer;
     };
+    std::string lgetWritedBuf(void)
+    {
+        return m_strWritBuffer;
+    };
 
 private:
     H_DISALLOWCOPY(CBinary);

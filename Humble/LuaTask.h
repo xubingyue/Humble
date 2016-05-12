@@ -12,7 +12,7 @@ public:
     CLuaTask(void);
     ~CLuaTask(void);
 
-    void initTask(const char *pName);
+    void initTask(void);
     void runTask(void);
     void destroyTask(void);
 

@@ -51,11 +51,9 @@ CLuaTask::~CLuaTask(void)
     }
 }
 
-void CLuaTask::initTask(const char *pName)
+void CLuaTask::initTask(void)
 {
-    setName(pName);
-
-    std::string strLuaFile = H_FormatStr("%s%s.lua", g_strScriptPath.c_str(), pName);
+    std::string strLuaFile = H_FormatStr("%s%s.lua", g_strScriptPath.c_str(), getName()->c_str());
     if (H_RTN_OK != luaL_dofile(m_pLState, strLuaFile.c_str()))
     {
         const char *pError = lua_tostring(m_pLState, -1);

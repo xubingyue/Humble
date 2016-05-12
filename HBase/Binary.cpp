@@ -43,7 +43,12 @@ void CBinary::skipWrite(const unsigned int iLens)
         return;
     }
 
-    setVal(NULL, iLens);
+    char *pBuf = new(std::nothrow) char[iLens];
+    H_Zero(pBuf, iLens);
+
+    setVal(pBuf, iLens);
+
+    H_SafeDelete(pBuf);
 }
 
 size_t CBinary::getSurpLens(void)

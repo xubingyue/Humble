@@ -307,6 +307,8 @@ void H_RegBinary(struct lua_State *pLState)
             
             .addFunction("readLine", &CBinary::readLine)
             .addFunction("Find", &CBinary::Find)
+
+            .addFunction("getWritedBuf", &CBinary::lgetWritedBuf)
         .endClass();
 }
 

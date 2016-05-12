@@ -66,8 +66,8 @@ void CWorkerDisp::regTask(const char *pszName, CWorkerTask *pTask)
 
     taskit itTask = m_mapTask.find(strName);
     if (m_mapTask.end() == itTask)
-    {
-        pTask->initTask(pszName);
+    {        
+        pTask->setName(pszName);
         m_mapTask.insert(std::make_pair(strName, pTask));
     }
     else
@@ -179,6 +179,11 @@ void CWorkerDisp::Run(void)
     CWorkerTask *pWorkerTask = NULL;
     std::string *pTaskNam;
     unsigned short usIndex(H_INIT_NUMBER);
+
+    for (taskit itTask = m_mapTask.begin(); m_mapTask.end() != itTask; ++itTask)
+    {
+        itTask->second->initTask();
+    }
 
     H_AtomicAdd(&m_lCount, 1);
 

@@ -26,7 +26,7 @@ public:
         runTask();
     };
 
-    virtual void initTask(const char *) = 0;
+    virtual void initTask(void) = 0;
     virtual void runTask(void) = 0;
     virtual void destroyTask(void) = 0;
 
