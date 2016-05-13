@@ -9,8 +9,6 @@ CSender objSender;
 
 enum
 {
-    AddSock,
-    DelSock,
     SendTo,
     BroadCast,
 };
@@ -28,6 +26,8 @@ CSender::~CSender(void)
 void CSender::sendToSock(H_SOCK &fd, const unsigned int &uiSession, const char *pBuf, const size_t &iLens)
 {
     senderit itSender;
+
+    m_objLck.rLock();
     itSender = m_mapSender.find(fd);
     if (m_mapSender.end() != itSender)
     {
@@ -36,30 +36,13 @@ void CSender::sendToSock(H_SOCK &fd, const unsigned int &uiSession, const char *
             H_SockWrite(fd, pBuf, iLens);
         }
     }
+    m_objLck.unLock();
 }
 
 void CSender::runTask(H_Sender *pMsg)
 {
     switch (pMsg->usCmd)
-    {
-        case AddSock:
-        {
-            m_mapSender[pMsg->stSock.sock] = pMsg->stSock.uiSession;
-        }
-        break;
-        case DelSock:
-        {
-            senderit itSender;
-            itSender = m_mapSender.find(pMsg->stSock.sock);
-            if (m_mapSender.end() != itSender)
-            {
-                if (itSender->second == pMsg->stSock.uiSession)
-                {
-                    m_mapSender.erase(itSender);
-                }
-            }
-        }
-        break;
+    {        
         case SendTo:
         {
             sendToSock(pMsg->stSock.sock, pMsg->stSock.uiSession, pMsg->pBuffer, pMsg->iBufLens);
@@ -103,12 +86,19 @@ void CSender::Send(H_SOCK sock, const unsigned int uiSession, const char *pBuf, 
     addTask(pSender);
 }
 
-void CSender::lbroadCast(luabridge::LuaRef lTable, const char *pBuf, const size_t iLens)
+void CSender::sendBinary(H_SOCK sock, const unsigned int uiSession, CBinary *pBinary)
+{
+    std::string *pBuf = pBinary->getWritedBuf();
+
+    Send(sock, uiSession, pBuf->c_str(), pBuf->size());
+}
+
+H_SenderSock *CSender::createSenderSock(luabridge::LuaRef &lTable)
 {
     int iCount(lTable.length());
     if (0 >= iCount)
     {
-        return;
+        return NULL;
     }
 
     H_SenderSock *pSock = new(std::nothrow) H_SenderSock[iCount];
@@ -120,7 +110,31 @@ void CSender::lbroadCast(luabridge::LuaRef lTable, const char *pBuf, const size_
         pSock[i - 1].uiSession = objTmp[2].cast<unsigned int>();
     }
 
-    broadCast(pSock, iCount, pBuf, iLens);
+    return pSock;
+}
+
+void CSender::lbroadCast(luabridge::LuaRef lTable, const char *pBuf, const size_t iLens)
+{
+    H_SenderSock *pSock = createSenderSock(lTable);
+    if (NULL == pSock)
+    {
+        return;
+    }
+
+    broadCast(pSock, lTable.length(), pBuf, iLens);
+}
+
+void CSender::broadCastBinary(luabridge::LuaRef lTable, CBinary *pBinary)
+{
+    H_SenderSock *pSock = createSenderSock(lTable);
+    if (NULL == pSock)
+    {
+        return;
+    }
+
+    std::string *pBuf = pBinary->getWritedBuf();
+
+    broadCast(pSock, lTable.length(), pBuf->c_str(), pBuf->size());
 }
 
 void CSender::broadCast(H_SenderSock *pSock, const int &iCount, const char *pBuf, const size_t &iLens)
@@ -139,26 +153,22 @@ void CSender::broadCast(H_SenderSock *pSock, const int &iCount, const char *pBuf
     addTask(pSender);
 }
 
-void CSender::addSock(H_SOCK sock, const unsigned int uiSession)
+void CSender::addSock(H_SOCK &sock, const unsigned int &uiSession)
 {
-    H_Sender *pSender = newT();
-
-    pSender->usCmd = AddSock;
-    pSender->stSock.sock = sock;
-    pSender->stSock.uiSession = uiSession;
-
-    addTask(pSender);
+    m_objLck.wLock();
+    m_mapSender[sock] = uiSession;
+    m_objLck.unLock();
 }
 
-void CSender::delSock(H_SOCK sock, const unsigned int uiSession)
+void CSender::delSock(H_SOCK &sock)
 {
-    H_Sender *pSender = newT();
-
-    pSender->usCmd = DelSock;
-    pSender->stSock.sock = sock;
-    pSender->stSock.uiSession = uiSession;
-
-    addTask(pSender);
+    m_objLck.wLock();
+    senderit itSender = m_mapSender.find(sock);
+    if (m_mapSender.end() != itSender)
+    {        
+        m_mapSender.erase(itSender);
+    }
+    m_objLck.unLock();
 }
 
 H_ENAMSP

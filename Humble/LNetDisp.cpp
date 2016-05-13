@@ -23,7 +23,7 @@ CLNetDisp::CLNetDisp(void) : m_pLState(NULL), m_pLFunc(NULL)
     try
     {
         H_RegAll(m_pLState);
-        luabridge::setGlobal(m_pLState, &m_objTcpEvBuffer, "g_pTcpBuffer");
+        luabridge::setGlobal(m_pLState, &m_objEvBuffer, "g_pEvBuffer");
     }
     catch (luabridge::LuaException &e)
     {
@@ -116,7 +116,7 @@ H_INLINE void CLNetDisp::onTcpRead(struct H_Session *pSession)
 {
     try
     {
-        m_objTcpEvBuffer.setEvBuf(pSession->pBev);
+        m_objEvBuffer.setEvBuf(pSession->pBev);
         (*(m_pLFunc[LOnTcpRead]))(pSession->sock, pSession->uiSession, pSession->usSockType);
     }
     catch (luabridge::LuaException &e)

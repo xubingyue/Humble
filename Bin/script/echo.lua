@@ -8,6 +8,7 @@ local tcp = require("tcp")
 local httpd = require("httpd")
 local table = table
 local string = string
+local pChan = g_pChan
 
 if not g_pBinary then
     g_pBinary = CBinary()
@@ -18,15 +19,14 @@ function initTask()
     
 end
 
-function runTask(pChan)
-        --[[local varRecv = pChan:Recv()
-        local sock, uiSession, tInfo = table.unpack(utile.unPack(varRecv))
-        table.print(tInfo)
-        local strResp = httpd.Response(200, "hello http")
-        humble.Send(sock, uiSession, strResp)--]]
+function runTask()
         local varRecv = pChan:Recv()
-        local sock, uiSession, iProtocol, strMsg = table.unpack(utile.unPack(varRecv))
-        tcp.creatPack(pBinary, iProtocol, strMsg)
+        local sock, uiSession, strMsg = table.unpack(utile.unPack(varRecv))        
+        --table.print(strMsg)        
+        --local strResp = httpd.Response(200, "hello http")
+        --humble.Send(sock, uiSession, strResp)        
+
+        tcp.creatPack(pBinary, strMsg)
         humble.SendB(sock, uiSession, pBinary)
 end
 

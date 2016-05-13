@@ -44,46 +44,41 @@ local function parseHead(objBinary)
     return nil, 0
 end
 
-function tcp.parsePack(pTcpBuffer)
+function tcp.parsePack(pTcpBuffer, funcOnRead, ...)
     local iParsed = 0
     local iHeadLens = 0
     local iPackLens = 0
-    local iPro = 0
-    local strMsg = ""
-    local tMsg = {}
     local objBinary = pTcpBuffer:readBuffer(pTcpBuffer:getTotalLens())
     
     while true do
         iHeadLens, iPackLens = parseHead(objBinary)
         if not iHeadLens then
-            break;
+            break
         end
         
         if 0 == iPackLens then
             iParsed = objBinary:getReadedLens()
-        else        
+        else
             if iPackLens > objBinary:getSurpLens() then
-                break;
+                break
             end
             
-            iPro = objBinary:getUint16()
-            strMsg = objBinary:getByte(iPackLens - 2)
-            table.insert(tMsg, {iPro, strMsg})
-            
+            funcOnRead(objBinary:getByte(iPackLens), table.unpack({...}))
             iParsed = objBinary:getReadedLens()
         end
     end
     
-    return iParsed, tMsg
+    if 0 ~= iParsed then
+        pTcpBuffer:delBuffer(iParsed)
+    end
 end
 
-function tcp.creatPack(objBinary, iProtocol, strMsg)
+function tcp.creatPack(objBinary, strMsg)
     objBinary:reSetWrite()
-    local iLens = string.len(strMsg) + 2
+    local iLens = string.len(strMsg)
     if iLens <= TCPBUFLENS_125 then
         objBinary:setSint8(iLens)
-        objBinary:setUint16(iProtocol)
-        objBinary:setByte(strMsg, iLens - 2)
+        objBinary:setByte(strMsg, iLens)
         
         return
     end
@@ -91,16 +86,14 @@ function tcp.creatPack(objBinary, iProtocol, strMsg)
     if iLens > TCPBUFLENS_125 and iLens <= 65535 then
         objBinary:setSint8(TCPBUFLENS_126)
         objBinary:setUint16(iLens)
-        objBinary:setUint16(iProtocol)
-        objBinary:setByte(strMsg, iLens - 2)
+        objBinary:setByte(strMsg, iLens)
         
         return
     end
     
     objBinary:setSint8(TCPBUFLENS_127)
     objBinary:setUint32(iLens)
-    objBinary:setUint16(iProtocol)
-    objBinary:setByte(strMsg, iLens - 2)
+    objBinary:setByte(strMsg, iLens)
 end
 
 return tcp

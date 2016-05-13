@@ -203,7 +203,7 @@ void CNetWorker::onReadyStop(void)
 
 void CNetWorker::onClose(H_Session *pSession)
 {
-    CSender::getSingletonPtr()->delSock(pSession->sock, pSession->uiSession);
+    CSender::getSingletonPtr()->delSock(pSession->sock);
     if (pSession->bLinker)
     {
         std::list<H_TcpLink*>::iterator itLink;

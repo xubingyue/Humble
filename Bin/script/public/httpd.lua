@@ -110,13 +110,11 @@ local function parseChunked(pBinary)
     return strChunked
 end
 
-function httpd.parsePack(pTcpBuffer)
+function httpd.parsePack(pTcpBuffer, funcOnRead, ...)
     local iParsed = 0
     local tInfo = {}
     local strMethod, strUrl, tHead
-    local iTotalLens = pTcpBuffer:getTotalLens()
-    print(string.format("TotalLens %d", iTotalLens))
-    local pBinary = pTcpBuffer:readBuffer(iTotalLens)
+    local pBinary = pTcpBuffer:readBuffer(pTcpBuffer:getTotalLens())
     while true do
         strMethod, strUrl, tHead = parseHead(pBinary)
         if not strMethod then
@@ -130,7 +128,11 @@ function httpd.parsePack(pTcpBuffer)
                 break
             end
             
-            table.insert(tInfo, {strMethod, strUrl, tHead, pBinary:getByte(iLens)})
+            tInfo.method = strMethod
+            tInfo.url = strUrl
+            tInfo.head = tHead
+            tInfo.info = pBinary:getByte(iLens)
+            funcOnRead(tInfo, table.unpack({...}))
             iParsed = pBinary:getReadedLens()
         elseif (tHead[TransferEncoding] and "chunked" == tHead[TransferEncoding]) then
             local strChunked = parseChunked(pBinary)
@@ -138,15 +140,27 @@ function httpd.parsePack(pTcpBuffer)
                 break
             end
             
-            table.insert(tInfo, {strMethod, strUrl, tHead, strChunked})
+            tInfo = {}
+            tInfo.method = strMethod
+            tInfo.url = strUrl
+            tInfo.head = tHead
+            tInfo.info = strChunked
+            funcOnRead(tInfo, table.unpack({...}))
             iParsed = pBinary:getReadedLens()
         else
-            table.insert(tInfo, {strMethod, strUrl, tHead})
+            tInfo = {}
+            tInfo.method = strMethod
+            tInfo.url = strUrl
+            tInfo.head = tHead 
+            tInfo.info = nil
+            funcOnRead(tInfo, table.unpack({...}))
             iParsed = pBinary:getReadedLens()
         end
     end
     
-    return iParsed, tInfo
+    if 0 ~= iParsed then
+        pTcpBuffer:delBuffer(iParsed)
+    end
 end
 
 function httpd.Response(iCode, varBodyFunc, tHeader)

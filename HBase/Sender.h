@@ -5,6 +5,7 @@
 #include "RecvTask.h"
 #include "Singleton.h"
 #include "Binary.h"
+#include "RWLock.h"
 #include "lua5.3/lua.hpp"
 #include "luabridge/LuaBridge.h"
 
@@ -39,25 +40,19 @@ public:
     void runTask(H_Sender *pMsg);
 
     void Send(H_SOCK sock, const unsigned int uiSession, const char *pBuf, const size_t iLens);
-    void sendBinary(H_SOCK sock, const unsigned int uiSession, CBinary *pBinary)
-    {
-        std::string *pBuf = pBinary->getWritedBuf();
-        Send(sock, uiSession, pBuf->c_str(), pBuf->size());
-    };
+    void sendBinary(H_SOCK sock, const unsigned int uiSession, CBinary *pBinary);
+
     //{{sock,session},...}
     void lbroadCast(luabridge::LuaRef lTable, const char *pBuf, const size_t iLens);
-    void broadCastBinary(luabridge::LuaRef lTable, CBinary *pBinary)
-    {
-        std::string *pBuf = pBinary->getWritedBuf();
-        lbroadCast(lTable, pBuf->c_str(), pBuf->size());
-    };
+    void broadCastBinary(luabridge::LuaRef lTable, CBinary *pBinary);
 
-    void addSock(H_SOCK sock, const unsigned int uiSession);
-    void delSock(H_SOCK sock, const unsigned int uiSession);
+    void addSock(H_SOCK &sock, const unsigned int &uiSession);
+    void delSock(H_SOCK &sock);
 
 private:
     void sendToSock(H_SOCK &fd, const unsigned int &uiSession, const char *pBuf, const size_t &iLens);
     void broadCast(H_SenderSock *pSock, const int &iCount, const char *pBuf, const size_t &iLens);
+    H_SenderSock *createSenderSock(luabridge::LuaRef &lTable);
 
 private:
     H_DISALLOWCOPY(CSender); 
@@ -71,6 +66,7 @@ private:
 
 private:
     sender_map m_mapSender;
+    CRWLock m_objLck;
 };
 
 H_ENAMSP

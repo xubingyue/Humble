@@ -24,6 +24,7 @@ CLuaTask::CLuaTask(void)
     try
     {
         H_RegAll(m_pLState);
+        luabridge::setGlobal(m_pLState, getChan(), "g_pChan");
     }
     catch (luabridge::LuaException &e)
     {
@@ -80,7 +81,7 @@ void CLuaTask::runTask(void)
 {
     try
     {
-        (*(m_pLFunc[LTASK_RUN]))(getChan());
+        (*(m_pLFunc[LTASK_RUN]))();
     }
     catch (luabridge::LuaException &e)
     {

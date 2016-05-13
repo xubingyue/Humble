@@ -137,8 +137,6 @@ void CRecvTask<T>::addTask(T *pMsg)
         return;
     }
 
-    H_ASSERT(NULL != pMsg, "pointer is null.");
-
     CLckThis objLckThis(&m_quLock);
     m_vcTask.push(pMsg);
     if (m_uiWait > H_INIT_NUMBER)

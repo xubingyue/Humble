@@ -13,7 +13,7 @@ local httpd = require("httpd")
 local table = table
 local pairs = pairs
 local SockType = SockType
-local pTcpBuffer = g_pTcpBuffer
+local pEvBuffer = g_pEvBuffer
 
 if not g_tChan then
     g_tChan = {}    
@@ -44,21 +44,11 @@ function onTcpClose(sock, uiSession, usType)
     
 end
 
+local function funcOnRead(varMsg, sock, uiSession, pChan)
+    pChan:Send(utile.Pack({sock, uiSession, varMsg}))
+end
+
 function onTcpRead(sock, uiSession, usType)
-    --[[local iParsed, tInfo = httpd.parsePack(pTcpBuffer)
-    if 0 ~= iParsed then
-        tChan.echo:Send(utile.Pack({sock, uiSession, tInfo}))
-        pTcpBuffer:delBuffer(iParsed)
-    end--]]
-    local iProtocol, strMsg
-    local iParsed, tMsg = tcp.parsePack(pTcpBuffer)
-    if 0 ~= iParsed then
-        for _, val in pairs(tMsg) do
-            iProtocol = val[1]
-            strMsg = val[2]
-            tChan.echo:Send(utile.Pack({sock, uiSession, iProtocol, strMsg}))
-        end
-        
-        pTcpBuffer:delBuffer(iParsed)
-    end    
+    --httpd.parsePack(pEvBuffer, funcOnRead, sock, uiSession, tChan.echo)
+    tcp.parsePack(pEvBuffer, funcOnRead, sock, uiSession, tChan.echo)
 end

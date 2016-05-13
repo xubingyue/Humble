@@ -34,7 +34,7 @@ private:
 private:
     struct lua_State *m_pLState;
     luabridge::LuaRef **m_pLFunc;
-    CEvBuffer m_objTcpEvBuffer;
+    CEvBuffer m_objEvBuffer;
 };
 
 H_ENAMSP
