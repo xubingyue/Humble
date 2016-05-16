@@ -106,6 +106,23 @@
     <ClInclude Include="luacjson\dtoa_config.h" />
     <ClInclude Include="luacjson\fpconv.h" />
     <ClInclude Include="luacjson\strbuf.h" />
+    <ClInclude Include="luasocket\auxiliar.h" />
+    <ClInclude Include="luasocket\buffer.h" />
+    <ClInclude Include="luasocket\except.h" />
+    <ClInclude Include="luasocket\inet.h" />
+    <ClInclude Include="luasocket\luasocket.h" />
+    <ClInclude Include="luasocket\luasockio.h" />
+    <ClInclude Include="luasocket\mime.h" />
+    <ClInclude Include="luasocket\options.h" />
+    <ClInclude Include="luasocket\pierror.h" />
+    <ClInclude Include="luasocket\select.h" />
+    <ClInclude Include="luasocket\socket.h" />
+    <ClInclude Include="luasocket\tcp.h" />
+    <ClInclude Include="luasocket\timeout.h" />
+    <ClInclude Include="luasocket\udp.h" />
+    <ClInclude Include="luasocket\unix.h" />
+    <ClInclude Include="luasocket\usocket.h" />
+    <ClInclude Include="luasocket\wsocket.h" />
     <ClInclude Include="luasql\luasql.h" />
     <ClInclude Include="Macros.h" />
     <ClInclude Include="Mail.h" />
@@ -207,6 +224,7 @@
     <ClCompile Include="CoreDump.cpp" />
     <ClCompile Include="CRC.cpp" />
     <ClCompile Include="Funcs.cpp" />
+    <ClCompile Include="HBase.cpp" />
     <ClCompile Include="HRSA.cpp" />
     <ClCompile Include="Ini.cpp" />
     <ClCompile Include="jsoncpp\json_reader.cpp" />
@@ -261,6 +279,22 @@
     <ClCompile Include="luacjson\lua_cjson.c" />
     <ClCompile Include="luacjson\strbuf.c" />
     <ClCompile Include="luaserialize\serialize.c" />
+    <ClCompile Include="luasocket\auxiliar.c" />
+    <ClCompile Include="luasocket\buffer.c" />
+    <ClCompile Include="luasocket\except.c" />
+    <ClCompile Include="luasocket\inet.c" />
+    <ClCompile Include="luasocket\luasocket.c" />
+    <ClCompile Include="luasocket\luasockio.c" />
+    <ClCompile Include="luasocket\mime.c" />
+    <ClCompile Include="luasocket\options.c" />
+    <ClCompile Include="luasocket\select.c" />
+    <ClCompile Include="luasocket\serial.c" />
+    <ClCompile Include="luasocket\tcp.c" />
+    <ClCompile Include="luasocket\timeout.c" />
+    <ClCompile Include="luasocket\udp.c" />
+    <ClCompile Include="luasocket\unix.c" />
+    <ClCompile Include="luasocket\usocket.c" />
+    <ClCompile Include="luasocket\wsocket.c" />
     <ClCompile Include="luasql\ls_mysql.c" />
     <ClCompile Include="luasql\luasql.c" />
     <ClCompile Include="Mail.cpp" />
@@ -446,7 +480,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;_WINSOCK_DEPRECATED_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../HBase;../HBase/bson;../HBase/event2;../HBase/jwsmtp;../HBase/lpeg;../HBase/lua5.3;../HBase/luabridge;../HBase/luacjson;../HBase/luasql;../HBase/mysql;../HBase/pbc;../HBase/pugixml;../HBase/rijndael;../HBase/RSAEuro;../HBase/sproto;../HBase/uchardet;../HBase/zlib;../HBase/redisrand;../HBase/jsoncpp;../HBase/luaserialize;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../HBase;../HBase/event2;../HBase/mysql;../HBase/jwsmtp;../HBase/pugixml;../HBase/rijndael;../HBase/redisrand;../HBase/zlib;../HBase/uchardet;../HBase/RSAEuro;../HBase/lua5.3;../HBase/lpeg;../HBase/bson;../HBase/luabridge;../HBase/luacjson;../HBase/luasql;../HBase/pbc;../HBase/sproto;../HBase/jsoncpp;../HBase/luaserialize;../HBase/luasocket;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -459,7 +493,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;_WINSOCK_DEPRECATED_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../HBase;../HBase/bson;../HBase/event2;../HBase/jwsmtp;../HBase/lpeg;../HBase/lua5.3;../HBase/luabridge;../HBase/luacjson;../HBase/luasql;../HBase/mysql;../HBase/pbc;../HBase/pugixml;../HBase/rijndael;../HBase/RSAEuro;../HBase/sproto;../HBase/uchardet;../HBase/zlib;../HBase/redisrand;../HBase/jsoncpp;../HBase/luaserialize;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../HBase;../HBase/event2;../HBase/mysql;../HBase/jwsmtp;../HBase/pugixml;../HBase/rijndael;../HBase/redisrand;../HBase/zlib;../HBase/uchardet;../HBase/RSAEuro;../HBase/lua5.3;../HBase/lpeg;../HBase/bson;../HBase/luabridge;../HBase/luacjson;../HBase/luasql;../HBase/pbc;../HBase/sproto;../HBase/jsoncpp;../HBase/luaserialize;../HBase/luasocket;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -474,7 +508,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;_WINSOCK_DEPRECATED_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../HBase;../HBase/bson;../HBase/event2;../HBase/jwsmtp;../HBase/lpeg;../HBase/lua5.3;../HBase/luabridge;../HBase/luacjson;../HBase/luasql;../HBase/mysql;../HBase/pbc;../HBase/pugixml;../HBase/rijndael;../HBase/RSAEuro;../HBase/sproto;../HBase/uchardet;../HBase/zlib;../HBase/redisrand;../HBase/jsoncpp;../HBase/luaserialize;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../HBase;../HBase/event2;../HBase/mysql;../HBase/jwsmtp;../HBase/pugixml;../HBase/rijndael;../HBase/redisrand;../HBase/zlib;../HBase/uchardet;../HBase/RSAEuro;../HBase/lua5.3;../HBase/lpeg;../HBase/bson;../HBase/luabridge;../HBase/luacjson;../HBase/luasql;../HBase/pbc;../HBase/sproto;../HBase/jsoncpp;../HBase/luaserialize;../HBase/luasocket;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -491,7 +525,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;_WINSOCK_DEPRECATED_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../HBase;../HBase/bson;../HBase/event2;../HBase/jwsmtp;../HBase/lpeg;../HBase/lua5.3;../HBase/luabridge;../HBase/luacjson;../HBase/luasql;../HBase/mysql;../HBase/pbc;../HBase/pugixml;../HBase/rijndael;../HBase/RSAEuro;../HBase/sproto;../HBase/uchardet;../HBase/zlib;../HBase/redisrand;../HBase/jsoncpp;../HBase/luaserialize;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../HBase;../HBase/event2;../HBase/mysql;../HBase/jwsmtp;../HBase/pugixml;../HBase/rijndael;../HBase/redisrand;../HBase/zlib;../HBase/uchardet;../HBase/RSAEuro;../HBase/lua5.3;../HBase/lpeg;../HBase/bson;../HBase/luabridge;../HBase/luacjson;../HBase/luasql;../HBase/pbc;../HBase/sproto;../HBase/jsoncpp;../HBase/luaserialize;../HBase/luasocket;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

@@ -2,17 +2,16 @@
 websock
 --]]
 
+local table = table
+local string = string
+
 local websock = {}
 
-function websock.onConnect(sock)
-
-end
-
-function websock.parsePack(sock, pTcpBuffer)
+function websock.parsePack(pTcpBuffer, funcOnRead, ...)
     
 end
 
-function websock.creatPack(objBinary, iProtocol, strMsg)
+function websock.creatPack(objBinary, strMsg)
     
 end
 

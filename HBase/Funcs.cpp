@@ -371,7 +371,7 @@ std::string H_GetLastOfFlag(const std::string &strSource, const char *pszFlag)
     return strSource.substr(iPos + strlen(pszFlag), strSource.size());
 }
 
-const char* H_StrStr(const char* pszStr,const char* pszsubStr)
+const char* H_StrStr(const char* pszStr, const char* pszsubStr)
 {
     if (NULL == pszStr
         || NULL == pszsubStr)
@@ -380,14 +380,14 @@ const char* H_StrStr(const char* pszStr,const char* pszsubStr)
     }
 
     size_t iLens(strlen(pszsubStr));
-    if(0 == iLens)
+    if (0 == iLens)
     {
         return NULL;
     }
 
-    while(*pszStr)
+    while (*pszStr)
     {
-        if(0 == H_Strncasecmp(pszStr, pszsubStr, iLens))
+        if (0 == H_Strncasecmp(pszStr, pszsubStr, iLens))
         {
             return pszStr;
         }

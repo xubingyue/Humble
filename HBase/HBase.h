@@ -44,4 +44,7 @@
 extern std::string g_strProPath;
 extern std::string g_strScriptPath;
 
+extern pthread_cond_t g_ExitCond;
+extern pthread_mutex_t g_objExitMu;
+
 #endif//H_BASE_H_

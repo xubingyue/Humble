@@ -14,17 +14,7 @@ using namespace Humble;
 #pragma comment(lib, "HBase.lib")
 #endif
 
-std::string g_strProPath;
-std::string g_strScriptPath;
-pthread_cond_t g_ExitCond;
-pthread_mutex_t g_objExitMu;
 CCoreDump g_objDump();
-
-void freeCondMu(void)
-{
-    pthread_mutex_destroy(&g_objExitMu);
-    pthread_cond_destroy(&g_ExitCond);
-}
 
 #ifdef H_OS_WIN
 BOOL WINAPI consoleHandler(DWORD msgType)
@@ -66,7 +56,7 @@ BOOL WINAPI consoleHandler(DWORD msgType)
     if (bRtn)
     {
         H_LOG(LOGLV_INFO, "catch console signal %d.", msgType);
-        pthread_cond_signal(&g_ExitCond);
+        pthread_cond_broadcast(&g_ExitCond);
     }
 
     return bRtn;
@@ -77,7 +67,7 @@ void sigHandEntry(int iSigNum)
     H_LOG(LOGLV_INFO, "catch signal %d.", iSigNum);
 
     CLckThis objLckThis(&g_objExitMu);
-    pthread_cond_signal(&g_ExitCond);
+    pthread_cond_broadcast(&g_ExitCond);
 }
 #endif
 
@@ -129,39 +119,14 @@ int init()
     return H_RTN_OK;
 }
 
-int main(int argc, char *argv[])
+void runSV(void)
 {
-    g_strProPath = H_GetProPath();
-    g_strScriptPath = H_FormatStr("%s%s%s", g_strProPath.c_str(), "script", H_PATH_SEPARATOR);
-#ifdef H_OS_WIN
-    (void)SetConsoleCtrlHandler((PHANDLER_ROUTINE)consoleHandler, TRUE);
-#else
-    signal(SIGPIPE, SIG_IGN);//若某一端关闭连接，而另一端仍然向它写数据，第一次写数据后会收到RST响应，此后再写数据，内核将向进程发出SIGPIPE信号
-    signal(SIGINT, sigHandEntry);//终止进程
-    signal(SIGHUP, sigHandEntry);//终止进程
-    signal(SIGTSTP, sigHandEntry);//ctrl+Z
-    signal(SIGTERM, sigHandEntry);//终止一个进程
-    signal(SIGKILL, sigHandEntry);//立即结束程序
-    signal(SIGABRT, sigHandEntry);//中止一个程序
-    signal(H_SIGNAL_EXIT, sigHandEntry);
-    H_Printf("exit service by command \"kill -%d %d\".", H_SIGNAL_EXIT, getpid());
-#endif
-
-    pthread_cond_init(&g_ExitCond, NULL);
-    pthread_mutex_init(&g_objExitMu, NULL);
-    atexit(freeCondMu);
-
-    if (H_RTN_OK != init())
-    {
-        return H_RTN_FAILE;
-    }
-
     CLog *pLog = CLog::getSingletonPtr();
     CMail *pMail = CMail::getSingletonPtr();
     CLinker *pLinker = CLinker::getSingletonPtr();
     CNetWorker *pNet = CNetWorker::getSingletonPtr();
     CWorkerDisp *pWorker = CWorkerDisp::getSingletonPtr();
-    CSender *pSender = CSender::getSingletonPtr(); 
+    CSender *pSender = CSender::getSingletonPtr();
     CTick *pTick = CTick::getSingletonPtr();
     CLNetDisp objNetIntf;
     CLTick objTickIntf;
@@ -177,7 +142,7 @@ int main(int argc, char *argv[])
         pMail->waitStart();
     }
     CThread::Creat(pLinker);
-    pLinker->waitStart();    
+    pLinker->waitStart();
     CThread::Creat(pNet);
     pNet->waitStart();
     CThread::Creat(pSender);
@@ -191,12 +156,13 @@ int main(int argc, char *argv[])
         H_LOG(LOGLV_INFO, "%s", "start service successfully.");
         CLckThis objLckThis(&g_objExitMu);
         pthread_cond_wait(&g_ExitCond, objLckThis.getMutex());
+        H_LOG(LOGLV_INFO, "%s", "begin stop service.");
     }
-    
+
     pTick->Join();
     pWorker->Join();
     pSender->Join();
-    pNet->Join();    
+    pNet->Join();
     pLinker->Join();
     if (pMail->getSetted())
     {
@@ -204,6 +170,39 @@ int main(int argc, char *argv[])
     }
     H_LOG(LOGLV_INFO, "%s", "stop service successfully.");
     pLog->Join();
+}
+
+int main(int argc, char *argv[])
+{
+    g_strProPath = H_GetProPath();
+    g_strScriptPath = H_FormatStr("%s%s%s", g_strProPath.c_str(), "script", H_PATH_SEPARATOR);
+
+#ifdef H_OS_WIN
+    (void)SetConsoleCtrlHandler((PHANDLER_ROUTINE)consoleHandler, TRUE);
+#else
+    signal(SIGPIPE, SIG_IGN);//若某一端关闭连接，而另一端仍然向它写数据，第一次写数据后会收到RST响应，此后再写数据，内核将向进程发出SIGPIPE信号
+    signal(SIGINT, sigHandEntry);//终止进程
+    signal(SIGHUP, sigHandEntry);//终止进程
+    signal(SIGTSTP, sigHandEntry);//ctrl+Z
+    signal(SIGTERM, sigHandEntry);//终止一个进程
+    signal(SIGKILL, sigHandEntry);//立即结束程序
+    signal(SIGABRT, sigHandEntry);//中止一个程序
+    signal(H_SIGNAL_EXIT, sigHandEntry);
+    H_Printf("exit service by command \"kill -%d %d\".", H_SIGNAL_EXIT, getpid());   
+#endif
+
+    if (H_RTN_OK != init())
+    {
+        return H_RTN_FAILE;
+    }
+
+    pthread_cond_init(&g_ExitCond, NULL);
+    pthread_mutex_init(&g_objExitMu, NULL);
+
+    runSV();
+
+    pthread_mutex_destroy(&g_objExitMu);
+    pthread_cond_destroy(&g_ExitCond);
 
     return H_RTN_OK;
 }
