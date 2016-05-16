@@ -9,6 +9,7 @@ H_BNAMSP
 CBinary::CBinary(void) : m_pParseBuffer(NULL),
     m_iParseBufLens(H_INIT_NUMBER), m_iCurParseLens(H_INIT_NUMBER)
 {
+    H_Zero(m_acZero, sizeof(m_acZero));
     m_iLEFLens = strlen(H_LINEEFLAG);
 }
 
@@ -44,8 +45,7 @@ void CBinary::skipWrite(const unsigned int iLens)
         H_Printf("skip write lens %d must big than zero and less than 1024", iLens);
         return;
     }
-    
-    H_Zero(m_acZero, iLens);
+
     setVal(m_acZero, iLens);
 }
 
