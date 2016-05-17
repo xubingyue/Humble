@@ -42,7 +42,7 @@ void CSender::sendToSock(H_SOCK &fd, const unsigned int &uiSession, const char *
 void CSender::runTask(H_Sender *pMsg)
 {
     switch (pMsg->usCmd)
-    {        
+    {
         case SendTo:
         {
             sendToSock(pMsg->stSock.sock, pMsg->stSock.uiSession, pMsg->pBuffer, pMsg->iBufLens);
@@ -88,9 +88,7 @@ void CSender::Send(H_SOCK sock, const unsigned int uiSession, const char *pBuf, 
 
 void CSender::sendBinary(H_SOCK sock, const unsigned int uiSession, CBinary *pBinary)
 {
-    std::string *pBuf = pBinary->getWritedBuf();
-
-    Send(sock, uiSession, pBuf->c_str(), pBuf->size());
+    Send(sock, uiSession, pBinary->getWritedBuf().c_str(), pBinary->getWritedBuf().size());
 }
 
 H_SenderSock *CSender::createSenderSock(luabridge::LuaRef &lTable)
@@ -132,9 +130,7 @@ void CSender::broadCastBinary(luabridge::LuaRef lTable, CBinary *pBinary)
         return;
     }
 
-    std::string *pBuf = pBinary->getWritedBuf();
-
-    broadCast(pSock, lTable.length(), pBuf->c_str(), pBuf->size());
+    broadCast(pSock, lTable.length(), pBinary->getWritedBuf().c_str(), pBinary->getWritedBuf().size());
 }
 
 void CSender::broadCast(H_SenderSock *pSock, const int &iCount, const char *pBuf, const size_t &iLens)

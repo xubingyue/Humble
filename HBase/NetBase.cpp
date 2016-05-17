@@ -130,7 +130,6 @@ H_Session *CNetBase::addTcpEv(H_SOCK &sock, const unsigned short &usSockType)
 {
     int iFlag = 1;
     (void)setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (char *)&iFlag, sizeof(iFlag));
-
     struct bufferevent *pBev = bufferevent_socket_new(getBase(), sock, BEV_OPT_CLOSE_ON_FREE);
     if (NULL == pBev)
     {
@@ -180,7 +179,7 @@ void CNetBase::orderReadCB(struct bufferevent *bev, void *arg)
     }
 
     size_t iReadLens = iCount * iMsgLens;
-    CBinary *pBinary = objEvBuffer.readBuffer(iReadLens);
+    char *pBinary = objEvBuffer.readBuffer(iReadLens);
     if (NULL == pBinary)
     {
         return;
@@ -189,7 +188,7 @@ void CNetBase::orderReadCB(struct bufferevent *bev, void *arg)
     H_Order *pOrder = NULL;
     for (size_t i = 0; i < iCount; ++i)
     {
-        pOrder = (H_Order*)pBinary->getByte((unsigned int)iMsgLens);
+        pOrder = (H_Order*)(pBinary + iMsgLens * i);
         switch (pOrder->usCmd)
         {
             case ORDER_RSTOP:

@@ -44,11 +44,11 @@ local function parseHead(objBinary)
     return nil, 0
 end
 
-function tcp.parsePack(pTcpBuffer, funcOnRead, ...)
+function tcp.parsePack(pRBinary, funcOnRead, ...)
     local iParsed = 0
     local iHeadLens = 0
     local iPackLens = 0
-    local objBinary = pTcpBuffer:readBuffer(pTcpBuffer:getTotalLens())
+    local objBinary = pRBinary
     
     while true do
         iHeadLens, iPackLens = parseHead(objBinary)
@@ -68,9 +68,7 @@ function tcp.parsePack(pTcpBuffer, funcOnRead, ...)
         end
     end
     
-    if 0 ~= iParsed then
-        pTcpBuffer:delBuffer(iParsed)
-    end
+    return iParsed
 end
 
 function tcp.creatPack(objBinary, strMsg)

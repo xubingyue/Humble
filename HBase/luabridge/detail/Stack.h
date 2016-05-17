@@ -429,6 +429,19 @@ struct Stack <char const*>
   }
 };
 
+template <>
+struct Stack <void *>
+{
+    static inline void push(lua_State* L, void *pval)
+    {
+        lua_pushlightuserdata(L, pval);
+    }
+    static inline void* get(lua_State* L, int index)
+    {
+        return lua_touserdata(L, index);
+    }
+};
+
 //------------------------------------------------------------------------------
 /**
     Stack specialization for `std::string`.
@@ -450,15 +463,18 @@ struct Stack <std::string>
 };
 
 template <>
-struct Stack <void *>
+struct Stack <std::string &>
 {
-    static inline void push(lua_State* L, void *pval)
+    static inline void push(lua_State* L, std::string& str)
     {
-        lua_pushlightuserdata(L, pval);
+        lua_pushlstring(L, str.c_str(), str.size());
     }
-    static inline void* get(lua_State* L, int index)
+
+    static inline std::string get(lua_State* L, int index)
     {
-        return lua_touserdata(L, index);
+        size_t len;
+        const char *str = luaL_checklstring(L, index, &len);
+        return std::string(str, len);
     }
 };
 

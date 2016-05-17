@@ -14,7 +14,7 @@ public:
     ~CBinary(void);
 
     //设置要解析的数据
-    void setReadBuffer(const char *pszBuf, const size_t iLens);
+    void setReadBuffer(void *pszBuf, const size_t iLens);
     size_t getRBufLens(void)
     {
         return (unsigned int)m_iParseBufLens;
@@ -73,24 +73,25 @@ public:
 
     //string 保证以/0结束
     void setString(const char *pszVal);
-    std::string getString(void);
+    std::string& getString(void);
 
     //byte
     void setByte(const char *pszVal, const unsigned int iLens);
-    std::string getLByte(const unsigned int iLens);
+    std::string& getLByte(const unsigned int iLens);
     const char *getByte(const unsigned int &iLens);
 
-    std::string readLine(void);
+    std::string& readLine(void);
 
     int Find(const char *pFlag);
 
-    std::string *getWritedBuf(void)
-    {
-        return &m_strWritBuffer;
-    };
-    std::string lgetWritedBuf(void)
+    std::string& getWritedBuf(void)
     {
         return m_strWritBuffer;
+    };
+
+    void Append(CBinary *pBinary)
+    {
+        m_strWritBuffer.append(pBinary->getWritedBuf().c_str(), pBinary->getWritedBuf().size());
     };
 
 private:
@@ -118,6 +119,7 @@ private:
     size_t m_iCurParseLens;//已经解析的长度
     size_t m_iLEFLens;
     std::string m_strWritBuffer;//写buffer
+    std::string m_strVal;
 };
 
 H_ENAMSP

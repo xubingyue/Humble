@@ -20,20 +20,22 @@ CMail::~CMail(void)
 
 void CMail::sendMail(const char *pszMail)
 {
-    std::string *pstrMsg = newT();
-    *pstrMsg = pszMail;
+    size_t iLens = strlen(pszMail);
+    char *pMsg = newT(iLens + 1);    
+    memcpy(pMsg, pszMail, iLens);
+    pMsg[iLens] = '\0';
 
-    addTask(pstrMsg);
+    addTask(pMsg);
 }
 
-int CMail::parseMail(std::string *pstrMail)
+int CMail::parseMail(const char *pMail)
 {
     Json::Reader objJsonReader;
     Json::Value objJsonRoot;
 
-    if (!objJsonReader.parse(*pstrMail, objJsonRoot, false))
+    if (!objJsonReader.parse(pMail, objJsonRoot, false))
     {
-        H_Printf("parse string <%s> error.", pstrMail->c_str());
+        H_Printf("parse string <%s> error.", pMail);
 
         return H_RTN_FAILE;
     }
@@ -105,7 +107,7 @@ int CMail::parseMail(std::string *pstrMail)
     return H_RTN_OK;
 }
 
-void CMail::runTask(std::string *pMsg)
+void CMail::runTask(char *pMsg)
 {
     m_objMailer.reset();
     if (H_RTN_OK == parseMail(pMsg))

@@ -18,7 +18,7 @@ CBinary::~CBinary(void)
     m_pParseBuffer = NULL;
 }
 
-void CBinary::setReadBuffer(const char *pszBuf, const size_t iLens)
+void CBinary::setReadBuffer(void *pszBuf, const size_t iLens)
 {
     H_ASSERT(pszBuf, "pointer is null.");
 
@@ -173,26 +173,32 @@ void CBinary::setString(const char *pszVal)
     setVal(pszVal, strlen(pszVal));
     skipWrite(1);
 }
-std::string CBinary::getString(void)
+std::string& CBinary::getString(void)
 {
+    m_strVal.clear();
+
     //³¬³¤
     if (m_iCurParseLens >= m_iParseBufLens)
     {
-        return std::string("");
+        return m_strVal;
     }
 
     char *pBuf = m_pParseBuffer + m_iCurParseLens;
-    std::string strVal(pBuf);
+    m_strVal = pBuf;
+
     //³¬³¤
-    if (m_iCurParseLens + strVal.size() + 1 > m_iParseBufLens)
+    if (m_iCurParseLens + m_strVal.size() + 1 > m_iParseBufLens)
     {
         m_iCurParseLens = m_iParseBufLens;
-        return std::string(pBuf, getSurpLens());
+        m_strVal.clear();
+        m_strVal.append(pBuf, getSurpLens());
+
+        return m_strVal;
     }
 
-    m_iCurParseLens += (strVal.size() + 1);
+    m_iCurParseLens += (m_strVal.size() + 1);
 
-    return strVal;
+    return m_strVal;
 }
 
 void CBinary::setByte(const char *pszVal, const unsigned int iLens)
@@ -214,34 +220,43 @@ const char *CBinary::getByte(const unsigned int &iLens)
     return pBuf;
 }
 
-std::string CBinary::getLByte(const unsigned int iLens)
+std::string& CBinary::getLByte(const unsigned int iLens)
 {
-    const char *pBuf = getByte(iLens);
+    m_strVal.clear();
 
-    return ((NULL == pBuf) ? "" : std::string(pBuf, iLens));
+    const char *pBuf = getByte(iLens);
+    if (NULL != pBuf)
+    {
+        m_strVal.append(pBuf, iLens);
+    }
+
+    return m_strVal;
 }
 
-std::string CBinary::readLine(void)
+std::string& CBinary::readLine(void)
 {
+    m_strVal.clear();
+
     if (m_iCurParseLens >= m_iParseBufLens)
     {
-        return std::string("");
+        return m_strVal;
     }
 
     char *pBuf = m_pParseBuffer + m_iCurParseLens;
     char *pPos = strstr(pBuf, H_LINEEFLAG);
     if (NULL == pPos)
     {
-        std::string strVal(pBuf, getSurpLens());
+        m_strVal.append(pBuf, getSurpLens());
         m_iCurParseLens = m_iParseBufLens;
-        return strVal;
+
+        return m_strVal;
     }
 
-    std::string strVal(pBuf, (pPos - pBuf));
+    m_strVal.append(pBuf, (pPos - pBuf));
 
     m_iCurParseLens += (pPos - pBuf + m_iLEFLens);
 
-    return strVal;
+    return m_strVal;
 }
 
 int CBinary::Find(const char *pFlag)

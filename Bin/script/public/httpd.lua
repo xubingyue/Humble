@@ -3,6 +3,7 @@ http½âÎö
 --]]
 
 local type = type
+local table = table
 local string = string
 local assert = assert
 local tonumber = tonumber
@@ -110,11 +111,11 @@ local function parseChunked(pBinary)
     return strChunked
 end
 
-function httpd.parsePack(pTcpBuffer, funcOnRead, ...)
+function httpd.parsePack(pRBinary, funcOnRead, ...)
     local iParsed = 0
     local tInfo = {}
     local strMethod, strUrl, tHead
-    local pBinary = pTcpBuffer:readBuffer(pTcpBuffer:getTotalLens())
+    local pBinary = pRBinary
     while true do
         strMethod, strUrl, tHead = parseHead(pBinary)
         if not strMethod then
@@ -140,7 +141,6 @@ function httpd.parsePack(pTcpBuffer, funcOnRead, ...)
                 break
             end
             
-            tInfo = {}
             tInfo.method = strMethod
             tInfo.url = strUrl
             tInfo.head = tHead
@@ -148,7 +148,6 @@ function httpd.parsePack(pTcpBuffer, funcOnRead, ...)
             funcOnRead(tInfo, table.unpack({...}))
             iParsed = pBinary:getReadedLens()
         else
-            tInfo = {}
             tInfo.method = strMethod
             tInfo.url = strUrl
             tInfo.head = tHead 
@@ -158,43 +157,42 @@ function httpd.parsePack(pTcpBuffer, funcOnRead, ...)
         end
     end
     
-    if 0 ~= iParsed then
-        pTcpBuffer:delBuffer(iParsed)
-    end
+    return iParsed 
 end
 
 function httpd.Response(iCode, varBodyFunc, tHeader)
-    local strHttp = string.format("HTTP/1.1 %03d %s\r\n", iCode, http_status_msg[iCode] or "")
+    local tInfo = {}
+    table.insert(tInfo, string.format("HTTP/1.1 %03d %s\r\n", iCode, http_status_msg[iCode] or ""))
 	if tHeader then
 		for key, val in pairs(tHeader) do			
-		    strHttp = strHttp .. string.format("%s: %s\r\n", key, val)
+		    table.insert(tInfo, string.format("%s: %s\r\n", key, val))
 		end
 	end
 
 	local iType = type(varBodyFunc)
 	if iType == "string" then
-		strHttp = strHttp .. string.format("content-length: %d\r\n\r\n", string.len(varBodyFunc))
-		strHttp = strHttp .. varBodyFunc
+		table.insert(tInfo, string.format("content-length: %d\r\n\r\n", string.len(varBodyFunc)))
+		table.insert(tInfo, varBodyFunc)
 	elseif iType == "function" then
-		strHttp = strHttp .. "transfer-encoding: chunked\r\n"
+		table.insert(tInfo, "transfer-encoding: chunked\r\n")
         local str
 		while true do
 			local str = varBodyFunc()
 			if str then
 				if str ~= "" then
-					strHttp = strHttp .. string.format("\r\n%x\r\n", string.len(str))
-					strHttp = strHttp .. str
+					table.insert(tInfo, string.format("\r\n%x\r\n", string.len(str)))
+					table.insert(tInfo, str)
 				end
 			else
-				strHttp = strHttp .. "\r\n0\r\n\r\n"
+				table.insert(tInfo, "\r\n0\r\n\r\n")
 				break
 			end
 		end
 	else
-		strHttp = strHttp .. "\r\n"
+		table.insert(tInfo, "\r\n")
 	end
 
-    return strHttp
+    return table.concat(tInfo, "")
 end
 
 return httpd

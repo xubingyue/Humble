@@ -32,9 +32,14 @@ private:
     };
 
 private:
+    size_t m_iBufLens;
+    size_t m_iReaded;
+    char *m_pBuf;
     struct lua_State *m_pLState;
     luabridge::LuaRef **m_pLFunc;
     CEvBuffer m_objEvBuffer;
+    CBinary m_objBinary;
+    CClock m_objClock;
 };
 
 H_ENAMSP

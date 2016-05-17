@@ -8,16 +8,32 @@ local pWorkerMgr = g_pWorkerMgr
 local pNet = g_pNetWorker
 local pSender = g_pSender
 local pEmail = g_pEmail
+local pNetParser = g_pNetParser
 local newLuaTask = newLuaTask
 
 local humble = {}
 
 --ÍøÂç
-function humble.tcpListen(usSockType, strHost, usPort)
-    pNet:tcpListen(usSockType, strHost, usPort)
+function humble.setMaxLoad(uiCount)   
+    pNet:setMaxLoad(uiCount)
+end
+function humble.getCurLoad()   
+    return pNet:getCurLoad()
+end
+function humble.setParser(usSockType, strName)
+    return pNetParser:setParser(usSockType, strName)
+end
+function humble.addListener(usSockType, strHost, usPort)
+    return pNet:addListener(usSockType, strHost, usPort)
+end
+function humble.delListener(uiID)   
+    pNet:delListener(uiID)
 end
 function humble.addTcpLink(usSockType, strHost, usPort)
-    pNet:addTcpLink(usSockType, strHost, usPort)
+    return pNet:addTcpLink(usSockType, strHost, usPort)
+end
+function humble.delTcpLink(uiID)   
+    pNet:delTcpLink(uiID)
 end
 function humble.closeSock(sock, uiSession)   
     pNet:closeSock(sock, uiSession)

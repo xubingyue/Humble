@@ -19,8 +19,7 @@ CWorkerDisp::CWorkerDisp(void) : m_usThreadNum(H_INIT_NUMBER), m_uiWait(H_INIT_N
 
 CWorkerDisp::~CWorkerDisp(void)
 {
-    taskit itTask;
-    for (itTask = m_mapTask.begin(); m_mapTask.end() != itTask; ++itTask)
+    for (taskit itTask = m_mapTask.begin(); m_mapTask.end() != itTask; ++itTask)
     {
         H_SafeDelete(itTask->second);
     }
@@ -34,7 +33,7 @@ CWorkerDisp::~CWorkerDisp(void)
 
 void CWorkerDisp::setThreadNum(const unsigned short usNum)
 {
-    m_usThreadNum = ((H_INIT_NUMBER == usNum) ? H_GetCoreCount() * 2 : usNum);
+    m_usThreadNum = ((H_INIT_NUMBER == usNum) ? H_GetCoreCount() : usNum);
     m_pWorker = new(std::nothrow) CWorker[m_usThreadNum];    
     H_ASSERT(NULL != m_pWorker, "malloc memory error.");
 
@@ -48,16 +47,13 @@ void CWorkerDisp::setThreadNum(const unsigned short usNum)
 
 CChan *CWorkerDisp::getChan(const char *pszTaskName)
 {
-    std::string strName(pszTaskName);
-    CChan *pChan = NULL;
-
-    taskit itTask = m_mapTask.find(strName);
+    taskit itTask = m_mapTask.find(std::string(pszTaskName));
     if (m_mapTask.end() != itTask)
     {
-        pChan = itTask->second->getChan();
+        return itTask->second->getChan();
     }
 
-    return pChan;
+    return NULL;
 }
 
 void CWorkerDisp::regTask(const char *pszName, CWorkerTask *pTask)
@@ -65,15 +61,10 @@ void CWorkerDisp::regTask(const char *pszName, CWorkerTask *pTask)
     std::string strName(pszName);
 
     taskit itTask = m_mapTask.find(strName);
-    if (m_mapTask.end() == itTask)
-    {        
-        pTask->setName(pszName);
-        m_mapTask.insert(std::make_pair(strName, pTask));
-    }
-    else
-    {
-        H_ASSERT(false, H_FormatStr("task %s already exist.", pszName).c_str());
-    }
+    H_ASSERT(m_mapTask.end() == itTask, H_FormatStr("task %s already exist.", pszName).c_str());
+            
+    pTask->setName(pszName);
+    m_mapTask.insert(std::make_pair(strName, pTask));
 }
 
 CWorker *CWorkerDisp::getFreeWorker(unsigned short &usIndex)
@@ -97,15 +88,13 @@ CWorker *CWorkerDisp::getFreeWorker(unsigned short &usIndex)
 
 CWorkerTask* CWorkerDisp::getTask(std::string *pstrName)
 {
-    CWorkerTask *pWorkerTask = NULL;
-
     taskit itTask = m_mapTask.find(*pstrName);
     if (m_mapTask.end() != itTask)
     {
-        pWorkerTask = itTask->second;
+        return itTask->second;
     }
     
-    return pWorkerTask;
+    return NULL;
 }
 
 void CWorkerDisp::stopNet(void)

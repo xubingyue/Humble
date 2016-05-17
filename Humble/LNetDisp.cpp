@@ -3,7 +3,8 @@
 
 H_BNAMSP
 
-CLNetDisp::CLNetDisp(void) : m_pLState(NULL), m_pLFunc(NULL)
+CLNetDisp::CLNetDisp(void) : m_iBufLens(H_INIT_NUMBER), m_iReaded(H_INIT_NUMBER),
+    m_pBuf(NULL), m_pLState(NULL), m_pLFunc(NULL)
 {
     m_pLFunc = new(std::nothrow) luabridge::LuaRef *[LCount];
     H_ASSERT(NULL != m_pLFunc, "malloc memory error.");    
@@ -23,7 +24,7 @@ CLNetDisp::CLNetDisp(void) : m_pLState(NULL), m_pLFunc(NULL)
     try
     {
         H_RegAll(m_pLState);
-        luabridge::setGlobal(m_pLState, &m_objEvBuffer, "g_pEvBuffer");
+        luabridge::setGlobal(m_pLState, &m_objBinary, "g_pRBinary");
     }
     catch (luabridge::LuaException &e)
     {
@@ -76,10 +77,15 @@ void CLNetDisp::onStart(void)
     }
 }
 
+double dTime = 0.0;
+int iCount = 0;
+
 void CLNetDisp::onStop(void)
 {
     try
     {
+        H_Printf("%f", dTime);
+        H_Printf("%d", iCount);
         (*(m_pLFunc[LOnStop]))();
     }
     catch (luabridge::LuaException &e)
@@ -117,7 +123,19 @@ H_INLINE void CLNetDisp::onTcpRead(struct H_Session *pSession)
     try
     {
         m_objEvBuffer.setEvBuf(pSession->pBev);
-        (*(m_pLFunc[LOnTcpRead]))(pSession->sock, pSession->uiSession, pSession->usSockType);
+        m_iBufLens = m_objEvBuffer.getTotalLens();
+        m_pBuf = m_objEvBuffer.readBuffer(m_iBufLens);
+        if (NULL == m_pBuf)
+        {
+            return;
+        }
+
+        m_objBinary.setReadBuffer(m_pBuf, m_iBufLens);
+        m_objClock.reStart();
+        m_iReaded = (*(m_pLFunc[LOnTcpRead]))(pSession->sock, pSession->uiSession, pSession->usSockType);
+        dTime += m_objClock.Elapsed();
+        ++iCount;
+        m_objEvBuffer.delBuffer(m_iReaded);
     }
     catch (luabridge::LuaException &e)
     {

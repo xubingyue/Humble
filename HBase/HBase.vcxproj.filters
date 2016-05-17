@@ -661,6 +661,9 @@
     <ClInclude Include="luasocket\wsocket.h">
       <Filter>3rd\lua\luasocket</Filter>
     </ClInclude>
+    <ClInclude Include="NetParser.h">
+      <Filter>Service</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="jwsmtp\compat.cpp">
@@ -1212,6 +1215,9 @@
     </ClCompile>
     <ClCompile Include="luasocket\wsocket.c">
       <Filter>3rd\lua\luasocket</Filter>
+    </ClCompile>
+    <ClCompile Include="NetParser.cpp">
+      <Filter>Service</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

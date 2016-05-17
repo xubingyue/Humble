@@ -8,15 +8,6 @@
 
 H_BNAMSP
 
-struct H_TcpLink
-{
-    unsigned short usSockType;
-    unsigned short usPort;
-    unsigned int uiID;
-    H_SOCK sock;
-    char acHost[H_IPLENS];
-};
-
 class CNetWorker : public CNetBase, public CSingleton<CNetWorker>
 {
 public:
@@ -32,40 +23,49 @@ public:
 
     void setIntf(CSVIntf *pIntf);
     CSVIntf *getIntf(void);
+    
+    unsigned int getMaxLoad(void);    
+    void addCurLoad(void);
+    void subCurLoad(void);
 
-    void tcpListen(const unsigned short usSockType, const char *pszHost, const unsigned short usPort);
-    void addTcpLink(const unsigned short usSockType, const char *pszHost, const unsigned short usPort);
+    void setMaxLoad(const unsigned int uiLoad);
+    unsigned int getCurLoad(void);
+    unsigned int addListener(const unsigned short usSockType, const char *pszHost, const unsigned short usPort);
+    void delListener(const unsigned int uiID);
+    unsigned int addTcpLink(const unsigned short usSockType, const char *pszHost, const unsigned short usPort);
+    void delTcpLink(const unsigned int uiID);
+
     void addLinkEv(const H_SOCK &sock, const unsigned int &uiID);
 
-    void addMapListener(H_SOCK &sock, const unsigned short &usSockType);
-    bool getListenerType(H_SOCK sock, unsigned short &usType);
-
 public:
-    static void acceptCB(struct evconnlistener *pListener, H_SOCK sock, struct sockaddr *,
+    static void acceptCB(struct evconnlistener *, H_SOCK sock, struct sockaddr *,
         int, void *arg);
-    static void monitorCB(H_SOCK, short, void *arg);
-
+    static void monitorCB(H_SOCK, short, void *arg);  
+    
 private:
-    void addTcpListen(H_Order *pOrder);
-    struct event *monitorLink(H_TcpLink *pTcpLink);
+    struct event *monitorLink(struct H_TcpLink *pTcpLink);
 
 private:
     H_DISALLOWCOPY(CNetWorker);
 #ifdef H_OS_WIN 
-    #define listenerit std::unordered_map<H_SOCK, unsigned short>::iterator
-    #define listener_map std::unordered_map<H_SOCK, unsigned short>
+    #define listenerit std::unordered_map<unsigned int, struct H_Listener*>::iterator
+    #define listener_map std::unordered_map<unsigned int, struct H_Listener*>
+    #define tcplinkit std::unordered_map<unsigned int, struct H_TcpLink*>::iterator
+    #define tcplink_map std::unordered_map<unsigned int, struct H_TcpLink*>
 #else
-    #define listenerit std::tr1::unordered_map<H_SOCK, unsigned short>::iterator
-    #define listener_map std::tr1::unordered_map<H_SOCK, unsigned short>
+    #define listenerit std::tr1::unordered_map<unsigned int,struct  H_Listener*>::iterator
+    #define listener_map std::tr1::unordered_map<unsigned int, struct H_Listener*>
+    #define tcplinkit std::tr1::unordered_map<unsigned int, struct H_TcpLink*>::iterator
+    #define tcplink_map std::tr1::unordered_map<unsigned int, struct H_TcpLink*>
 #endif
 
 private:
-    unsigned int m_uiLinkID;
+    unsigned int m_uiID;
+    unsigned int m_uiMaxLoad;
+    unsigned int m_uiCurLoad;
     CSVIntf *m_pIntf;
-    listener_map m_mapLstType;
-    std::vector<struct evconnlistener *> m_vcListener;
-    std::list<H_TcpLink*> m_lstTcpLink;
-    std::list<struct event *> m_lstLinkMonitorEv;
+    listener_map m_mapListener;
+    tcplink_map m_mapTcpLink; 
 };
 
 H_ENAMSP

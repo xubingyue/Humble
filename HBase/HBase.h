@@ -38,6 +38,7 @@
 #include "Linker.h"
 #include "WorkerDisp.h"
 #include "Tick.h"
+#include "NetParser.h"
 
 #include "jwsmtp/mailer.h"
 

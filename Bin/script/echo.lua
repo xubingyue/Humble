@@ -22,7 +22,7 @@ end
 function runTask()
         local varRecv = pChan:Recv()
         local sock, uiSession, strMsg = table.unpack(utile.unPack(varRecv))        
-        --table.print(strMsg)        
+     
         --local strResp = httpd.Response(200, "hello http")
         --humble.Send(sock, uiSession, strResp)        
 

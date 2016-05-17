@@ -29,5 +29,6 @@ function onTimer(uiTick, uiCount)
     --1√Î
     if 0 == ((uiTick * uiCount) % 1000) then 
         print("1 sec")
+        print(string.format("cur load %d.", humble.getCurLoad()))
     end
 end

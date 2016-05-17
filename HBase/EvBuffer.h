@@ -29,17 +29,9 @@ public:
         return evbuffer_get_length(m_pReadBuffer);
     };
     /*从读缓冲区中取出iLens个字节的数据*/
-    CBinary *readBuffer(const size_t iLens)
+    char *readBuffer(const size_t iLens)
     {
-        const char *pBuffer = (const char*)evbuffer_pullup(m_pReadBuffer, (ev_ssize_t)iLens);
-        if (NULL == pBuffer)
-        {
-            return NULL;
-        }
-
-        m_objBinary.setReadBuffer(pBuffer, iLens);
-
-        return &m_objBinary;
+        return (char*)evbuffer_pullup(m_pReadBuffer, (ev_ssize_t)iLens);
     };
     /*删除读缓冲区的数据*/
     void delBuffer(const size_t iLens)
@@ -57,7 +49,6 @@ private:
 
 private:
     struct evbuffer *m_pReadBuffer;
-    CBinary m_objBinary;
 };
 
 H_ENAMSP

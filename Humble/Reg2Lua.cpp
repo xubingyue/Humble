@@ -39,7 +39,7 @@ CWorkerTask *newLuaTask(void)
 void H_RegAll(struct lua_State *pLState)
 {
     H_RegBinary(pLState);
-    H_RegEvbuffer(pLState);
+    H_RegNetParser(pLState);
     H_RegNetWorker(pLState);
     H_RegSender(pLState);
     H_RegMail(pLState);
@@ -235,6 +235,7 @@ void H_RegGlobal(struct lua_State *pLState)
     luabridge::setGlobal(pLState, CSender::getSingletonPtr(), "g_pSender");
     luabridge::setGlobal(pLState, CMail::getSingletonPtr(), "g_pEmail");
     luabridge::setGlobal(pLState, CWorkerDisp::getSingletonPtr(), "g_pWorkerMgr");
+    luabridge::setGlobal(pLState, CNetParser::getSingletonPtr(), "g_pNetParser");
 }
 
 void H_RegFuncs(struct lua_State *pLState)
@@ -253,6 +254,14 @@ void H_RegFuncs(struct lua_State *pLState)
         .addFunction("md5Str", md5Str)
         .addFunction("md5File", md5File)
         .addFunction("newLuaTask", newLuaTask);
+}
+
+void H_RegNetParser(struct lua_State *pLState)
+{
+    luabridge::getGlobalNamespace(pLState)
+        .beginClass<CNetParser>("CNetParser")
+            .addFunction("setParser", &CNetParser::setParser)
+        .endClass();
 }
 
 void H_RegBinary(struct lua_State *pLState)
@@ -308,23 +317,8 @@ void H_RegBinary(struct lua_State *pLState)
             .addFunction("readLine", &CBinary::readLine)
             .addFunction("Find", &CBinary::Find)
 
-            .addFunction("getWritedBuf", &CBinary::lgetWritedBuf)
-        .endClass();
-}
-
-void H_RegEvbuffer(struct lua_State *pLState)
-{
-    luabridge::getGlobalNamespace(pLState)
-            .beginClass<evbuffer_ptr>("evbuffer_ptr")
-                .addConstructor<void(*) (void)>()
-                .addData("pos", &evbuffer_ptr::pos)
-        .endClass();
-
-    luabridge::getGlobalNamespace(pLState)
-        .beginClass<CEvBuffer>("CEvBuffer")
-            .addFunction("getTotalLens", &CEvBuffer::getTotalLens)
-            .addFunction("readBuffer", &CEvBuffer::readBuffer)
-            .addFunction("delBuffer", &CEvBuffer::delBuffer)
+            .addFunction("getWritedBuf", &CBinary::getWritedBuf)
+            .addFunction("Append", &CBinary::Append)
         .endClass();
 }
 
@@ -336,8 +330,12 @@ void H_RegNetWorker(struct lua_State *pLState)
             .addFunction("closeByType", &CNetBase::closeByType)
         .endClass()
         .deriveClass<CNetWorker, CNetBase>("CNetWorker")
-            .addFunction("tcpListen", &CNetWorker::tcpListen)
+            .addFunction("setMaxLoad", &CNetWorker::setMaxLoad)
+            .addFunction("getCurLoad", &CNetWorker::getCurLoad)
+            .addFunction("addListener", &CNetWorker::addListener)
+            .addFunction("delListener", &CNetWorker::delListener)
             .addFunction("addTcpLink", &CNetWorker::addTcpLink)
+            .addFunction("delTcpLink", &CNetWorker::delTcpLink)
         .endClass();
 }
 

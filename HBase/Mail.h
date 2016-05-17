@@ -9,13 +9,13 @@
 H_BNAMSP
 
 //ÓÊ¼þ·¢ËÍ
-class CMail : public CRecvTask<std::string>, public CSingleton<CMail>
+class CMail : public CRecvTask<char>, public CSingleton<CMail>
 {
 public:
     CMail(void);
     ~CMail(void);
 
-    void runTask(std::string *pMsg);
+    void runTask(char *pMsg);
 
     //·¢ËÍmail
     void sendMail(const char *pszMail);
@@ -30,7 +30,7 @@ public:
 
 private:
     H_DISALLOWCOPY(CMail);
-    int parseMail(std::string *pstrMail); 
+    int parseMail(const char *pMail); 
 
 private:
     bool m_bSet;

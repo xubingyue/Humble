@@ -8,8 +8,8 @@ H_BNAMSP
 
 void H_RegGlobal(struct lua_State *pLState);
 void H_RegFuncs(struct lua_State *pLState);
+void H_RegNetParser(struct lua_State *pLState);
 void H_RegBinary(struct lua_State *pLState);
-void H_RegEvbuffer(struct lua_State *pLState);
 void H_RegNetWorker(struct lua_State *pLState);
 void H_RegSender(struct lua_State *pLState);
 void H_RegMail(struct lua_State *pLState);

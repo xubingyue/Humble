@@ -9,33 +9,44 @@ H_BNAMSP
 SINGLETON_INIT(CNetWorker)
 CNetWorker objNetWorker;
 
-CNetWorker::CNetWorker(void) : m_uiLinkID(H_INIT_NUMBER), m_pIntf(NULL)
+struct H_TcpLink
+{
+    unsigned short usSockType;
+    unsigned short usPort;
+    unsigned int uiID;
+    H_SOCK sock;
+    struct event *pMonitor;
+    char acHost[H_IPLENS];
+};
+
+struct H_Listener
+{
+    unsigned short usType;
+    struct evconnlistener *pEvListener;
+    CNetWorker *pNetWorker;
+};
+
+CNetWorker::CNetWorker(void) : m_uiID(H_INIT_NUMBER), m_uiMaxLoad(H_INIT_NUMBER), 
+    m_uiCurLoad(H_INIT_NUMBER), m_pIntf(NULL)
 {
 
 }
 
 CNetWorker::~CNetWorker(void)
 {
-    std::vector<struct evconnlistener *>::iterator itListener;
-    for (itListener = m_vcListener.begin(); m_vcListener.end() != itListener; ++itListener)
+    for (listenerit itListener = m_mapListener.begin(); m_mapListener.end() != itListener; ++itListener)
     {
-        evconnlistener_free(*itListener);
+        evconnlistener_free(itListener->second->pEvListener);
+        H_SafeDelete(itListener->second);
     }
-    m_vcListener.clear();
+    m_mapListener.clear();
 
-    std::list<struct event *>::iterator itMonEv;
-    for (itMonEv = m_lstLinkMonitorEv.begin(); m_lstLinkMonitorEv.end() != itMonEv; ++itMonEv)
+    for (tcplinkit itTcpLink = m_mapTcpLink.begin(); m_mapTcpLink.end() != itTcpLink; ++itTcpLink)
     {
-        event_free(*itMonEv);
+        event_free(itTcpLink->second->pMonitor);
+        H_SafeDelete(itTcpLink->second);
     }
-    m_lstLinkMonitorEv.clear();
-
-    std::list<H_TcpLink*>::iterator itLink;
-    for (itLink = m_lstTcpLink.begin(); m_lstTcpLink.end() != itLink; ++itLink)
-    {
-        H_SafeDelete(*itLink);
-    }
-    m_lstTcpLink.clear();
+    m_mapTcpLink.clear();
 }
 
 void CNetWorker::setIntf(CSVIntf *pIntf)
@@ -48,69 +59,6 @@ CSVIntf *CNetWorker::getIntf(void)
     return m_pIntf;
 }
 
-void CNetWorker::addMapListener(H_SOCK &sock, const unsigned short &usSockType)
-{
-    m_mapLstType[sock] = usSockType;
-}
-
-bool CNetWorker::getListenerType(H_SOCK sock, unsigned short &usType)
-{
-    listenerit itListener;
-    itListener = m_mapLstType.find(sock);
-    if (m_mapLstType.end() == itListener)
-    {
-        return false;
-    }
-
-    usType = itListener->second;
-
-    return true;
-}
-
-void CNetWorker::acceptCB(struct evconnlistener *pListener, H_SOCK sock, struct sockaddr *,
-    int, void *arg)
-{
-    CNetWorker *pNetWorker = (CNetWorker *)arg;
-    if (RSTOP_NONE != pNetWorker->getReadyStop())
-    {
-        evutil_closesocket(sock);
-        return;
-    }
-
-    unsigned short usType(H_INIT_NUMBER);
-    if (!(pNetWorker->getListenerType(evconnlistener_get_fd(pListener), usType)))
-    {
-        evutil_closesocket(sock);
-        return;
-    }
-    
-    (void)pNetWorker->addTcpEv(sock, usType);
-}
-
-void CNetWorker::addTcpListen(H_Order *pOrder)
-{
-    CNETAddr objAddr;
-    if (H_RTN_OK != objAddr.setAddr(pOrder->acHost, pOrder->usPort))
-    {
-        H_Printf("%s", "setAddr error.");
-        return;
-    }
-
-    struct evconnlistener *pListener = evconnlistener_new_bind(getBase(), acceptCB, this,
-        LEV_OPT_CLOSE_ON_FREE, -1,
-        objAddr.getAddr(), (int)objAddr.getAddrSize());
-    if (NULL == pListener)
-    {
-        H_Printf("%s", "evconnlistener_new_bind error.");
-        return;
-    }
-
-    H_Printf("listen at host %s port %d", pOrder->acHost, pOrder->usPort);
-    m_vcListener.push_back(pListener);
-    H_SOCK sock = evconnlistener_get_fd(pListener);
-    addMapListener(sock, pOrder->usSockType);
-}
-
 void CNetWorker::monitorCB(H_SOCK, short, void *arg)
 {
     H_TcpLink *pTcpLink = (H_TcpLink *)arg;
@@ -120,7 +68,7 @@ void CNetWorker::monitorCB(H_SOCK, short, void *arg)
     }
 }
 
-struct event *CNetWorker::monitorLink(H_TcpLink *pTcpLink)
+struct event *CNetWorker::monitorLink(struct H_TcpLink *pTcpLink)
 {
     timeval tVal;
     size_t uiMS = 5000;
@@ -143,15 +91,76 @@ struct event *CNetWorker::monitorLink(H_TcpLink *pTcpLink)
     return pEvent;
 }
 
+void CNetWorker::acceptCB(struct evconnlistener *, H_SOCK sock, struct sockaddr *,
+    int, void *arg)
+{
+    H_Listener *pListener = (H_Listener *)arg;
+    if (RSTOP_NONE != pListener->pNetWorker->getReadyStop())
+    {
+        evutil_closesocket(sock);
+        return;
+    }
+
+    unsigned int uiMaxLoad(pListener->pNetWorker->getMaxLoad());
+    unsigned int uiCurLoad(pListener->pNetWorker->getCurLoad());
+    if (H_INIT_NUMBER != uiMaxLoad
+        && uiCurLoad >= uiMaxLoad)
+    {
+        evutil_closesocket(sock);
+        return;
+    }
+    
+    if (NULL != pListener->pNetWorker->addTcpEv(sock, pListener->usType))
+    {
+        pListener->pNetWorker->addCurLoad();
+    }    
+}
+
 void CNetWorker::onOrder(H_Order *pOrder)
 {
     switch (pOrder->usCmd)
     {
-        case ORDER_TCPLISTEN:
+        case ORDER_ADDLISTENER:
         {
-            addTcpListen(pOrder);
+            CNETAddr objAddr;
+            if (H_RTN_OK != objAddr.setAddr(pOrder->acHost, pOrder->usPort))
+            {
+                H_Printf("%s", "addListener setAddr error.");
+                break;
+            }
+
+            H_Listener *pListener = new(std::nothrow) H_Listener;
+            H_ASSERT(NULL != pListener, "malloc memory error.");
+
+            pListener->pNetWorker = this;
+            pListener->usType = pOrder->usSockType;
+            pListener->pEvListener = evconnlistener_new_bind(getBase(), acceptCB, pListener,
+                LEV_OPT_CLOSE_ON_FREE, -1, objAddr.getAddr(), (int)objAddr.getAddrSize());
+            if (NULL == pListener->pEvListener)
+            {
+                H_Printf("listen at host %s port %d error.", pOrder->acHost, pOrder->usPort);
+                H_SafeDelete(pListener);
+                break;
+            }
+
+            H_Printf("listen at host %s port %d.", pOrder->acHost, pOrder->usPort);            
+            m_mapListener[pOrder->uiSession] = pListener;
         }
         break;
+
+        case ORDER_DELLISTENER:
+        {
+            listenerit itListener = m_mapListener.find(pOrder->uiSession);
+            if (m_mapListener.end() != itListener)
+            {
+                evconnlistener_free(itListener->second->pEvListener);
+                H_SafeDelete(itListener->second);
+
+                m_mapListener.erase(itListener);
+            }
+        }
+        break;
+
         case ORDER_ADDLINK:
         {
             size_t iLens(strlen(pOrder->acHost));
@@ -160,32 +169,41 @@ void CNetWorker::onOrder(H_Order *pOrder)
             memcpy(pTcpLink->acHost, pOrder->acHost, iLens);
             pTcpLink->acHost[iLens] = '\0';
             pTcpLink->sock = H_INVALID_SOCK;
-            pTcpLink->uiID = ++m_uiLinkID;
+            pTcpLink->uiID = pOrder->uiSession;
             pTcpLink->usPort = pOrder->usPort;
             pTcpLink->usSockType = pOrder->usSockType;
 
-            struct event *pMonitor = monitorLink(pTcpLink);
-            m_lstTcpLink.push_back(pTcpLink);
-            m_lstLinkMonitorEv.push_back(pMonitor);
+            pTcpLink->pMonitor = monitorLink(pTcpLink);
+            m_mapTcpLink[pTcpLink->uiID] = pTcpLink;
             CLinker::getSingletonPtr()->addLink(pTcpLink->uiID, pTcpLink->acHost, pTcpLink->usPort);
         }
         break;
+
         case ORDER_ADDLINKEV:
         {
-            std::list<H_TcpLink*>::iterator itLink;
-            for (itLink = m_lstTcpLink.begin(); m_lstTcpLink.end() != itLink; ++itLink)
+            tcplinkit itTcpLink = m_mapTcpLink.find(pOrder->uiSession);
+            if (m_mapTcpLink.end() != itTcpLink)
             {
-                if ((*itLink)->uiID == pOrder->uiSession)
-                {
-                    (*itLink)->sock = pOrder->sock;
-                    H_Session *pSession = addTcpEv((*itLink)->sock, (*itLink)->usSockType);
-                    pSession->bLinker = true;
+                itTcpLink->second->sock = pOrder->sock;
+                H_Session *pSession = addTcpEv(itTcpLink->second->sock, itTcpLink->second->usSockType);
+                pSession->bLinker = true;
+            }            
+        }
+        break;
 
-                    break;
-                }
+        case ORDER_DELLINK:
+        {
+            tcplinkit itTcpLink = m_mapTcpLink.find(pOrder->uiSession);
+            if (m_mapTcpLink.end() != itTcpLink)
+            {
+                event_free(itTcpLink->second->pMonitor);
+                H_SafeDelete(itTcpLink->second);
+
+                m_mapTcpLink.erase(itTcpLink);
             }
         }
         break;
+
         default:
             break;
     }
@@ -206,12 +224,18 @@ void CNetWorker::onClose(H_Session *pSession)
     CSender::getSingletonPtr()->delSock(pSession->sock);
     if (pSession->bLinker)
     {
-        std::list<H_TcpLink*>::iterator itLink;
-        for (itLink = m_lstTcpLink.begin(); m_lstTcpLink.end() != itLink; ++itLink)
+        for (tcplinkit itLink = m_mapTcpLink.begin(); m_mapTcpLink.end() != itLink; ++itLink)
         {
-            (*itLink)->sock = H_INVALID_SOCK;
-            break;
+            if (itLink->second->sock == pSession->sock)
+            {
+                itLink->second->sock = H_INVALID_SOCK;
+                break;
+            }            
         }
+    }
+    else
+    {
+        subCurLoad();
     }
     m_pIntf->onTcpClose(pSession);
 }
@@ -227,20 +251,57 @@ void CNetWorker::onRead(H_Session *pSession)
     m_pIntf->onTcpRead(pSession);
 }
 
-void CNetWorker::tcpListen(const unsigned short usSockType, const char *pszHost, const unsigned short usPort)
+void CNetWorker::setMaxLoad(const unsigned int uiLoad)
+{
+    H_AtomicSet(&m_uiMaxLoad, uiLoad);
+}
+
+unsigned int CNetWorker::getMaxLoad(void)
+{
+    return H_AtomicGet(&m_uiMaxLoad);
+}
+
+unsigned int CNetWorker::getCurLoad(void)
+{
+    return H_AtomicGet(&m_uiCurLoad);
+}
+
+void CNetWorker::addCurLoad(void)
+{
+    H_AtomicAdd(&m_uiCurLoad, 1);
+}
+
+void CNetWorker::subCurLoad(void)
+{
+    H_AtomicAdd(&m_uiCurLoad, -1);
+}
+
+unsigned int CNetWorker::addListener(const unsigned short usSockType, const char *pszHost, const unsigned short usPort)
 {
     H_Order stOrder;
-    stOrder.usCmd = ORDER_TCPLISTEN;
+    stOrder.usCmd = ORDER_ADDLISTENER;
     stOrder.usSockType = usSockType;
     stOrder.usPort = usPort;
     size_t iLens = strlen(pszHost);
     memcpy(stOrder.acHost, pszHost, iLens);
     stOrder.acHost[iLens] = '\0';
+    stOrder.uiSession = H_AtomicAdd(&m_uiID, 1);
+
+    sendOrder(&stOrder, sizeof(stOrder));
+
+    return stOrder.uiSession;
+}
+
+void CNetWorker::delListener(const unsigned int uiID)
+{
+    H_Order stOrder;
+    stOrder.usCmd = ORDER_DELLISTENER;
+    stOrder.uiSession = uiID;
 
     sendOrder(&stOrder, sizeof(stOrder));
 }
 
-void CNetWorker::addTcpLink(const unsigned short usSockType, const char *pszHost, const unsigned short usPort)
+unsigned int CNetWorker::addTcpLink(const unsigned short usSockType, const char *pszHost, const unsigned short usPort)
 {
     H_Order stOrder;
     stOrder.usCmd = ORDER_ADDLINK;
@@ -249,8 +310,20 @@ void CNetWorker::addTcpLink(const unsigned short usSockType, const char *pszHost
     size_t iLens = strlen(pszHost);
     memcpy(stOrder.acHost, pszHost, iLens);
     stOrder.acHost[iLens] = '\0';
+    stOrder.uiSession = H_AtomicAdd(&m_uiID, 1);
 
-    sendOrder(&stOrder, sizeof(stOrder));    
+    sendOrder(&stOrder, sizeof(stOrder));
+
+    return stOrder.uiSession;
+}
+
+void CNetWorker::delTcpLink(const unsigned int uiID)
+{
+    H_Order stOrder;
+    stOrder.usCmd = ORDER_DELLINK;
+    stOrder.uiSession = uiID;
+
+    sendOrder(&stOrder, sizeof(stOrder));
 }
 
 void CNetWorker::addLinkEv(const H_SOCK &sock, const unsigned int &uiID)

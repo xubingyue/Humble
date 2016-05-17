@@ -24,7 +24,12 @@ public:
 protected:
     void addTask(T *pMsg);
     T *newT(void);
+    T *newT(const size_t &iCount);
     void setDel(const bool bDel);
+    void setArray(const bool bArray);
+
+private:
+    void Free(T *pMsg);
 
 private:
     H_DISALLOWCOPY(CRecvTask);
@@ -41,6 +46,7 @@ private:
 
 private:
     bool m_bDel;
+    bool m_bArray;
     unsigned int m_uiWait;
     long m_lExit;
     long m_lCanAdd;
@@ -51,8 +57,8 @@ private:
 };
 
 template <typename T>
-CRecvTask<T>::CRecvTask(void) : m_bDel(true), m_uiWait(H_INIT_NUMBER), m_lExit(RS_RUN), m_lCanAdd(CANADD),
-    m_lCount(H_INIT_NUMBER)
+CRecvTask<T>::CRecvTask(void) : m_bDel(true), m_bArray(false), m_uiWait(H_INIT_NUMBER),
+    m_lExit(RS_RUN), m_lCanAdd(CANADD), m_lCount(H_INIT_NUMBER)
 {
     pthread_mutex_init(&m_quLock, NULL);
     pthread_cond_init(&m_objCond, NULL);
@@ -67,28 +73,40 @@ CRecvTask<T>::~CRecvTask(void)
 }
 
 template <typename T>
+void CRecvTask<T>::Free(T *pMsg)
+{
+    if (m_bDel)
+    {
+        if (m_bArray)
+        {
+            H_SafeDelArray(pMsg);
+        }
+        else
+        {
+            H_SafeDelete(pMsg);
+        }
+    }
+}
+
+template <typename T>
 void CRecvTask<T>::Run(void)
 {
-    T *pNode = NULL;
+    T *pMsg = NULL;
     H_AtomicAdd(&m_lCount, 1);
 
     while(RS_RUN == H_AtomicGet(&m_lExit))
     {
-        if (NULL != pNode)
+        if (NULL != pMsg)
         {
-            runTask(pNode);
-            if (m_bDel)
-            {
-                H_SafeDelete(pNode);
-            }
-
-            pNode = NULL;
+            runTask(pMsg);
+            Free(pMsg);
+            pMsg = NULL;
         }
 
         CLckThis objLckThis(&m_quLock);
         if (!m_vcTask.empty())
         {
-            pNode = m_vcTask.front();
+            pMsg = m_vcTask.front();
             m_vcTask.pop();
         }
         else
@@ -102,14 +120,11 @@ void CRecvTask<T>::Run(void)
     CLckThis objLckThis(&m_quLock);
     while (!m_vcTask.empty())
     {
-        pNode = m_vcTask.front();
+        pMsg = m_vcTask.front();
         m_vcTask.pop();
 
-        runTask(pNode);
-        if (m_bDel)
-        {
-            H_SafeDelete(pNode);
-        }
+        runTask(pMsg);
+        Free(pMsg);
     }
 
     H_AtomicAdd(&m_lCount, -1);
@@ -152,9 +167,21 @@ T *CRecvTask<T>::newT(void)
 }
 
 template <typename T>
+T *CRecvTask<T>::newT(const size_t &iCount)
+{
+    return new T[iCount];
+}
+
+template <typename T>
 void CRecvTask<T>::setDel(const bool bDel)
 {
     m_bDel = bDel;
+}
+
+template <typename T>
+void CRecvTask<T>::setArray(const bool bArray)
+{
+    m_bArray = bArray;
 }
 
 template <typename T>
