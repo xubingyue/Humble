@@ -8,12 +8,10 @@ package.path = string.format("%s;%s?.lua", package.path, strpubdir)
 require("macros")
 local humble = require("humble")
 local utile = require("utile")
-local tcp = require("tcp")
-local httpd = require("httpd")
 local table = table
 local pairs = pairs
-local SockType = SockType
-local pRBinary = g_pRBinary
+local pCurSock = g_pCurSock
+local pBuffer = g_pBuffer
 
 if not g_tChan then
     g_tChan = {}    
@@ -34,6 +32,7 @@ local tLinker = g_tLinker
 function onStart()
     tListener.test = humble.addListener(1, "0.0.0.0", 15000)
     --tLinker.test = humble.addTcpLink(1, "127.0.0.1", 15000)  
+    humble.setParser(1, "tcp1")
     
     humble.regTask("echo")
     humble.regTask("test")      
@@ -53,26 +52,23 @@ function onStop()
     print(iCount)
 end
 
-function onTcpLinked(sock, uiSession, usType)
-    
+--pCurSock 有效{sock, session, type}
+function onTcpLinked()
+    --table.print(pCurSock)
 end
 
-function onTcpClose(sock, uiSession, usType)
-    
+--pCurSock 有效{sock, session, type}
+function onTcpClose()
+    --table.print(pCurSock)
 end
 
-local function funcOnRead(varMsg, sock, uiSession, pChan)
-    pChan:Send(utile.Pack({sock, uiSession, varMsg}))
-end
-
-function onTcpRead(sock, uiSession, usType)
-    local iReaded = 0
-    --iReaded = httpd.parsePack(pRBinary, funcOnRead, sock, uiSession, tChan.echo)
+--pCurSock 有效{sock, session, type}
+function onTcpRead()
     a = os.clock()
-    iReaded = tcp.parsePack(pRBinary, funcOnRead, sock, uiSession, tChan.echo)
+    for _, val in pairs(pBuffer) do
+        tChan.echo:Send(utile.Pack({pCurSock[1], pCurSock[2], val}))
+    end
     b = os.clock()
     iTime = iTime + b - a
     iCount = iCount + 1
-    
-    return iReaded
 end

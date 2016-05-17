@@ -1,5 +1,10 @@
 #include "LNetDisp.h"
 #include "LTick.h"
+#include "Tcp1.h"
+#include "Tcp2.h"
+#include "Httpd.h"
+#include "WebSock.h"
+
 using namespace Humble;
 
 #ifdef H_OS_WIN
@@ -119,6 +124,16 @@ int init()
     return H_RTN_OK;
 }
 
+void initParser()
+{
+    CNetParser *pParser = CNetParser::getSingletonPtr();
+
+    pParser->addParser(CTcp1::getSingletonPtr());
+    pParser->addParser(CTcp2::getSingletonPtr());
+    pParser->addParser(CHttp::getSingletonPtr());
+    pParser->addParser(CWebSock::getSingletonPtr());
+}
+
 void runSV(void)
 {
     CLog *pLog = CLog::getSingletonPtr();
@@ -195,6 +210,8 @@ int main(int argc, char *argv[])
     {
         return H_RTN_FAILE;
     }
+
+    initParser();
 
     pthread_cond_init(&g_ExitCond, NULL);
     pthread_mutex_init(&g_objExitMu, NULL);

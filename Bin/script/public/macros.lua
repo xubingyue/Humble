@@ -35,8 +35,3 @@ LogLV = {
     "Debug",
 }
 LogLV = table.enum(LogLV, 1)
-
-SockType = {
-    "Tcp",
-}
-SockType = table.enum(SockType, 1)

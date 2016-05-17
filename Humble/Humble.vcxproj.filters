@@ -6,11 +6,40 @@
     <ClCompile Include="Reg2Lua.cpp" />
     <ClCompile Include="LuaTask.cpp" />
     <ClCompile Include="LTick.cpp" />
+    <ClCompile Include="Tcp1.cpp">
+      <Filter>Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="Tcp2.cpp">
+      <Filter>Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="WebSock.cpp">
+      <Filter>Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="Httpd.cpp">
+      <Filter>Parser</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="LNetDisp.h" />
     <ClInclude Include="Reg2Lua.h" />
     <ClInclude Include="LuaTask.h" />
     <ClInclude Include="LTick.h" />
+    <ClInclude Include="Tcp1.h">
+      <Filter>Parser</Filter>
+    </ClInclude>
+    <ClInclude Include="Tcp2.h">
+      <Filter>Parser</Filter>
+    </ClInclude>
+    <ClInclude Include="WebSock.h">
+      <Filter>Parser</Filter>
+    </ClInclude>
+    <ClInclude Include="Httpd.h">
+      <Filter>Parser</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Parser">
+      <UniqueIdentifier>{35d9fabe-ff7c-47e0-a675-24f9dd4ce625}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
 </Project>

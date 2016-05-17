@@ -8,7 +8,7 @@ package.path = string.format("%s;%s?.lua", package.path, strpubdir)
 require("macros")
 local humble = require("humble")
 local utile = require("utile")
-local LogLV = LogLV
+local pTick = g_pTick
 
 if not g_tChan then
     g_tChan = {}    
@@ -23,12 +23,13 @@ function onStop()
     
 end
 
-function onTimer(uiTick, uiCount)
-    tChan.timer:Send(utile.Pack({uiTick, uiCount}))
+--pTick ”––ß{tick, count}
+function onTimer()
+    tChan.timer:Send(utile.Pack(pTick))
     
     --1√Î
-    if 0 == ((uiTick * uiCount) % 1000) then 
-        print("1 sec")
-        print(string.format("cur load %d.", humble.getCurLoad()))
+    if 0 == ((pTick[1] * pTick[2]) % 1000) then 
+        --print("1 sec")
+        --print(string.format("cur load %d.", humble.getCurLoad()))
     end
 end

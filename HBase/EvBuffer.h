@@ -29,17 +29,22 @@ public:
         return evbuffer_get_length(m_pReadBuffer);
     };
     /*从读缓冲区中取出iLens个字节的数据*/
-    char *readBuffer(const size_t iLens)
+    char *readBuffer(const size_t &iLens)
     {
         return (char*)evbuffer_pullup(m_pReadBuffer, (ev_ssize_t)iLens);
     };
     /*删除读缓冲区的数据*/
-    void delBuffer(const size_t iLens)
+    void delBuffer(const size_t &iLens)
     {
+        if (H_INIT_NUMBER == iLens)
+        {
+            return;
+        }
+
         (void)evbuffer_drain(m_pReadBuffer, iLens);
     };
     /*查找*/
-    struct evbuffer_ptr Search(const char *pszWhat, size_t iLens, const struct evbuffer_ptr *pStart = NULL)
+    struct evbuffer_ptr Search(const char *pszWhat, size_t &iLens, const struct evbuffer_ptr *pStart = NULL)
     {
         return evbuffer_search(m_pReadBuffer, pszWhat, iLens, pStart);
     };

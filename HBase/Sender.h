@@ -6,8 +6,6 @@
 #include "Singleton.h"
 #include "Binary.h"
 #include "RWLock.h"
-#include "lua5.3/lua.hpp"
-#include "luabridge/LuaBridge.h"
 
 H_BNAMSP
 
@@ -46,27 +44,44 @@ public:
     void lbroadCast(luabridge::LuaRef lTable, const char *pBuf, const size_t iLens);
     void broadCastBinary(luabridge::LuaRef lTable, CBinary *pBinary);
 
-    void addSock(H_SOCK &sock, const unsigned int &uiSession);
+    void addSock(H_SOCK &sock, const unsigned int &uiSession, unsigned short &usType);
     void delSock(H_SOCK &sock);
+
+    void addBuffer(const unsigned short &usType);
 
 private:
     void sendToSock(H_SOCK &fd, const unsigned int &uiSession, const char *pBuf, const size_t &iLens);
     void broadCast(H_SenderSock *pSock, const int &iCount, const char *pBuf, const size_t &iLens);
     H_SenderSock *createSenderSock(luabridge::LuaRef &lTable);
 
+    std::string *getBuffer(const unsigned short &usType);
+    void cleanBuffer(H_SOCK &fd, const unsigned int &uiSession);
+    std::string *creatPack(const char *pBuf, const size_t &iLens, const unsigned short &usType);
+
 private:
     H_DISALLOWCOPY(CSender); 
+    struct H_TypeSession
+    {
+        unsigned short usType;
+        unsigned int uiSession;
+    };
 #ifdef H_OS_WIN 
-    #define senderit std::unordered_map<H_SOCK, unsigned int>::iterator
-    #define sender_map std::unordered_map<H_SOCK, unsigned int>
+    #define senderit std::unordered_map<H_SOCK, H_TypeSession>::iterator
+    #define sender_map std::unordered_map<H_SOCK, H_TypeSession>
+    #define bufferit std::unordered_map<unsigned short, std::string>::iterator
+    #define buffer_map std::unordered_map<unsigned short, std::string>
 #else
-    #define senderit std::tr1::unordered_map<H_SOCK, unsigned int>::iterator
-    #define sender_map std::tr1::unordered_map<H_SOCK, unsigned int>
+    #define senderit std::tr1::unordered_map<H_SOCK, H_TypeSession>::iterator
+    #define sender_map std::tr1::unordered_map<H_SOCK, H_TypeSession>
+    #define bufferit std::tr1::unordered_map<unsigned short, std::string>::iterator
+    #define buffer_map std::tr1::unordered_map<unsigned short, std::string>
 #endif
 
 private:
     sender_map m_mapSender;
+    buffer_map m_mapBuffer;
     CRWLock m_objLck;
+    CRWLock m_objBufferLck;
 };
 
 H_ENAMSP

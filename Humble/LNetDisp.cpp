@@ -3,8 +3,8 @@
 
 H_BNAMSP
 
-CLNetDisp::CLNetDisp(void) : m_iBufLens(H_INIT_NUMBER), m_iReaded(H_INIT_NUMBER),
-    m_pBuf(NULL), m_pLState(NULL), m_pLFunc(NULL)
+CLNetDisp::CLNetDisp(void) : m_iBufLens(H_INIT_NUMBER), m_iParsed(H_INIT_NUMBER),
+    m_pBuf(NULL), m_pLState(NULL), m_pLFunc(NULL), m_pTable(NULL), m_pSockTable(NULL), m_pParser(NULL)
 {
     m_pLFunc = new(std::nothrow) luabridge::LuaRef *[LCount];
     H_ASSERT(NULL != m_pLFunc, "malloc memory error.");    
@@ -21,10 +21,19 @@ CLNetDisp::CLNetDisp(void) : m_iBufLens(H_INIT_NUMBER), m_iReaded(H_INIT_NUMBER)
         m_pLFunc[i] = pRef;
     }
 
+    m_pTable = new(std::nothrow) luabridge::LuaRef(m_pLState);
+    H_ASSERT(NULL != m_pTable, "malloc memory error.");
+    *m_pTable = luabridge::newTable(m_pLState);
+
+    m_pSockTable = new(std::nothrow) luabridge::LuaRef(m_pLState);
+    H_ASSERT(NULL != m_pSockTable, "malloc memory error.");
+    *m_pSockTable = luabridge::newTable(m_pLState);
+
     try
     {
         H_RegAll(m_pLState);
-        luabridge::setGlobal(m_pLState, &m_objBinary, "g_pRBinary");
+        luabridge::setGlobal(m_pLState, *m_pTable, "g_pBuffer");
+        luabridge::setGlobal(m_pLState, *m_pSockTable, "g_pCurSock");
     }
     catch (luabridge::LuaException &e)
     {
@@ -58,11 +67,21 @@ CLNetDisp::~CLNetDisp(void)
         H_SafeDelArray(m_pLFunc);
     }
 
+    H_SafeDelete(m_pSockTable);
+    H_SafeDelete(m_pTable);
+
     if (NULL != m_pLState)
     {
         lua_close(m_pLState);
         m_pLState = NULL;
     }
+}
+
+void CLNetDisp::initCurSock(struct H_Session *pSession)
+{
+    (*m_pSockTable)[1] = pSession->sock;
+    (*m_pSockTable)[2] = pSession->uiSession;
+    (*m_pSockTable)[3] = pSession->usSockType;
 }
 
 void CLNetDisp::onStart(void)
@@ -98,7 +117,8 @@ H_INLINE void CLNetDisp::onTcpLinked(struct H_Session *pSession)
 {
     try
     {
-        (*(m_pLFunc[LOnTcpLinked]))(pSession->sock, pSession->uiSession, pSession->usSockType);
+        initCurSock(pSession);
+        (*(m_pLFunc[LOnTcpLinked]))();
     }
     catch (luabridge::LuaException &e)
     {
@@ -108,9 +128,19 @@ H_INLINE void CLNetDisp::onTcpLinked(struct H_Session *pSession)
 
 H_INLINE void CLNetDisp::onTcpClose(struct H_Session *pSession)
 {
+    m_pParser = CNetParser::getSingletonPtr()->getParser(pSession->usSockType);
+    if (NULL == m_pParser)
+    {
+        H_LOG(LOGLV_ERROR, "get parser by type %d error.", pSession->usSockType);
+        return;
+    }
+
+    m_pParser->onClose(pSession);
+
     try
     {
-        (*(m_pLFunc[LOnTcpClose]))(pSession->sock, pSession->uiSession, pSession->usSockType);
+        initCurSock(pSession);
+        (*(m_pLFunc[LOnTcpClose]))();
     }
     catch (luabridge::LuaException &e)
     {
@@ -120,27 +150,41 @@ H_INLINE void CLNetDisp::onTcpClose(struct H_Session *pSession)
 
 H_INLINE void CLNetDisp::onTcpRead(struct H_Session *pSession)
 {
+    m_objClock.reStart();
+
+    m_pParser = CNetParser::getSingletonPtr()->getParser(pSession->usSockType);
+    if (NULL == m_pParser)
+    {
+        H_LOG(LOGLV_ERROR, "get parser by type %d error.", pSession->usSockType);
+        return;
+    }
+
+    m_objEvBuffer.setEvBuf(pSession->pBev);
+    m_iBufLens = m_objEvBuffer.getTotalLens();
+    m_pBuf = m_objEvBuffer.readBuffer(m_iBufLens);
+    if (NULL == m_pBuf)
+    {
+        return;
+    }
+
     try
     {
-        m_objEvBuffer.setEvBuf(pSession->pBev);
-        m_iBufLens = m_objEvBuffer.getTotalLens();
-        m_pBuf = m_objEvBuffer.readBuffer(m_iBufLens);
-        if (NULL == m_pBuf)
-        {
-            return;
-        }
+        m_iParsed = m_pParser->parsePack(pSession, m_pBuf, m_iBufLens, m_pTable);
+        m_objEvBuffer.delBuffer(m_iParsed);
 
-        m_objBinary.setReadBuffer(m_pBuf, m_iBufLens);
-        m_objClock.reStart();
-        m_iReaded = (*(m_pLFunc[LOnTcpRead]))(pSession->sock, pSession->uiSession, pSession->usSockType);
-        dTime += m_objClock.Elapsed();
-        ++iCount;
-        m_objEvBuffer.delBuffer(m_iReaded);
+        if (H_INIT_NUMBER != m_iParsed)
+        {
+            initCurSock(pSession);
+            (*(m_pLFunc[LOnTcpRead]))();
+        }        
     }
     catch (luabridge::LuaException &e)
     {
         H_LOG(LOGLV_ERROR, "%s", e.what());
     }
+
+    dTime += m_objClock.Elapsed();
+    ++iCount;
 }
 
 H_ENAMSP

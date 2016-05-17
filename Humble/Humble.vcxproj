@@ -158,17 +158,25 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Httpd.cpp" />
     <ClCompile Include="Humble.cpp" />
     <ClCompile Include="LNetDisp.cpp" />
     <ClCompile Include="LTick.cpp" />
     <ClCompile Include="LuaTask.cpp" />
     <ClCompile Include="Reg2Lua.cpp" />
+    <ClCompile Include="Tcp1.cpp" />
+    <ClCompile Include="Tcp2.cpp" />
+    <ClCompile Include="WebSock.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Httpd.h" />
     <ClInclude Include="LNetDisp.h" />
     <ClInclude Include="LTick.h" />
     <ClInclude Include="LuaTask.h" />
     <ClInclude Include="Reg2Lua.h" />
+    <ClInclude Include="Tcp1.h" />
+    <ClInclude Include="Tcp2.h" />
+    <ClInclude Include="WebSock.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,6 +1,7 @@
 
 #include "Sender.h"
 #include "Funcs.h"
+#include "NetParser.h"
 
 H_BNAMSP
 
@@ -23,20 +24,88 @@ CSender::~CSender(void)
 
 }
 
+std::string *CSender::creatPack(const char *pBuf, const size_t &iLens, const unsigned short &usType)
+{
+    std::string *pstrBuf = getBuffer(usType);
+    CParser *pParser = CNetParser::getSingletonPtr()->getParser(usType);
+    if ((NULL == pstrBuf)
+        || (NULL == pParser))
+    {
+        return NULL;
+    }
+    
+    if (pstrBuf->empty())
+    {
+        pParser->creatPack(pstrBuf, pBuf, iLens);
+    }
+
+    return pstrBuf;
+}
+
 void CSender::sendToSock(H_SOCK &fd, const unsigned int &uiSession, const char *pBuf, const size_t &iLens)
 {
-    senderit itSender;
-
     m_objLck.rLock();
-    itSender = m_mapSender.find(fd);
+    senderit itSender = m_mapSender.find(fd);
     if (m_mapSender.end() != itSender)
     {
-        if (uiSession == itSender->second)
+        if (uiSession == itSender->second.uiSession)
         {
-            H_SockWrite(fd, pBuf, iLens);
+            std::string *pstrBuf = creatPack(pBuf, iLens, itSender->second.usType);
+            if (NULL != pstrBuf)
+            {
+                H_SockWrite(fd, pstrBuf->c_str(), pstrBuf->size());
+            }
         }
     }
     m_objLck.unLock();
+}
+
+std::string *CSender::getBuffer(const unsigned short &usType)
+{
+    std::string *pBuffer = NULL;
+
+    m_objBufferLck.rLock();
+    bufferit itBuf = m_mapBuffer.find(usType);
+    if (m_mapBuffer.end() != itBuf)
+    {
+        pBuffer = &itBuf->second;
+    }
+    else
+    {
+        H_Printf("get send buffer by type %d error.", usType);
+    }
+    m_objBufferLck.unLock();
+
+    return pBuffer;
+}
+
+void CSender::cleanBuffer(H_SOCK &fd, const unsigned int &uiSession)
+{
+    m_objLck.rLock();
+    senderit itSender = m_mapSender.find(fd);
+    if (m_mapSender.end() != itSender)
+    {
+        if (uiSession == itSender->second.uiSession)
+        {
+            std::string *pBuffer = getBuffer(itSender->second.usType);
+            if (NULL != pBuffer)
+            {
+                pBuffer->clear();
+            }
+        }
+    }
+    m_objLck.unLock();
+}
+
+void CSender::addBuffer(const unsigned short &usType)
+{
+    m_objBufferLck.wLock();
+    bufferit itBuf = m_mapBuffer.find(usType);
+    if (m_mapBuffer.end() == itBuf)
+    {
+        m_mapBuffer.insert(std::make_pair(usType, std::string()));
+    }
+    m_objBufferLck.unLock();
 }
 
 void CSender::runTask(H_Sender *pMsg)
@@ -45,7 +114,8 @@ void CSender::runTask(H_Sender *pMsg)
     {
         case SendTo:
         {
-            sendToSock(pMsg->stSock.sock, pMsg->stSock.uiSession, pMsg->pBuffer, pMsg->iBufLens);
+            cleanBuffer(pMsg->stSock.sock, pMsg->stSock.uiSession);
+            sendToSock(pMsg->stSock.sock, pMsg->stSock.uiSession, pMsg->pBuffer, pMsg->iBufLens);         
             H_SafeDelete(pMsg->pBuffer);
         }
         break;
@@ -56,6 +126,10 @@ void CSender::runTask(H_Sender *pMsg)
                 break;
             }
 
+            for (unsigned short usI = H_INIT_NUMBER; usI < pMsg->usCount; ++usI)
+            {
+                cleanBuffer(pMsg->pSock[usI].sock, pMsg->pSock[usI].uiSession);
+            }
             for (unsigned short usI = H_INIT_NUMBER; usI < pMsg->usCount; ++usI)
             {
                 sendToSock(pMsg->pSock[usI].sock, pMsg->pSock[usI].uiSession, pMsg->pBuffer, pMsg->iBufLens);
@@ -149,10 +223,14 @@ void CSender::broadCast(H_SenderSock *pSock, const int &iCount, const char *pBuf
     addTask(pSender);
 }
 
-void CSender::addSock(H_SOCK &sock, const unsigned int &uiSession)
+void CSender::addSock(H_SOCK &sock, const unsigned int &uiSession, unsigned short &usType)
 {
+    H_TypeSession stInfo;
+    stInfo.uiSession = uiSession;
+    stInfo.usType = usType;
+
     m_objLck.wLock();
-    m_mapSender[sock] = uiSession;
+    m_mapSender[sock] = stInfo;
     m_objLck.unLock();
 }
 

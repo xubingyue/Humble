@@ -90,5 +90,7 @@
 #include "event2/buffer.h"
 #include "event2/listener.h"
 #include "event2/event.h"
+#include "lua5.3/lua.hpp"
+#include "luabridge/LuaBridge.h"
 
 #endif//H_INCLUDE_H_

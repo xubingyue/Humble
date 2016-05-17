@@ -23,11 +23,7 @@ function runTask()
         local varRecv = pChan:Recv()
         local sock, uiSession, strMsg = table.unpack(utile.unPack(varRecv))        
      
-        --local strResp = httpd.Response(200, "hello http")
-        --humble.Send(sock, uiSession, strResp)        
-
-        tcp.creatPack(pBinary, strMsg)
-        humble.SendB(sock, uiSession, pBinary)
+        humble.Send(sock, uiSession, strMsg)
 end
 
 function destroyTask()
