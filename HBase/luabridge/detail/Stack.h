@@ -505,11 +505,18 @@ struct H_LBinary
 };
 
 template <>
-struct Stack <H_LBinary>
+struct Stack <H_LBinary &>
 {
     static inline void push(lua_State* L, H_LBinary& stBinary)
     {
-        lua_pushlstring(L, stBinary.pBufer, stBinary.iLens);
+        if (NULL == stBinary.pBufer)
+        {
+            lua_pushlstring(L, "", 0);
+        }
+        else
+        {
+            lua_pushlstring(L, stBinary.pBufer, stBinary.iLens);
+        }        
     }
 
     static inline H_LBinary get(lua_State* L, int index)
@@ -521,6 +528,29 @@ struct Stack <H_LBinary>
     }
 };
 
+template <>
+struct Stack <H_LBinary>
+{
+    static inline void push(lua_State* L, H_LBinary& stBinary)
+    {
+        if (NULL == stBinary.pBufer)
+        {
+            lua_pushlstring(L, "", 0);
+        }
+        else
+        {
+            lua_pushlstring(L, stBinary.pBufer, stBinary.iLens);
+        }
+    }
+
+    static inline H_LBinary get(lua_State* L, int index)
+    {
+        H_LBinary stBinary;
+        const char *str = luaL_checklstring(L, index, &stBinary.iLens);
+        stBinary.pBufer = (char*)str;
+        return stBinary;
+    }
+};
 
 #if (defined H_OS_WIN) || (defined H_X86)
 //------------------------------------------------------------------------------

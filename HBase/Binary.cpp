@@ -18,10 +18,8 @@ CBinary::~CBinary(void)
     m_pParseBuffer = NULL;
 }
 
-void CBinary::setReadBuffer(void *pszBuf, const size_t iLens)
+void CBinary::setReadBuffer(const char *pszBuf, const size_t iLens)
 {
-    H_ASSERT(pszBuf, "pointer is null.");
-
     m_pParseBuffer = (char*)pszBuf;
     m_iParseBufLens = iLens;
     m_iCurParseLens = H_INIT_NUMBER;
@@ -173,32 +171,35 @@ void CBinary::setString(const char *pszVal)
     setVal(pszVal, strlen(pszVal));
     skipWrite(1);
 }
-std::string& CBinary::getString(void)
+luabridge::H_LBinary& CBinary::getString(void)
 {
-    m_strVal.clear();
+    m_stVal.iLens = H_INIT_NUMBER;
+    m_stVal.pBufer = NULL;
 
     //³¬³¤
     if (m_iCurParseLens >= m_iParseBufLens)
     {
-        return m_strVal;
+        return m_stVal;
     }
 
     char *pBuf = m_pParseBuffer + m_iCurParseLens;
-    m_strVal = pBuf;
+    size_t iLens(strlen(pBuf));
+
+    m_stVal.pBufer = pBuf;
+    m_stVal.iLens = iLens;
 
     //³¬³¤
-    if (m_iCurParseLens + m_strVal.size() + 1 > m_iParseBufLens)
+    if (m_iCurParseLens + iLens + 1 > m_iParseBufLens)
     {
         m_iCurParseLens = m_iParseBufLens;
-        m_strVal.clear();
-        m_strVal.append(pBuf, getSurpLens());
+        m_stVal.iLens = getSurpLens();
 
-        return m_strVal;
+        return m_stVal;
     }
 
-    m_iCurParseLens += (m_strVal.size() + 1);
+    m_iCurParseLens += (iLens + 1);
 
-    return m_strVal;
+    return m_stVal;
 }
 
 void CBinary::setByte(const char *pszVal, const unsigned int iLens)
@@ -220,43 +221,48 @@ const char *CBinary::getByte(const unsigned int &iLens)
     return pBuf;
 }
 
-std::string& CBinary::getLByte(const unsigned int iLens)
+luabridge::H_LBinary& CBinary::getLByte(const unsigned int iLens)
 {
-    m_strVal.clear();
+    m_stVal.iLens = H_INIT_NUMBER;
+    m_stVal.pBufer = NULL;
 
     const char *pBuf = getByte(iLens);
     if (NULL != pBuf)
     {
-        m_strVal.append(pBuf, iLens);
+        m_stVal.pBufer = (char*)pBuf;
+        m_stVal.iLens = iLens;
     }
 
-    return m_strVal;
+    return m_stVal;
 }
 
-std::string& CBinary::readLine(void)
+luabridge::H_LBinary& CBinary::readLine(void)
 {
-    m_strVal.clear();
+    m_stVal.iLens = H_INIT_NUMBER;
+    m_stVal.pBufer = NULL;
 
     if (m_iCurParseLens >= m_iParseBufLens)
     {
-        return m_strVal;
+        return m_stVal;
     }
 
     char *pBuf = m_pParseBuffer + m_iCurParseLens;
     char *pPos = strstr(pBuf, H_LINEEFLAG);
     if (NULL == pPos)
     {
-        m_strVal.append(pBuf, getSurpLens());
+        m_stVal.pBufer = pBuf;
+        m_stVal.iLens = getSurpLens();
         m_iCurParseLens = m_iParseBufLens;
 
-        return m_strVal;
+        return m_stVal;
     }
 
-    m_strVal.append(pBuf, (pPos - pBuf));
+    m_stVal.pBufer = pBuf;
+    m_stVal.iLens = pPos - pBuf;
 
     m_iCurParseLens += (pPos - pBuf + m_iLEFLens);
 
-    return m_strVal;
+    return m_stVal;
 }
 
 int CBinary::Find(const char *pFlag)

@@ -10,7 +10,6 @@ local humble = require("humble")
 local utile = require("utile")
 local table = table
 local pairs = pairs
-local pCurSock = g_pCurSock
 local pBuffer = g_pBuffer
 
 if not g_tChan then
@@ -48,27 +47,26 @@ function onStop()
     humble.closeByType(1)
     humble.delListener(tListener.test)
     
-    print(iTime)
-    print(iCount)
+    print("lua"..iTime)
+    print("lua"..iCount)
 end
 
---pCurSock 有效{sock, session, type}
-function onTcpLinked()
-    --table.print(pCurSock)
+function onTcpLinked(sock, uiSession, usSockType)
+    
 end
 
---pCurSock 有效{sock, session, type}
-function onTcpClose()
-    --table.print(pCurSock)
+function onTcpClose(sock, uiSession, usSockType)
+    
 end
 
---pCurSock 有效{sock, session, type}
-function onTcpRead()
-    a = os.clock()
-    for _, val in pairs(pBuffer) do
-        tChan.echo:Send(utile.Pack({pCurSock[1], pCurSock[2], val}))
-    end
-    b = os.clock()
+function onTcpRead(sock, uiSession, usSockType)
+    local a = os.clock()
+    local strBuf = pBuffer:getByte(pBuffer:getSurpLens())
+    
+    local strVal = utile.Pack({sock, uiSession, strBuf})
+    local b = os.clock()
+    tChan.echo:Send(strVal)    
+    
     iTime = iTime + b - a
     iCount = iCount + 1
 end

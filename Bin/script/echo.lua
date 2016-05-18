@@ -19,13 +19,22 @@ function initTask()
     
 end
 
+local iTime = 0
+local iCount = 0
+
 function runTask()
-        local varRecv = pChan:Recv()
-        local sock, uiSession, strMsg = table.unpack(utile.unPack(varRecv))        
+    local a = os.clock()
+    local varRecv = pChan:Recv()
+    local sock, uiSession, strMsg = table.unpack(utile.unPack(varRecv))        
      
-        humble.Send(sock, uiSession, strMsg)
+    humble.Send(sock, uiSession, strMsg)
+    local b = os.clock()
+        
+    iTime = iTime + b - a
+    iCount = iCount + 1
 end
 
 function destroyTask()
-    
+    print("destroyTask"..iTime)
+    print("destroyTask"..iCount)
 end

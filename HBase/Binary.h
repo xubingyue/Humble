@@ -3,6 +3,8 @@
 #define H_LUABINARY_H_
 
 #include "Macros.h"
+#include "lua5.3/lua.hpp"
+#include "luabridge/LuaBridge.h"
 
 H_BNAMSP
 
@@ -14,7 +16,7 @@ public:
     ~CBinary(void);
 
     //设置要解析的数据
-    void setReadBuffer(void *pszBuf, const size_t iLens);
+    void setReadBuffer(const char *pszBuf, const size_t iLens);
     size_t getRBufLens(void)
     {
         return (unsigned int)m_iParseBufLens;
@@ -73,14 +75,14 @@ public:
 
     //string 保证以/0结束
     void setString(const char *pszVal);
-    std::string& getString(void);
+    luabridge::H_LBinary& getString(void);
 
     //byte
     void setByte(const char *pszVal, const unsigned int iLens);
-    std::string& getLByte(const unsigned int iLens);
+    luabridge::H_LBinary& getLByte(const unsigned int iLens);
     const char *getByte(const unsigned int &iLens);
 
-    std::string& readLine(void);
+    luabridge::H_LBinary& readLine(void);
 
     int Find(const char *pFlag);
 
@@ -119,7 +121,7 @@ private:
     size_t m_iCurParseLens;//已经解析的长度
     size_t m_iLEFLens;
     std::string m_strWritBuffer;//写buffer
-    std::string m_strVal;
+    luabridge::H_LBinary m_stVal;
 };
 
 H_ENAMSP

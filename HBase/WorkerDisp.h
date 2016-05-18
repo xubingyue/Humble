@@ -6,6 +6,7 @@
 #include "Singleton.h"
 #include "Funcs.h"
 #include "RWLock.h"
+#include "Clock.h"
 
 H_BNAMSP
 
@@ -31,12 +32,11 @@ public:
 
     H_INLINE void Notify(std::string *pstrName)
     {
-        CLckThis objLckThis(&m_taskLock);
+        m_objClock.reStart();
+        m_taskLck.Lock();
         m_quTask.push(pstrName);
-        if (m_uiWait > H_INIT_NUMBER)
-        {
-            pthread_cond_signal(&m_taskCond);
-        }
+        m_taskLck.unLock();
+        m_dTime += m_objClock.Elapsed();
     };
 
 private:
@@ -63,14 +63,15 @@ private:
     };
 private:
     unsigned short m_usThreadNum;
-    unsigned int m_uiWait;
     long m_lExit;
     long m_lCount;
     CWorker *m_pWorker;
     task_map m_mapTask;
-    pthread_mutex_t m_taskLock;
-    pthread_cond_t m_taskCond;
+    CAtomic m_taskLck;
     std::queue<std::string *> m_quTask;
+
+    double m_dTime;
+    CClock m_objClock;
 };
 
 H_ENAMSP

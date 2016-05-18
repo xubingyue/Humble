@@ -10,15 +10,15 @@ H_BNAMSP
 SINGLETON_INIT(CWorkerDisp)
 CWorkerDisp objWorker;
 
-CWorkerDisp::CWorkerDisp(void) : m_usThreadNum(H_INIT_NUMBER), m_uiWait(H_INIT_NUMBER),
+CWorkerDisp::CWorkerDisp(void) : m_usThreadNum(H_INIT_NUMBER),
     m_lExit(RS_RUN), m_lCount(H_INIT_NUMBER), m_pWorker(NULL)
 {
-    pthread_mutex_init(&m_taskLock, NULL);
-    pthread_cond_init(&m_taskCond, NULL);
+    m_dTime = 0;
 }
 
 CWorkerDisp::~CWorkerDisp(void)
 {
+    H_Printf("CWorkerDisp %f", m_dTime);
     for (taskit itTask = m_mapTask.begin(); m_mapTask.end() != itTask; ++itTask)
     {
         H_SafeDelete(itTask->second);
@@ -26,9 +26,6 @@ CWorkerDisp::~CWorkerDisp(void)
     m_mapTask.clear();
 
     H_SafeDelArray(m_pWorker);
-
-    pthread_mutex_destroy(&m_taskLock);
-    pthread_cond_destroy(&m_taskCond);
 }
 
 void CWorkerDisp::setThreadNum(const unsigned short usNum)
@@ -124,22 +121,23 @@ void CWorkerDisp::runSurpTask(void)
     {
         for (size_t i = H_INIT_NUMBER; i < itTask->second->getChan()->getSize(); ++i)
         {
-            CLckThis objLckThis(&m_taskLock);
+            m_taskLck.Lock();
             m_quTask.push(itTask->second->getName());
+            m_taskLck.unLock();
         }
     }
    
     while (true)
     {
         pTaskNam = NULL;
+        
+        m_taskLck.Lock();
+        if (!m_quTask.empty())
         {
-            CLckThis objLckThis(&m_taskLock);
-            if (!m_quTask.empty())
-            {
-                pTaskNam = m_quTask.front();
-                m_quTask.pop();
-            }
+            pTaskNam = m_quTask.front();
+            m_quTask.pop();
         }
+        m_taskLck.unLock();
 
         if (NULL == pTaskNam)
         {
@@ -164,6 +162,7 @@ void CWorkerDisp::destroyTask(void)
 
 void CWorkerDisp::Run(void)
 {
+    unsigned int uiSleep(H_INIT_NUMBER);
     CWorker *pWorker = NULL;
     CWorkerTask *pWorkerTask = NULL;
     std::string *pTaskNam;
@@ -180,22 +179,25 @@ void CWorkerDisp::Run(void)
     while (RS_RUN == H_AtomicGet(&m_lExit))
     {
         pTaskNam = NULL;
+
+        m_taskLck.Lock();
+        if (!m_quTask.empty())
         {
-            CLckThis objLckThis(&m_taskLock);
-            if (!m_quTask.empty())
-            {
-                pTaskNam = m_quTask.front();
-                m_quTask.pop();
-            }
-            else
-            {
-                ++m_uiWait;
-                pthread_cond_wait(&m_taskCond, objLckThis.getMutex());
-                --m_uiWait;
-                continue;
-            }
+            pTaskNam = m_quTask.front();
+            m_quTask.pop();
+        }
+        m_taskLck.unLock();
+
+        if (NULL == pTaskNam)
+        {
+            H_Sleep(uiSleep);
+            ++uiSleep;
+            uiSleep = (uiSleep > 10 ? 10 : uiSleep);
+
+            continue;
         }
 
+        uiSleep = H_INIT_NUMBER;
         pWorkerTask = getTask(pTaskNam);
         if (NULL == pWorkerTask)
         {
@@ -203,8 +205,10 @@ void CWorkerDisp::Run(void)
         }
         if (H_INIT_NUMBER != pWorkerTask->getRef())
         {
-            CLckThis objLckThis(&m_taskLock);
+            m_taskLck.Lock();
             m_quTask.push(pTaskNam);
+            m_taskLck.unLock();
+
             continue;
         }
 
@@ -236,7 +240,6 @@ void CWorkerDisp::Join(void)
 
     for (;;)
     {
-        pthread_cond_broadcast(&m_taskCond);
         if (H_INIT_NUMBER == H_AtomicGet(&m_lCount))
         {
             break;

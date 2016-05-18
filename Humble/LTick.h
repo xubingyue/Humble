@@ -30,7 +30,6 @@ private:
 private:
     struct lua_State *m_pLState;
     luabridge::LuaRef **m_pLFunc;
-    luabridge::LuaRef *m_pTable;
 };
 
 H_ENAMSP

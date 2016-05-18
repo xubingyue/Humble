@@ -21,7 +21,7 @@ CTcp1::~CTcp1(void)
 {
 }
 
-bool CTcp1::readHead(char *pBuffer, const size_t &iLens, size_t &iBufLens, size_t &iHeadLens)
+H_INLINE bool CTcp1::readHead(char *pBuffer, const size_t &iLens, size_t &iBufLens, size_t &iHeadLens)
 {
     char cFlag = pBuffer[0];
     if (cFlag <= TCPBUFLENS_125)
@@ -59,48 +59,30 @@ bool CTcp1::readHead(char *pBuffer, const size_t &iLens, size_t &iBufLens, size_
     return true;
 }
 
-size_t CTcp1::parsePack(struct H_Session *, char *pAllBuf, const size_t &iLens, luabridge::LuaRef *pTable)
+H_INLINE size_t CTcp1::parsePack(struct H_Session *, char *pAllBuf, const size_t &iLens, class CBinary *pBinary)
 {
-    size_t iParsed(H_INIT_NUMBER);
     size_t iBufLens(H_INIT_NUMBER);
     size_t iHeadLens(H_INIT_NUMBER);
-    luabridge::H_LBinary stBinary;
-
-    //*pTable = luabridge::newTable(pTable->state());
-
-    while (true)
+    if (!readHead(pAllBuf, iLens, iBufLens, iHeadLens))
     {
-        if (iParsed >= iLens)
-        {
-            break;
-        }
-
-        if (!readHead(pAllBuf + iParsed, iLens - iParsed, iBufLens, iHeadLens))
-        {
-            break;
-        }
-
-        if (H_INIT_NUMBER == iBufLens)
-        {
-            iParsed += iHeadLens;
-            continue;
-        }
-
-        if (iBufLens > (iLens - iParsed - iHeadLens))
-        {
-            break;
-        }
-
-        stBinary.pBufer = pAllBuf + iParsed + iHeadLens;
-        stBinary.iLens = iBufLens;
-        iParsed += (iBufLens + iHeadLens);
-        (*pTable)[1] = stBinary;
+        return H_INIT_NUMBER;
+    }
+    if (H_INIT_NUMBER == iBufLens)
+    {
+        pBinary->setReadBuffer(NULL, iBufLens);
+        return iHeadLens;
+    }
+    if (iBufLens > (iLens - iHeadLens))
+    {
+        return H_INIT_NUMBER;
     }
 
-    return iParsed;
+    pBinary->setReadBuffer(pAllBuf + iHeadLens, iBufLens);
+
+    return iBufLens + iHeadLens;
 }
 
-void CTcp1::creatHead(std::string *pOutBuf, const size_t &iLens)
+H_INLINE void CTcp1::creatHead(std::string *pOutBuf, const size_t &iLens)
 {
     char acHead[TCP_HRAD_MAXLENS];
     size_t iHeadLens = H_INIT_NUMBER;
@@ -130,7 +112,7 @@ void CTcp1::creatHead(std::string *pOutBuf, const size_t &iLens)
     pOutBuf->append(acHead, iHeadLens);
 }
 
-void CTcp1::creatPack(std::string *pOutBuf, const char *pszMsg, const size_t &iLens)
+H_INLINE void CTcp1::creatPack(std::string *pOutBuf, const char *pszMsg, const size_t &iLens)
 {
     creatHead(pOutBuf, iLens);
     pOutBuf->append(pszMsg, iLens);

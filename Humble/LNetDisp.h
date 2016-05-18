@@ -18,8 +18,6 @@ public:
     void onTcpClose(struct H_Session *pSession);
     void onTcpRead(struct H_Session *pSession);
 
-    void initCurSock(struct H_Session *pSession);
-
 private:
     H_DISALLOWCOPY(CLNetDisp);
     enum
@@ -34,16 +32,12 @@ private:
     };
 
 private:
-    size_t m_iBufLens;
-    size_t m_iParsed;
-    char *m_pBuf;
     struct lua_State *m_pLState;
     luabridge::LuaRef **m_pLFunc;
-    luabridge::LuaRef *m_pTable;
-    luabridge::LuaRef *m_pSockTable;
-    CParser *m_pParser;
     CEvBuffer m_objEvBuffer;
+    CBinary m_objBinary;
 
+    double m_dTime;
     CClock m_objClock;
 };
 

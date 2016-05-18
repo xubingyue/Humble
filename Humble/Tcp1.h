@@ -12,7 +12,7 @@ public:
     CTcp1(void);
     ~CTcp1(void);
 
-    size_t parsePack(struct H_Session *, char *pAllBuf, const size_t &iLens, luabridge::LuaRef *pTable);
+    size_t parsePack(struct H_Session *, char *pAllBuf, const size_t &iLens, class CBinary *pBinary);
     void creatPack(std::string *pOutBuf, const char *pszMsg, const size_t &iLens);
 
 private:

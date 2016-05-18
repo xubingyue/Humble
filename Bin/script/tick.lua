@@ -24,11 +24,11 @@ function onStop()
 end
 
 --pTick ”––ß{tick, count}
-function onTimer()
-    tChan.timer:Send(utile.Pack(pTick))
+function onTimer(uiTick, uiCount)
+    --tChan.timer:Send(utile.Pack({uiTick, uiCount}))
     
     --1√Î
-    if 0 == ((pTick[1] * pTick[2]) % 1000) then 
+    if 0 == ((uiTick * uiCount) % 1000) then 
         --print("1 sec")
         --print(string.format("cur load %d.", humble.getCurLoad()))
     end

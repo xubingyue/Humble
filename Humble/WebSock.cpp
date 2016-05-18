@@ -15,7 +15,7 @@ CWebSock::~CWebSock(void)
 {
 }
 
-size_t CWebSock::parsePack(struct H_Session *pSession, char *pAllBuf, const size_t &iLens, luabridge::LuaRef *pTable)
+size_t CWebSock::parsePack(struct H_Session *pSession, char *pAllBuf, const size_t &iLens, class CBinary *pBinary)
 {
     return 0;
 }

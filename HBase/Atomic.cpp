@@ -16,9 +16,7 @@ CAtomic::~CAtomic(void)
 void CAtomic::Lock(void)
 {
     while(Locked == H_AtomicSet(&m_lLock, Locked))
-    {
-        H_Sleep(0);
-    }
+    { }
 }
 
 bool CAtomic::tryLock(void)

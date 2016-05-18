@@ -3,7 +3,7 @@
 
 H_BNAMSP
 
-CLTick::CLTick(void)
+CLTick::CLTick(void) : m_pLState(NULL), m_pLFunc(NULL)
 {
     m_pLFunc = new(std::nothrow) luabridge::LuaRef *[LCount];
     H_ASSERT(NULL != m_pLFunc, "malloc memory error.");
@@ -20,14 +20,9 @@ CLTick::CLTick(void)
         m_pLFunc[i] = pRef;
     }
 
-    m_pTable = new(std::nothrow) luabridge::LuaRef(m_pLState);
-    H_ASSERT(NULL != m_pTable, "malloc memory error.");
-    *m_pTable = luabridge::newTable(m_pLState);
-
     try
     {
         H_RegAll(m_pLState);
-        luabridge::setGlobal(m_pLState, *m_pTable, "g_pTick");
     }
     catch (luabridge::LuaException &e)
     {
@@ -58,8 +53,6 @@ CLTick::~CLTick(void)
         }
         H_SafeDelArray(m_pLFunc);
     }
-
-    H_SafeDelete(m_pTable);
 
     if (NULL != m_pLState)
     {
@@ -96,9 +89,7 @@ H_INLINE void CLTick::onTime(const unsigned int &uiTick, const unsigned int &uiC
 {
     try
     {
-        (*m_pTable)[1] = uiTick;
-        (*m_pTable)[2] = uiCount;
-        (*(m_pLFunc[LOnTime]))();
+        (*(m_pLFunc[LOnTime]))(uiTick, uiCount);
     }
     catch (luabridge::LuaException &e)
     {

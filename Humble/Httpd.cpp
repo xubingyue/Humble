@@ -15,7 +15,7 @@ CHttp::~CHttp(void)
 {
 }
 
-size_t CHttp::parsePack(struct H_Session *, char *pAllBuf, const size_t &iLens, luabridge::LuaRef *pTable)
+size_t CHttp::parsePack(struct H_Session *, char *pAllBuf, const size_t &iLens, class CBinary *pBinary)
 {
     return 0;
 }
