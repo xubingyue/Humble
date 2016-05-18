@@ -85,6 +85,9 @@
     <Filter Include="3rd\lua\luasocket">
       <UniqueIdentifier>{f8ca32d4-7c37-4cec-a099-2a6db1444273}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Service\Parser">
+      <UniqueIdentifier>{30dea6f7-72f1-4903-9f3a-8ae9699a7e65}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Config.h">
@@ -667,6 +670,18 @@
     <ClInclude Include="CirQueue.h">
       <Filter>Common</Filter>
     </ClInclude>
+    <ClInclude Include="Httpd.h">
+      <Filter>Service\Parser</Filter>
+    </ClInclude>
+    <ClInclude Include="Tcp1.h">
+      <Filter>Service\Parser</Filter>
+    </ClInclude>
+    <ClInclude Include="Tcp2.h">
+      <Filter>Service\Parser</Filter>
+    </ClInclude>
+    <ClInclude Include="WebSock.h">
+      <Filter>Service\Parser</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="jwsmtp\compat.cpp">
@@ -1221,6 +1236,18 @@
     </ClCompile>
     <ClCompile Include="Chan.cpp">
       <Filter>Service</Filter>
+    </ClCompile>
+    <ClCompile Include="Httpd.cpp">
+      <Filter>Service\Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="Tcp1.cpp">
+      <Filter>Service\Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="Tcp2.cpp">
+      <Filter>Service\Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="WebSock.cpp">
+      <Filter>Service\Parser</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

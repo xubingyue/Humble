@@ -35,11 +35,12 @@ struct H_Session
     bool bLinker;
     unsigned short usSockType;
     unsigned int uiSession;
+    unsigned int uiStatus;
     struct bufferevent *pBev;
     class CNetBase *pNetBase;
     H_SOCK sock;
     H_Session(void) : bLinker(false), usSockType(H_INIT_NUMBER), uiSession(H_INIT_NUMBER),
-        pBev(NULL), pNetBase(NULL), sock(H_INVALID_SOCK)
+        uiStatus(H_INIT_NUMBER), pBev(NULL), pNetBase(NULL), sock(H_INVALID_SOCK)
     { };
 };
 

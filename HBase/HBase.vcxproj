@@ -34,6 +34,7 @@
     <ClInclude Include="Funcs.h" />
     <ClInclude Include="HBase.h" />
     <ClInclude Include="HRSA.h" />
+    <ClInclude Include="Httpd.h" />
     <ClInclude Include="Include.h" />
     <ClInclude Include="Ini.h" />
     <ClInclude Include="jsoncpp\json\assertions.h" />
@@ -171,6 +172,8 @@
     <ClInclude Include="SVIntf.h" />
     <ClInclude Include="TableFile.h" />
     <ClInclude Include="Task.h" />
+    <ClInclude Include="Tcp1.h" />
+    <ClInclude Include="Tcp2.h" />
     <ClInclude Include="Thread.h" />
     <ClInclude Include="Tick.h" />
     <ClInclude Include="uchardet\CharDistribution.h" />
@@ -197,6 +200,7 @@
     <ClInclude Include="uchardet\uchardet.h" />
     <ClInclude Include="UEncrypt.h" />
     <ClInclude Include="UUID.h" />
+    <ClInclude Include="WebSock.h" />
     <ClInclude Include="Worker.h" />
     <ClInclude Include="WorkerDisp.h" />
     <ClInclude Include="ZEncrypt.h" />
@@ -228,6 +232,7 @@
     <ClCompile Include="Funcs.cpp" />
     <ClCompile Include="HBase.cpp" />
     <ClCompile Include="HRSA.cpp" />
+    <ClCompile Include="Httpd.cpp" />
     <ClCompile Include="Ini.cpp" />
     <ClCompile Include="jsoncpp\json_reader.cpp" />
     <ClCompile Include="jsoncpp\json_value.cpp" />
@@ -344,6 +349,8 @@
     <ClCompile Include="sproto\lsproto.cpp" />
     <ClCompile Include="sproto\sproto.cpp" />
     <ClCompile Include="TableFile.cpp" />
+    <ClCompile Include="Tcp1.cpp" />
+    <ClCompile Include="Tcp2.cpp" />
     <ClCompile Include="Thread.cpp" />
     <ClCompile Include="Tick.cpp" />
     <ClCompile Include="uchardet\CharDistribution.cpp" />
@@ -382,6 +389,7 @@
     <ClCompile Include="uchardet\uchardet.cpp" />
     <ClCompile Include="UEncrypt.cpp" />
     <ClCompile Include="UUID.cpp" />
+    <ClCompile Include="WebSock.cpp" />
     <ClCompile Include="Worker.cpp" />
     <ClCompile Include="WorkerDisp.cpp" />
     <ClCompile Include="ZEncrypt.cpp" />

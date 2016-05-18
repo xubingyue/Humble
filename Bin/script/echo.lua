@@ -4,7 +4,6 @@ package.path = string.format("%s;%s?.lua", package.path, strpubdir)
 require("macros")
 local utile = require("utile")
 local humble = require("humble")
-local tcp = require("tcp")
 local httpd = require("httpd")
 local table = table
 local string = string
@@ -22,7 +21,12 @@ end
 function runTask()
     local varRecv = pChan:Recv()
     local sock, uiSession, strMsg = table.unpack(utile.unPack(varRecv))
-    humble.Send(sock, uiSession, strMsg)
+    
+    --table.print(strMsg)
+    local strRtn = httpd.Response(200, "hello word")
+    humble.Send(sock, uiSession, strRtn)
+    
+    --humble.Send(sock, uiSession, strMsg)
 end
 
 function destroyTask()

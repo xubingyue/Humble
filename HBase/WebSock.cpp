@@ -1,0 +1,444 @@
+
+#include "WebSock.h"
+#include "Funcs.h"
+#include "Binary.h"
+#include "Base64.h"
+#include "NetWorker.h"
+
+H_BNAMSP
+
+SINGLETON_INIT(CWebSock)
+CWebSock objWebSock;
+
+#define WebSock_ShakeHands_EndFlag "\r\n\r\n"
+#define ShakeHands_SplitFlag "\r\n"
+
+#define PAYLOADLENS_125 125
+#define PAYLOADLENS_126 126
+#define PAYLOADLENS_127 127
+
+#define FRAME_HEAD_BASE_LEN 6
+#define FRAME_HEAD_EXT16_LEN 8
+#define FRAME_HEAD_EXT64_LEN 14
+
+enum  WebSockOpCode
+{
+    WSOCK_CONTINUATION = 0x00,
+    WSOCK_TEXTFRAME = 0x01,
+    WSOCK_BINARYFRAME = 0x02,
+    WSOCK_CLOSE = 0x08,
+    WSOCK_PING = 0x09,
+    WSOCK_PONG = 0x0A
+};
+
+//websock 解析后的头
+struct WebSockFram
+{
+    char cFin;
+    char cRsv1;
+    char cRsv2;
+    char cRsv3;
+    WebSockOpCode emOpCode;
+    char cMask;
+    unsigned char ucPayloadLen;
+    size_t uiDataLens;
+    char acMaskKey[4];
+    WebSockFram(void) : cFin(H_INIT_NUMBER), cRsv1(H_INIT_NUMBER),
+        cRsv2(H_INIT_NUMBER), cRsv3(H_INIT_NUMBER), emOpCode(WSOCK_CONTINUATION),
+        cMask(H_INIT_NUMBER), ucPayloadLen(H_INIT_NUMBER), uiDataLens(H_INIT_NUMBER)
+    {
+        H_Zero(acMaskKey, sizeof(acMaskKey));
+    };
+};
+
+CWebSock::CWebSock(void)
+{
+    m_iEndFlagLens = strlen(WebSock_ShakeHands_EndFlag);
+    m_strVersion = H_FormatStr("%d-%d-%d", H_MAJOR, H_MINOR, H_RELEASE);
+    setName("websock");
+}
+
+CWebSock::~CWebSock(void)
+{
+}
+
+std::string CWebSock::parseKey(std::list<std::string> &lstShakeHands) const
+{
+    std::string strKey;
+    std::string strVal;
+    std::string strRtn;
+    std::list<std::string> lstTmp;
+    std::list<std::string>::iterator itTmp;
+    std::list<std::string>::iterator itShakeHands;
+    for (itShakeHands = lstShakeHands.begin(); lstShakeHands.end() != itShakeHands; ++itShakeHands)
+    {
+        if (itShakeHands->empty())
+        {
+            continue;
+        }
+
+        lstTmp.clear();
+        H_Split(*itShakeHands, ":", lstTmp);
+        if (2 != lstTmp.size())
+        {
+            continue;
+        }
+
+        itTmp = lstTmp.begin();
+        strKey = H_Trim(*itTmp);
+        itTmp++;
+        strVal = H_Trim(*itTmp);        
+        if (0 == H_Strcasecmp(strKey.c_str(), "Sec-WebSocket-Key"))
+        {
+            strRtn = strVal;
+        }
+    }
+    return strRtn;
+}
+
+std::string CWebSock::createKey(std::string &strKey)
+{    
+    unsigned char m_acShaKey[20] = { 0 };
+    strKey += "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+
+    m_objSha1.Update(strKey.c_str(), (unsigned int)strKey.size());
+    m_objSha1.Final();
+    if (!m_objSha1.GetHash(m_acShaKey))
+    {
+        return "";
+    }
+
+    return H_B64Encode(m_acShaKey, sizeof(m_acShaKey));
+}
+
+std::string CWebSock::createResponse(const std::string &strKey) const
+{
+    std::string strRtn =
+        "HTTP/1.1 101 Switching Protocols\r\n"
+        "Upgrade: websocket\r\n"
+        "Connection: Upgrade\r\n"
+        "Server: QServer version:" + m_strVersion + "\r\n"
+        "Sec-WebSocket-Accept: " + strKey + "\r\n"
+        "Sec-WebSocket-Origin: null\r\n"
+        "\r\n";
+
+    return strRtn;
+}
+
+size_t CWebSock::shakeHands(struct H_Session *pSession, char *pAllBuf, const size_t &iLens)
+{
+    char *pPos = strstr(pAllBuf, WebSock_ShakeHands_EndFlag);
+    if (NULL == pPos)
+    {
+        return H_INIT_NUMBER;
+    }
+
+    size_t iParsed(pPos - pAllBuf + m_iEndFlagLens);
+
+    std::list<std::string> lstTmp;
+    H_Split(std::string(pAllBuf, iParsed), ShakeHands_SplitFlag, lstTmp);
+    std::string strVal = parseKey(lstTmp);
+    if (strVal.empty())
+    {
+        CNetWorker::getSingletonPtr()->closeSock(pSession->sock, pSession->uiSession);
+        return H_RTN_FAILE;
+    }
+
+    //创建返回的key
+    strVal = createKey(strVal);
+    if (strVal.empty())
+    {
+        CNetWorker::getSingletonPtr()->closeSock(pSession->sock, pSession->uiSession);
+        return H_RTN_FAILE;
+    }
+
+    strVal = createResponse(strVal);
+    bufferevent_write(pSession->pBev, strVal.c_str(), strVal.size());
+    ++pSession->uiStatus;
+
+    return iParsed;
+}
+
+size_t CWebSock::parseHead(struct WebSockFram *pFram, const char *pBuffer, const size_t &iLens)
+{
+    size_t iHeadLens(H_INIT_NUMBER);
+
+    if (FRAME_HEAD_BASE_LEN > iLens)
+    {
+        return H_INIT_NUMBER;
+    }
+
+    pFram->cFin = (pBuffer[0] & 0x80) >> 7;
+    pFram->cRsv1 = (pBuffer[0] & 0x40) >> 6;
+    pFram->cRsv2 = (pBuffer[0] & 0x20) >> 5;
+    pFram->cRsv3 = (pBuffer[0] & 0x10) >> 4;
+    pFram->emOpCode = (WebSockOpCode)(pBuffer[0] & 0xF);
+    pFram->cMask = (pBuffer[1] & 0x80) >> 7;
+    pFram->ucPayloadLen = pBuffer[1] & 0x7F;
+    if ((1 != pFram->cMask)
+        || (0 != pFram->cRsv1)
+        || (0 != pFram->cRsv2)
+        || (0 != pFram->cRsv3))
+    {
+        return H_RTN_FAILE;
+    }
+
+    if (pFram->ucPayloadLen <= PAYLOADLENS_125)
+    {
+        iHeadLens = FRAME_HEAD_BASE_LEN;
+
+        pFram->acMaskKey[0] = pBuffer[2];
+        pFram->acMaskKey[1] = pBuffer[3];
+        pFram->acMaskKey[2] = pBuffer[4];
+        pFram->acMaskKey[3] = pBuffer[5];
+        pFram->uiDataLens = pFram->ucPayloadLen;
+    }
+    else if (PAYLOADLENS_126 == pFram->ucPayloadLen)
+    {
+        if (iLens < FRAME_HEAD_EXT16_LEN)
+        {
+            return H_INIT_NUMBER;
+        }
+
+        iHeadLens = FRAME_HEAD_EXT16_LEN;
+
+        pFram->acMaskKey[0] = pBuffer[4];
+        pFram->acMaskKey[1] = pBuffer[5];
+        pFram->acMaskKey[2] = pBuffer[6];
+        pFram->acMaskKey[3] = pBuffer[7];
+        pFram->uiDataLens = htons(*(u_short *)(pBuffer + 2));
+    }
+    else if (PAYLOADLENS_127 == pFram->ucPayloadLen)
+    {
+        if (iLens < FRAME_HEAD_EXT64_LEN)
+        {
+            return H_INIT_NUMBER;
+        }
+
+        iHeadLens = FRAME_HEAD_EXT64_LEN;
+
+        pFram->acMaskKey[0] = pBuffer[10];
+        pFram->acMaskKey[1] = pBuffer[11];
+        pFram->acMaskKey[2] = pBuffer[12];
+        pFram->acMaskKey[3] = pBuffer[13];
+        pFram->uiDataLens = (size_t)ntohl64(*(uint64_t *)(pBuffer + 2));
+    }
+    else
+    {        
+        H_Printf("%s", "invalid payload len.");
+        return H_RTN_FAILE;
+    }
+
+    return iHeadLens;
+}
+
+void CWebSock::parseData(struct WebSockFram *pFram, char *pBuffer, const size_t &iLens)
+{
+    for (size_t i = 0; i < iLens; ++i)
+    {
+        pBuffer[i] = pBuffer[i] ^ pFram->acMaskKey[i % 4];
+    }
+}
+
+void CWebSock::initMapFram(H_SOCK &sock, const char *pBuf, const size_t &iLens)
+{
+    frameit itFram = m_mapFrame.find(sock);
+    if (m_mapFrame.end() == itFram)
+    {
+        std::string strBuf;
+        if (H_INIT_NUMBER != iLens)
+        {
+            strBuf.append(pBuf, iLens);
+        }
+
+        m_mapFrame.insert(std::make_pair(sock, strBuf));
+
+        return;
+    }
+   
+    itFram->second.clear();
+    if (H_INIT_NUMBER != iLens)
+    {
+        itFram->second.append(pBuf, iLens);
+    }
+}
+
+bool CWebSock::handleFrame(struct H_Session *pSession, struct WebSockFram *pFram,
+    char *pBuffer, const size_t &iLens, class CBinary *pBinary)
+{
+    pBinary->setReadBuffer(NULL, H_INIT_NUMBER);
+
+    //控制帧
+    switch (pFram->emOpCode)
+    {
+        case WSOCK_CLOSE:
+        {
+            return true;
+        }
+        case WSOCK_PING:
+        {
+            std::string strBuf;
+            createHead(&strBuf, true, WSOCK_PONG, 0);
+            bufferevent_write(pSession->pBev, strBuf.c_str(), strBuf.size());            
+            return false;
+        }
+        default:
+            break;
+    }
+
+    //完整帧
+    if ((WSOCK_CONTINUATION != pFram->emOpCode)
+        && (1 == pFram->cFin))
+    {
+        if (H_INIT_NUMBER != iLens)
+        {
+            pBinary->setReadBuffer(pBuffer, iLens);
+        }
+        
+        return false;
+    }
+
+    /*一个分片的消息由起:
+    起始帧（FIN为0，opcode非0），
+    若干（0个或多个）帧（FIN为0，opcode为0），
+    结束帧（FIN为1，opcode为0）*/
+    
+    //起始帧
+    if ((0 == pFram->cFin)
+        && (WSOCK_CONTINUATION != pFram->emOpCode))
+    {
+        initMapFram(pSession->sock, pBuffer, iLens);
+        return false;
+    }
+    
+    frameit itFram = m_mapFrame.find(pSession->sock);
+    if (m_mapFrame.end() == itFram)
+    {
+        return true;
+    }
+
+    //中间帧
+    if ((0 == pFram->cFin)
+        && (WSOCK_CONTINUATION == pFram->emOpCode))
+    {
+        if (H_INIT_NUMBER != iLens)
+        {
+            itFram->second.append(pBuffer, iLens);
+        }
+
+        return false;
+    }
+
+    //是否为结束帧
+    if ((1 == pFram->cFin)
+        && (WSOCK_CONTINUATION == pFram->emOpCode))
+    {
+        if (H_INIT_NUMBER != iLens)
+        {
+            itFram->second.append(pBuffer, iLens);
+        }
+
+        pBinary->setReadBuffer(itFram->second.c_str(), itFram->second.size());
+
+        return false;
+    }
+
+    return false;
+}
+
+size_t CWebSock::parsePack(struct H_Session *pSession, char *pAllBuf, const size_t &iLens, class CBinary *pBinary)
+{
+    //握手
+    if (H_INIT_NUMBER == pSession->uiStatus)
+    {
+        return shakeHands(pSession, pAllBuf, iLens);
+    }
+
+    //正常数据处理
+    size_t iHeadLens(H_INIT_NUMBER);
+    size_t iParsed(H_INIT_NUMBER);
+    size_t iCurParsed(H_INIT_NUMBER);
+    WebSockFram stFram;
+
+    //解析头
+    iHeadLens = parseHead(&stFram, pAllBuf, iLens);
+    if (H_INIT_NUMBER == iHeadLens)
+    {
+        return H_INIT_NUMBER;
+    }
+    if (H_RTN_FAILE == iHeadLens)
+    {
+        CNetWorker::getSingletonPtr()->closeSock(pSession->sock, pSession->uiSession);
+        return H_RTN_FAILE;
+    }
+
+    iParsed = stFram.uiDataLens + iHeadLens;
+    if (iParsed > iLens)
+    {
+        return H_INIT_NUMBER;
+    }
+    if (H_INIT_NUMBER != stFram.uiDataLens)
+    {
+        parseData(&stFram, pAllBuf + iHeadLens, stFram.uiDataLens);
+    }
+
+    if (handleFrame(pSession, &stFram, pAllBuf + iHeadLens, stFram.uiDataLens, pBinary))
+    {
+        CNetWorker::getSingletonPtr()->closeSock(pSession->sock, pSession->uiSession);
+        return H_RTN_FAILE;
+    }
+    else
+    {
+        return iParsed;
+    }    
+}
+
+void CWebSock::createHead(std::string *pBuf, const bool &bFin, const unsigned int &uiCode,
+    const size_t &iDataLens)
+{
+    char acWebSockHead[FRAME_HEAD_EXT64_LEN] = { 0 };
+
+    acWebSockHead[0] = (char)(uiCode | 0x80);
+    if (!bFin)
+    {
+        acWebSockHead[0] = (acWebSockHead[0] & 0x7f);
+    }
+
+    if (iDataLens <= PAYLOADLENS_125)
+    {
+        acWebSockHead[1] = (char)iDataLens;
+        pBuf->append(acWebSockHead, FRAME_HEAD_BASE_LEN - 4);
+    }
+    else if ((iDataLens > PAYLOADLENS_125) && (iDataLens <= 0xFFFF))
+    {
+        acWebSockHead[1] = PAYLOADLENS_126;
+        uint16_t uiLen16 = htons((u_short)iDataLens);
+        memcpy(acWebSockHead + 2, &uiLen16, sizeof(uiLen16));
+
+        pBuf->append(acWebSockHead, FRAME_HEAD_EXT16_LEN - 4);
+    }
+    else
+    {
+        acWebSockHead[1] = PAYLOADLENS_127;
+        uint64_t uiLens64 = ntohl64((uint64_t)iDataLens);
+        memcpy(acWebSockHead + 2, &uiLens64, sizeof(uiLens64));
+        pBuf->append(acWebSockHead, FRAME_HEAD_EXT64_LEN - 4);
+    }
+}
+
+void CWebSock::creatPack(std::string *pOutBuf, const char *pszMsg, const size_t &iLens)
+{
+    createHead(pOutBuf, true, WSOCK_TEXTFRAME, iLens);
+    pOutBuf->append(pszMsg, iLens);
+}
+
+void CWebSock::onClose(struct H_Session *pSession)
+{
+    frameit itFram = m_mapFrame.find(pSession->sock);
+    if (m_mapFrame.end() != itFram)
+    {
+        m_mapFrame.erase(itFram);
+    }
+}
+
+H_ENAMSP

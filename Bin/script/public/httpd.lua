@@ -53,17 +53,10 @@ local http_status_msg = {
 	[505] = "HTTP Version not supported",
 }
 
-
-local Http_HeadFlag = "\r\n\r\n"
-local Http_ChunkFlag = "\r\n0\r\n\r\n"
 local ContentLength = "content-length"
 local TransferEncoding = "transfer-encoding"
 
-local function parseHead(pBinary)
-    if -1 == pBinary:Find(Http_HeadFlag) then
-        return nil
-    end
-    
+local function parseHead(pBinary)    
     local tHead = {}
     local strLine, strUrl, strMethod, strHttpver    
     local strName, strVal
@@ -87,12 +80,8 @@ local function parseHead(pBinary)
     return strMethod, strUrl, tHead
 end
 
-local function parseChunked(pBinary)
-    if -1 == pBinary:Find(Http_ChunkFlag) then
-        return nil
-    end
-    
-    local strChunked = ""
+local function parseChunked(pBinary)    
+    local tChunked = {}
     local strLine
     local iLens = 0
     while true do
@@ -100,64 +89,40 @@ local function parseChunked(pBinary)
         if 0 ~= string.len(strLine) then
             iLens = tonumber(strLine, 16)
             if 0 == iLens then
-                pBinary:readLine()                
                 break 
             end
             
-            strChunked = strChunked .. pBinary:getByte(iLens)
+            table.insert(tChunked, pBinary:getByte(iLens))
         end
     end
     
-    return strChunked
+    return table.concat(tChunked, "")
 end
 
-function httpd.parsePack(pRBinary, funcOnRead, ...)
-    local iParsed = 0
+function httpd.parsePack(pBinary)
     local tInfo = {}
-    local strMethod, strUrl, tHead
-    local pBinary = pRBinary
-    while true do
-        strMethod, strUrl, tHead = parseHead(pBinary)
-        if not strMethod then
-            break
-        end
-        
-        if tHead[ContentLength] then
-            local iLens = tonumber(tHead[ContentLength])
-            tHead[ContentLength] = iLens
-            if iLens > pBinary:getSurpLens() then
-                break
-            end
-            
-            tInfo.method = strMethod
-            tInfo.url = strUrl
-            tInfo.head = tHead
-            tInfo.info = pBinary:getByte(iLens)
-            funcOnRead(tInfo, table.unpack({...}))
-            iParsed = pBinary:getReadedLens()
-        elseif (tHead[TransferEncoding] and "chunked" == tHead[TransferEncoding]) then
-            local strChunked = parseChunked(pBinary)
-            if not strChunked then
-                break
-            end
-            
-            tInfo.method = strMethod
-            tInfo.url = strUrl
-            tInfo.head = tHead
-            tInfo.info = strChunked
-            funcOnRead(tInfo, table.unpack({...}))
-            iParsed = pBinary:getReadedLens()
-        else
-            tInfo.method = strMethod
-            tInfo.url = strUrl
-            tInfo.head = tHead 
-            tInfo.info = nil
-            funcOnRead(tInfo, table.unpack({...}))
-            iParsed = pBinary:getReadedLens()
-        end
+    local strMethod, strUrl, tHead = parseHead(pBinary)        
+    if tHead[ContentLength] then
+        local iLens = tonumber(tHead[ContentLength])
+        tHead[ContentLength] = iLens            
+        tInfo.method = strMethod
+        tInfo.url = strUrl
+        tInfo.head = tHead
+        tInfo.info = pBinary:getByte(iLens)            
+    elseif (tHead[TransferEncoding] and "chunked" == tHead[TransferEncoding]) then
+        local strChunked = parseChunked(pBinary)            
+        tInfo.method = strMethod
+        tInfo.url = strUrl
+        tInfo.head = tHead
+        tInfo.info = strChunked            
+    else
+        tInfo.method = strMethod
+        tInfo.url = strUrl
+        tInfo.head = tHead 
+        tInfo.info = nil            
     end
     
-    return iParsed 
+    return tInfo 
 end
 
 function httpd.Response(iCode, varBodyFunc, tHeader)

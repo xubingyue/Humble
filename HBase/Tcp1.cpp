@@ -1,5 +1,6 @@
 
 #include "Tcp1.h"
+#include "Binary.h"
 
 H_BNAMSP
 
@@ -21,7 +22,7 @@ CTcp1::~CTcp1(void)
 {
 }
 
-H_INLINE bool CTcp1::readHead(char *pBuffer, const size_t &iLens, size_t &iBufLens, size_t &iHeadLens)
+bool CTcp1::readHead(char *pBuffer, const size_t &iLens, size_t &iBufLens, size_t &iHeadLens)
 {
     char cFlag = pBuffer[0];
     if (cFlag <= TCPBUFLENS_125)
@@ -59,7 +60,7 @@ H_INLINE bool CTcp1::readHead(char *pBuffer, const size_t &iLens, size_t &iBufLe
     return true;
 }
 
-H_INLINE size_t CTcp1::parsePack(struct H_Session *, char *pAllBuf, const size_t &iLens, class CBinary *pBinary)
+size_t CTcp1::parsePack(struct H_Session *, char *pAllBuf, const size_t &iLens, class CBinary *pBinary)
 {
     size_t iBufLens(H_INIT_NUMBER);
     size_t iHeadLens(H_INIT_NUMBER);
@@ -82,7 +83,7 @@ H_INLINE size_t CTcp1::parsePack(struct H_Session *, char *pAllBuf, const size_t
     return iBufLens + iHeadLens;
 }
 
-H_INLINE void CTcp1::creatHead(std::string *pOutBuf, const size_t &iLens)
+void CTcp1::creatHead(std::string *pOutBuf, const size_t &iLens)
 {
     char acHead[TCP_HRAD_MAXLENS];
     size_t iHeadLens(H_INIT_NUMBER);
@@ -112,7 +113,7 @@ H_INLINE void CTcp1::creatHead(std::string *pOutBuf, const size_t &iLens)
     pOutBuf->append(acHead, iHeadLens);
 }
 
-H_INLINE void CTcp1::creatPack(std::string *pOutBuf, const char *pszMsg, const size_t &iLens)
+void CTcp1::creatPack(std::string *pOutBuf, const char *pszMsg, const size_t &iLens)
 {
     creatHead(pOutBuf, iLens);
     pOutBuf->append(pszMsg, iLens);

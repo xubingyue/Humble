@@ -2,7 +2,8 @@
 #ifndef H_TCP2_H_
 #define H_TCP2_H_
 
-#include "../HBase/HBase.h"
+#include "NetParser.h"
+#include "Singleton.h"
 
 H_BNAMSP
 

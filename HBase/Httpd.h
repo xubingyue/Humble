@@ -2,7 +2,8 @@
 #ifndef H_HTTPD_H_
 #define H_HTTPD_H_
 
-#include "../HBase/HBase.h"
+#include "NetParser.h"
+#include "Singleton.h"
 
 H_BNAMSP
 
@@ -17,7 +18,14 @@ public:
 
 private:
     H_DISALLOWCOPY(CHttp);
+    size_t getHeadLens(const char *pBuffer);
+    bool getChunkLens(const char *pBuffer, size_t &iChunkLens);
+    bool getContentLens(const char *pszHead, const size_t &iHeadLens, size_t &iContentLens);
+    bool checkChunk(const char *pszHead, const size_t &iHeadLens);
 
+private:
+    size_t m_iHeadEndFlagLens;
+    size_t m_iChunkEndFlagLens;
 };
 
 H_ENAMSP

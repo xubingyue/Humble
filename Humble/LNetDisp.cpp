@@ -42,6 +42,9 @@ CLNetDisp::CLNetDisp(void) : m_pLState(NULL), m_pLFunc(NULL)
     *(m_pLFunc[LOnTcpLinked]) = luabridge::getGlobal(m_pLState, "onTcpLinked");
     *(m_pLFunc[LOnTcpClose]) = luabridge::getGlobal(m_pLState, "onTcpClose");
     *(m_pLFunc[LOnTcpRead]) = luabridge::getGlobal(m_pLState, "onTcpRead");
+
+    m_dTime = 0.0;
+    m_uiCount = 0;
 }
 
 CLNetDisp::~CLNetDisp(void)
@@ -78,6 +81,8 @@ void CLNetDisp::onStart(void)
 
 void CLNetDisp::onStop(void)
 {
+    H_Printf("%f", m_dTime);
+    H_Printf("%d", m_uiCount);
     try
     {
         (*(m_pLFunc[LOnStop]))();
@@ -123,6 +128,8 @@ H_INLINE void CLNetDisp::onTcpClose(struct H_Session *pSession)
 
 H_INLINE void CLNetDisp::onTcpRead(struct H_Session *pSession)
 {
+    m_objClk.reStart();
+
     CParser *pParser = CNetParser::getSingletonPtr()->getParser(pSession->usSockType);
     if (NULL == pParser)
     {
@@ -154,8 +161,17 @@ H_INLINE void CLNetDisp::onTcpRead(struct H_Session *pSession)
         {
             break;
         }
+        if (H_RTN_FAILE == iCurParsed)
+        {
+            return;
+        }
 
         iParsed += iCurParsed;
+
+        if (H_INIT_NUMBER == m_objBinary.getRBufLens())
+        {
+            continue;
+        }
 
         try
         {
@@ -168,6 +184,9 @@ H_INLINE void CLNetDisp::onTcpRead(struct H_Session *pSession)
     }
 
     m_objEvBuffer.delBuffer(iParsed);
+
+    m_dTime += m_objClk.Elapsed();
+    ++m_uiCount;
 }
 
 H_ENAMSP

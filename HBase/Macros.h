@@ -26,8 +26,6 @@
 #define H_MINOR                      0
 #define H_RELEASE                    0
 
-#define H_HttpLimit                  8192
-
 #define H_INLINE   inline
 #define H_BNAMSP   namespace Humble {
 #define H_ENAMSP   }

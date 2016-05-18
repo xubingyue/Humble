@@ -38,6 +38,10 @@
 #include "Linker.h"
 #include "WorkerDisp.h"
 #include "Tick.h"
+#include "Tcp1.h"
+#include "Tcp2.h"
+#include "Httpd.h"
+#include "WebSock.h"
 #include "NetParser.h"
 
 #include "jwsmtp/mailer.h"
