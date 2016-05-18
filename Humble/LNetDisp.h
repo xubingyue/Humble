@@ -36,9 +36,6 @@ private:
     luabridge::LuaRef **m_pLFunc;
     CEvBuffer m_objEvBuffer;
     CBinary m_objBinary;
-
-    double m_dTime;
-    CClock m_objClock;
 };
 
 H_ENAMSP

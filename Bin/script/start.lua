@@ -39,16 +39,10 @@ function onStart()
     tChan.echo = humble.getChan("echo")
 end
 
-local iTime = 0
-local iCount = 0
-
 --退出，主要清理掉连接
 function onStop()
     humble.closeByType(1)
     humble.delListener(tListener.test)
-    
-    print("lua"..iTime)
-    print("lua"..iCount)
 end
 
 function onTcpLinked(sock, uiSession, usSockType)
@@ -59,14 +53,8 @@ function onTcpClose(sock, uiSession, usSockType)
     
 end
 
-function onTcpRead(sock, uiSession, usSockType)
-    local a = os.clock()
-    local strBuf = pBuffer:getByte(pBuffer:getSurpLens())
-    
-    local strVal = utile.Pack({sock, uiSession, strBuf})
-    local b = os.clock()
-    tChan.echo:Send(strVal)    
-    
-    iTime = iTime + b - a
-    iCount = iCount + 1
+function onTcpRead(sock, uiSession, usSockType)    
+    local strBuf = pBuffer:getByte(pBuffer:getSurpLens())    
+    local strVal = utile.Pack({sock, uiSession, strBuf})    
+    tChan.echo:Send(strVal)
 end

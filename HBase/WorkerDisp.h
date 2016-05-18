@@ -32,11 +32,9 @@ public:
 
     H_INLINE void Notify(std::string *pstrName)
     {
-        m_objClock.reStart();
         m_taskLck.Lock();
         m_quTask.push(pstrName);
         m_taskLck.unLock();
-        m_dTime += m_objClock.Elapsed();
     };
 
 private:
@@ -69,9 +67,6 @@ private:
     task_map m_mapTask;
     CAtomic m_taskLck;
     std::queue<std::string *> m_quTask;
-
-    double m_dTime;
-    CClock m_objClock;
 };
 
 H_ENAMSP

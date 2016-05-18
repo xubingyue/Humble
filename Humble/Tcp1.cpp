@@ -85,7 +85,7 @@ H_INLINE size_t CTcp1::parsePack(struct H_Session *, char *pAllBuf, const size_t
 H_INLINE void CTcp1::creatHead(std::string *pOutBuf, const size_t &iLens)
 {
     char acHead[TCP_HRAD_MAXLENS];
-    size_t iHeadLens = H_INIT_NUMBER;
+    size_t iHeadLens(H_INIT_NUMBER);
 
     if (iLens <= TCPBUFLENS_125)
     {

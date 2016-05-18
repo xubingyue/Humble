@@ -42,8 +42,6 @@ CLNetDisp::CLNetDisp(void) : m_pLState(NULL), m_pLFunc(NULL)
     *(m_pLFunc[LOnTcpLinked]) = luabridge::getGlobal(m_pLState, "onTcpLinked");
     *(m_pLFunc[LOnTcpClose]) = luabridge::getGlobal(m_pLState, "onTcpClose");
     *(m_pLFunc[LOnTcpRead]) = luabridge::getGlobal(m_pLState, "onTcpRead");
-
-    m_dTime = 0.0;
 }
 
 CLNetDisp::~CLNetDisp(void)
@@ -80,7 +78,6 @@ void CLNetDisp::onStart(void)
 
 void CLNetDisp::onStop(void)
 {
-    H_Printf("CLNetDisp %f", m_dTime);
     try
     {
         (*(m_pLFunc[LOnStop]))();
@@ -126,8 +123,6 @@ H_INLINE void CLNetDisp::onTcpClose(struct H_Session *pSession)
 
 H_INLINE void CLNetDisp::onTcpRead(struct H_Session *pSession)
 {
-    m_objClock.reStart();
-
     CParser *pParser = CNetParser::getSingletonPtr()->getParser(pSession->usSockType);
     if (NULL == pParser)
     {
@@ -173,8 +168,6 @@ H_INLINE void CLNetDisp::onTcpRead(struct H_Session *pSession)
     }
 
     m_objEvBuffer.delBuffer(iParsed);
-
-    m_dTime += m_objClock.Elapsed();
 }
 
 H_ENAMSP

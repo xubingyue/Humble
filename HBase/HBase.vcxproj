@@ -25,6 +25,7 @@
     <ClInclude Include="Binary.h" />
     <ClInclude Include="Chan.h" />
     <ClInclude Include="Charset.h" />
+    <ClInclude Include="CirQueue.h" />
     <ClInclude Include="Clock.h" />
     <ClInclude Include="Config.h" />
     <ClInclude Include="CoreDump.h" />

@@ -664,6 +664,9 @@
     <ClInclude Include="NetParser.h">
       <Filter>Service</Filter>
     </ClInclude>
+    <ClInclude Include="CirQueue.h">
+      <Filter>Common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="jwsmtp\compat.cpp">
@@ -1164,9 +1167,6 @@
     <ClCompile Include="SHA1.cpp">
       <Filter>Encrypt</Filter>
     </ClCompile>
-    <ClCompile Include="Chan.cpp">
-      <Filter>Service</Filter>
-    </ClCompile>
     <ClCompile Include="HBase.cpp" />
     <ClCompile Include="luasocket\auxiliar.c">
       <Filter>3rd\lua\luasocket</Filter>
@@ -1217,6 +1217,9 @@
       <Filter>3rd\lua\luasocket</Filter>
     </ClCompile>
     <ClCompile Include="NetParser.cpp">
+      <Filter>Service</Filter>
+    </ClCompile>
+    <ClCompile Include="Chan.cpp">
       <Filter>Service</Filter>
     </ClCompile>
   </ItemGroup>

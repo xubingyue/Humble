@@ -13,12 +13,11 @@ CWorkerDisp objWorker;
 CWorkerDisp::CWorkerDisp(void) : m_usThreadNum(H_INIT_NUMBER),
     m_lExit(RS_RUN), m_lCount(H_INIT_NUMBER), m_pWorker(NULL)
 {
-    m_dTime = 0;
+
 }
 
 CWorkerDisp::~CWorkerDisp(void)
 {
-    H_Printf("CWorkerDisp %f", m_dTime);
     for (taskit itTask = m_mapTask.begin(); m_mapTask.end() != itTask; ++itTask)
     {
         H_SafeDelete(itTask->second);
@@ -115,7 +114,7 @@ void CWorkerDisp::stopWorker(void)
 void CWorkerDisp::runSurpTask(void)
 {
     CWorkerTask *pWorkerTask = NULL;
-    std::string *pTaskNam; 
+    std::string *pTaskNam;
 
     for (taskit itTask = m_mapTask.begin(); m_mapTask.end() != itTask; ++itTask)
     {
@@ -126,11 +125,11 @@ void CWorkerDisp::runSurpTask(void)
             m_taskLck.unLock();
         }
     }
-   
+
     while (true)
     {
         pTaskNam = NULL;
-        
+
         m_taskLck.Lock();
         if (!m_quTask.empty())
         {
