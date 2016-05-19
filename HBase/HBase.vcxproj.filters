@@ -1246,7 +1246,7 @@
     <ClCompile Include="WebSock.cpp">
       <Filter>Service\Parser</Filter>
     </ClCompile>
-    <ClCompile Include="mongo\bson.cpp">
+    <ClCompile Include="lmongo\bson.cpp">
       <Filter>3rd\lua\mongo</Filter>
     </ClCompile>
   </ItemGroup>
