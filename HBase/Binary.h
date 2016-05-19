@@ -3,8 +3,6 @@
 #define H_LUABINARY_H_
 
 #include "Macros.h"
-#include "lua5.3/lua.hpp"
-#include "luabridge/LuaBridge.h"
 
 H_BNAMSP
 
@@ -28,7 +26,6 @@ public:
 
     //重置写
     void reSetWrite(void);
-
     //读  跳过指定字节
     void skipRead(const unsigned int iLens);
     //写  跳过指定字节跳过字节以0填充

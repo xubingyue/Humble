@@ -18,6 +18,8 @@ public:
     virtual void onTcpClose(struct H_Session *pSession) {};
     virtual void onTcpRead(struct H_Session *pSession) {};
     virtual void onTime(const unsigned int &uiTick, const unsigned int &uiCount) {};
+    virtual void onUdpRead(H_SOCK &sock, const char *pHost, unsigned short usPort,
+        const char *pBuf, const int &iLens) {};
 };
 
 H_ENAMSP

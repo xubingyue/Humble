@@ -1,5 +1,6 @@
 
 #include "NetWorker.h"
+#include "Funcs.h"
 #include "Sender.h"
 #include "NETAddr.h"
 #include "Linker.h"
@@ -29,7 +30,9 @@ struct H_Listener
 CNetWorker::CNetWorker(void) : m_uiID(H_INIT_NUMBER), m_uiMaxLoad(H_INIT_NUMBER), 
     m_uiCurLoad(H_INIT_NUMBER), m_pIntf(NULL)
 {
-
+    m_stBinary.iLens = 4 * H_ONEK;
+    m_stBinary.pBufer = (char*)malloc(m_stBinary.iLens);
+    H_ASSERT(NULL != m_stBinary.pBufer, "malloc memory error.");
 }
 
 CNetWorker::~CNetWorker(void)
@@ -47,6 +50,15 @@ CNetWorker::~CNetWorker(void)
         H_SafeDelete(itTcpLink->second);
     }
     m_mapTcpLink.clear();
+
+    for (udpit itUdp = m_mapUdp.begin(); m_mapUdp.end() != itUdp; ++itUdp)
+    {
+        event_free(itUdp->second);
+        evutil_closesocket(itUdp->first);
+    }
+    m_mapUdp.clear();
+
+    H_SafeFree(m_stBinary.pBufer);
 }
 
 void CNetWorker::setIntf(CSVIntf *pIntf)
@@ -114,6 +126,44 @@ void CNetWorker::acceptCB(struct evconnlistener *, H_SOCK sock, struct sockaddr 
     {
         pListener->pNetWorker->addCurLoad();
     }    
+}
+
+void CNetWorker::udpCB(H_SOCK sock, short sEv, void *arg)
+{    
+    int iLens = H_GetSockDataLens(sock);
+    if (H_INIT_NUMBER >= iLens)
+    {
+        return;
+    }
+
+    CNetWorker *pWorker = (CNetWorker *)arg;
+    luabridge::H_LBinary *pLBinary = pWorker->getLBinary();
+    if (iLens > (int)pLBinary->iLens)
+    {
+        char *pTmp = (char*)malloc(iLens);
+        if (NULL == pTmp)
+        {
+            H_Printf("%s", "malloc memory error.");
+            return;
+        }
+
+        H_SafeFree(pLBinary->pBufer);
+        pLBinary->pBufer = pTmp;
+        pLBinary->iLens = iLens;
+    }
+
+    sockaddr stAddr;
+    socklen_t iAddrLens = sizeof(stAddr);
+    int iRecvLens = recvfrom(sock, pLBinary->pBufer, pLBinary->iLens, 0, &stAddr, &iAddrLens);
+    if (iRecvLens <= 0)
+    {
+        return;
+    }
+
+    CNETAddr objAddr;
+    objAddr.setAddr(&stAddr);
+    pWorker->getIntf()->onUdpRead(sock, objAddr.getIp().c_str(), objAddr.getPort(), 
+        pLBinary->pBufer, iRecvLens);
 }
 
 void CNetWorker::onOrder(H_Order *pOrder)
@@ -202,6 +252,33 @@ void CNetWorker::onOrder(H_Order *pOrder)
                 H_SafeDelete(itTcpLink->second);
 
                 m_mapTcpLink.erase(itTcpLink);
+            }
+        }
+        break;
+
+        case ORDER_ADDUDP:
+        {
+            struct event *pBev = event_new(getBase(),
+                pOrder->sock, EV_READ | EV_PERSIST, udpCB, this);
+            if (NULL == pBev)
+            {
+                H_Printf("add udp %d to loop error.", pOrder->sock);
+                break;
+            }
+
+            (void)event_add(pBev, NULL);
+            m_mapUdp[pOrder->sock] = pBev;
+        }
+        break;
+
+        case ORDER_DELUDP:
+        {
+            udpit itUdp = m_mapUdp.find(pOrder->sock);
+            if (m_mapUdp.end() != itUdp)
+            {
+                event_free(itUdp->second);
+                evutil_closesocket(itUdp->first);
+                m_mapUdp.erase(itUdp);
             }
         }
         break;
@@ -324,6 +401,47 @@ void CNetWorker::delTcpLink(const unsigned int uiID)
     H_Order stOrder;
     stOrder.usCmd = ORDER_DELLINK;
     stOrder.uiSession = uiID;
+
+    sendOrder(&stOrder, sizeof(stOrder));
+}
+
+H_SOCK  CNetWorker::addUdp(const char *pszHost, const unsigned short usPort)
+{
+    CNETAddr objAddr;
+    if (H_RTN_OK != objAddr.setAddr(pszHost, usPort))
+    {
+        return H_INVALID_SOCK;
+    }
+
+    H_SOCK sock = socket(AF_INET, SOCK_DGRAM, 0);
+    if (H_INVALID_SOCK == sock)
+    {
+        return H_INVALID_SOCK;
+    }
+
+    int iOpt = 1;
+    (void)setsockopt(sock, SOL_SOCKET, SO_BROADCAST, (char *)&iOpt, sizeof(iOpt));
+    (void)evutil_make_socket_nonblocking(sock);
+    if (-1 == bind(sock, objAddr.getAddr(), objAddr.getAddrSize()))
+    {
+        evutil_closesocket(sock);
+        return H_INVALID_SOCK;
+    }
+
+    H_Order stOrder;
+    stOrder.usCmd = ORDER_ADDUDP;
+    stOrder.sock = sock;
+
+    sendOrder(&stOrder, sizeof(stOrder));
+
+    return sock;
+}
+
+void CNetWorker::delUdp(H_SOCK sock)
+{
+    H_Order stOrder;
+    stOrder.usCmd = ORDER_DELUDP;
+    stOrder.sock = sock;
 
     sendOrder(&stOrder, sizeof(stOrder));
 }

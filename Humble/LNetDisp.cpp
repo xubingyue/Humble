@@ -42,6 +42,7 @@ CLNetDisp::CLNetDisp(void) : m_pLState(NULL), m_pLFunc(NULL)
     *(m_pLFunc[LOnTcpLinked]) = luabridge::getGlobal(m_pLState, "onTcpLinked");
     *(m_pLFunc[LOnTcpClose]) = luabridge::getGlobal(m_pLState, "onTcpClose");
     *(m_pLFunc[LOnTcpRead]) = luabridge::getGlobal(m_pLState, "onTcpRead");
+    *(m_pLFunc[LOnUdpRead]) = luabridge::getGlobal(m_pLState, "onUdpRead");
 
     m_dTime = 0.0;
     m_uiCount = 0;
@@ -114,8 +115,6 @@ H_INLINE void CLNetDisp::onTcpClose(struct H_Session *pSession)
         return;
     }
 
-    pParser->onClose(pSession);
-
     try
     {
         (*(m_pLFunc[LOnTcpClose]))(pSession->sock, pSession->uiSession, pSession->usSockType);
@@ -147,7 +146,7 @@ H_INLINE void CLNetDisp::onTcpRead(struct H_Session *pSession)
     }
     
     size_t iParsed(H_INIT_NUMBER);
-    size_t iCurParsed(H_INIT_NUMBER);
+    int iCurParsed(H_INIT_NUMBER);
 
     while (true)
     {
@@ -187,6 +186,21 @@ H_INLINE void CLNetDisp::onTcpRead(struct H_Session *pSession)
 
     m_dTime += m_objClk.Elapsed();
     ++m_uiCount;
+}
+
+H_INLINE void CLNetDisp::onUdpRead(H_SOCK &sock, const char *pHost, unsigned short usPort,
+    const char *pBuf, const int &iLens)
+{
+    m_objBinary.setReadBuffer(pBuf, iLens);
+
+    try
+    {
+        (*(m_pLFunc[LOnUdpRead]))(sock, pHost, usPort);
+    }
+    catch (luabridge::LuaException &e)
+    {
+        H_LOG(LOGLV_ERROR, "%s", e.what());
+    }
 }
 
 H_ENAMSP

@@ -17,6 +17,8 @@ public:
     void onTcpLinked(struct H_Session *pSession);
     void onTcpClose(struct H_Session *pSession);
     void onTcpRead(struct H_Session *pSession);
+    void onUdpRead(H_SOCK &sock, const char *pHost, unsigned short usPort,
+        const char *pBuf, const int &iLens);
 
 private:
     H_DISALLOWCOPY(CLNetDisp);
@@ -27,6 +29,7 @@ private:
         LOnTcpLinked,
         LOnTcpClose,
         LOnTcpRead,
+        LOnUdpRead,
 
         LCount,
     };

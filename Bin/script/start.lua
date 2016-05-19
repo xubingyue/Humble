@@ -33,6 +33,7 @@ function onStart()
     tListener.test = humble.addListener(1, "0.0.0.0", 15000)
     --tLinker.test = humble.addTcpLink(1, "127.0.0.1", 15000)  
     humble.setParser(1, "websock")
+    tListener.udp = humble.addUdp("0.0.0.0", 15001)
     
     humble.regTask("echo")
     humble.regTask("test")      
@@ -47,6 +48,7 @@ local iCount = 0
 function onStop()
     humble.closeByType(1)
     humble.delListener(tListener.test)
+    humble.delUdp(tListener.udp)
     print(dTime)
     print(iCount)
 end
@@ -68,4 +70,10 @@ function onTcpRead(sock, uiSession, usSockType)
     iCount = iCount + 1 
     
     tChan.echo:Send(utile.Pack({sock, uiSession, strBuf}))
+end
+
+function onUdpRead(sock, pHost, usPort)
+    local strBuf = pBuffer:getByte(pBuffer:getSurpLens())
+    humble.sendU(sock, pHost, usPort, strBuf.."lua1")
+    humble.broadCastU(sock, usPort, strBuf.."lua2")
 end

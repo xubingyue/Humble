@@ -18,10 +18,9 @@ public:
         return m_strName.c_str();
     };
 
-    virtual size_t parsePack(struct H_Session *pSession, char *pAllBuf, const size_t &iLens, 
+    virtual int parsePack(struct H_Session *pSession, char *pAllBuf, const size_t &iLens, 
         class CBinary *pBinary) = 0;
     virtual void creatPack(std::string *pOutBuf, const char *pszMsg, const size_t &iLens) = 0;
-    virtual void onClose(struct H_Session *pSession) {};
 
 protected:
     void setName(const char *pszNam)

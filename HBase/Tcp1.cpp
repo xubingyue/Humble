@@ -60,7 +60,7 @@ bool CTcp1::readHead(char *pBuffer, const size_t &iLens, size_t &iBufLens, size_
     return true;
 }
 
-size_t CTcp1::parsePack(struct H_Session *, char *pAllBuf, const size_t &iLens, class CBinary *pBinary)
+int CTcp1::parsePack(struct H_Session *, char *pAllBuf, const size_t &iLens, class CBinary *pBinary)
 {
     size_t iBufLens(H_INIT_NUMBER);
     size_t iHeadLens(H_INIT_NUMBER);
@@ -80,7 +80,7 @@ size_t CTcp1::parsePack(struct H_Session *, char *pAllBuf, const size_t &iLens, 
 
     pBinary->setReadBuffer(pAllBuf + iHeadLens, iBufLens);
 
-    return iBufLens + iHeadLens;
+    return (int)(iBufLens + iHeadLens);
 }
 
 void CTcp1::creatHead(std::string *pOutBuf, const size_t &iLens)

@@ -28,6 +28,9 @@ enum
     ORDER_ADDLINK,
     ORDER_ADDLINKEV,
     ORDER_DELLINK,
+
+    ORDER_ADDUDP,
+    ORDER_DELUDP,
 };
 
 struct H_Session

@@ -6,6 +6,7 @@
 #include "Singleton.h"
 #include "Binary.h"
 #include "RWLock.h"
+#include "NETAddr.h"
 
 H_BNAMSP
 
@@ -43,6 +44,13 @@ public:
     //{{sock,session},...}
     void lbroadCast(luabridge::LuaRef lTable, const char *pBuf, const size_t iLens);
     void broadCastBinary(luabridge::LuaRef lTable, CBinary *pBinary);
+
+    //udp
+    void sendU(H_SOCK sock, const char *pstHost, unsigned short usPort, 
+        const char *pBuf, const size_t iLens);
+    void sendUBinary(H_SOCK sock, const char *pstHost, unsigned short usPort, CBinary *pBinary);
+    void broadCastU(H_SOCK sock, unsigned short usPort, const char *pBuf, const size_t iLens);
+    void broadCastUBinary(H_SOCK sock, unsigned short usPort, CBinary *pBinary);
 
     void addSock(H_SOCK &sock, const unsigned int &uiSession, unsigned short &usType);
     void delSock(H_SOCK &sock);
@@ -82,6 +90,7 @@ private:
     buffer_map m_mapBuffer;
     CRWLock m_objLck;
     CRWLock m_objBufferLck;
+    CNETAddr m_objAddr;
 };
 
 H_ENAMSP

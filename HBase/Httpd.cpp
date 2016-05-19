@@ -69,7 +69,7 @@ bool CHttp::getChunkLens(const char *pBuffer, size_t &iChunkLens)
     return true;
 }
 
-size_t CHttp::parsePack(struct H_Session *, char *pAllBuf, const size_t &iLens, class CBinary *pBinary)
+int CHttp::parsePack(struct H_Session *, char *pAllBuf, const size_t &iLens, class CBinary *pBinary)
 {
     size_t iHeadLens = getHeadLens(pAllBuf);
     if (H_INIT_NUMBER == iHeadLens)
@@ -104,7 +104,7 @@ size_t CHttp::parsePack(struct H_Session *, char *pAllBuf, const size_t &iLens, 
 
     pBinary->setReadBuffer(pAllBuf, iTotalLens);
 
-    return iTotalLens;
+    return (int)iTotalLens;
 }
 
 void CHttp::creatPack(std::string *pOutBuf, const char *pszMsg, const size_t &iLens)

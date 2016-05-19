@@ -62,6 +62,25 @@ function humble.broadCastB(tSock, pBinary)
     
     pSender:broadCast(tSock, pBinary)
 end
+--for udp
+function humble.addUdp(strHost, usPort)
+    return pNet:addUdp(strHost, usPort)
+end
+function humble.delUdp(sock)
+    pNet:delUdp(sock)
+end
+function humble.sendU(sock, strHost, usPort, strBuf)
+    pSender:sendU(sock, strHost, usPort, strBuf, string.len(strBuf))
+end
+function humble.sendUB(sock, strHost, usPort, pBinary)
+    pSender:sendUB(sock, strHost, usPort, pBinary)
+end
+function humble.broadCastU(sock, usPort, strBuf)
+    pSender:broadCastU(sock, usPort, strBuf, string.len(strBuf))
+end
+function humble.broadCastUB(sock, usPort, pBinary)
+    pSender:broadCastUB(sock, usPort, pBinary)
+end
 
 --ÓÊ¼þ
 function humble.sendMail(strMail)

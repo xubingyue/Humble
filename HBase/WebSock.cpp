@@ -62,38 +62,24 @@ CWebSock::~CWebSock(void)
 {
 }
 
-std::string CWebSock::parseKey(std::list<std::string> &lstShakeHands) const
+std::string CWebSock::parseKey(class CBinary *pBinary) const
 {
-    std::string strKey;
-    std::string strVal;
-    std::string strRtn;
-    std::list<std::string> lstTmp;
-    std::list<std::string>::iterator itTmp;
-    std::list<std::string>::iterator itShakeHands;
-    for (itShakeHands = lstShakeHands.begin(); lstShakeHands.end() != itShakeHands; ++itShakeHands)
+    int iLens = pBinary->Find("Sec-WebSocket-Key");
+    if (-1 == iLens)
     {
-        if (itShakeHands->empty())
-        {
-            continue;
-        }
-
-        lstTmp.clear();
-        H_Split(*itShakeHands, ":", lstTmp);
-        if (2 != lstTmp.size())
-        {
-            continue;
-        }
-
-        itTmp = lstTmp.begin();
-        strKey = H_Trim(*itTmp);
-        itTmp++;
-        strVal = H_Trim(*itTmp);        
-        if (0 == H_Strcasecmp(strKey.c_str(), "Sec-WebSocket-Key"))
-        {
-            strRtn = strVal;
-        }
+        return "";
     }
-    return strRtn;
+
+    pBinary->skipRead(iLens);
+    luabridge::H_LBinary stBin = pBinary->readLine();
+    
+    char *pPos = strstr(stBin.pBufer, ":");
+    if (NULL == pPos)
+    {
+        return "";
+    }
+
+    return H_Trim(std::string(pPos + 1, stBin.iLens - (pPos - stBin.pBufer + 1)));
 }
 
 std::string CWebSock::createKey(std::string &strKey)
@@ -125,7 +111,7 @@ std::string CWebSock::createResponse(const std::string &strKey) const
     return strRtn;
 }
 
-size_t CWebSock::shakeHands(struct H_Session *pSession, char *pAllBuf, const size_t &iLens)
+int CWebSock::shakeHands(struct H_Session *pSession, char *pAllBuf, const size_t &iLens)
 {
     char *pPos = strstr(pAllBuf, WebSock_ShakeHands_EndFlag);
     if (NULL == pPos)
@@ -135,9 +121,9 @@ size_t CWebSock::shakeHands(struct H_Session *pSession, char *pAllBuf, const siz
 
     size_t iParsed(pPos - pAllBuf + m_iEndFlagLens);
 
-    std::list<std::string> lstTmp;
-    H_Split(std::string(pAllBuf, iParsed), ShakeHands_SplitFlag, lstTmp);
-    std::string strVal = parseKey(lstTmp);
+    CBinary objTmp;
+    objTmp.setReadBuffer(pAllBuf, iParsed);
+    std::string strVal = parseKey(&objTmp);
     if (strVal.empty())
     {
         CNetWorker::getSingletonPtr()->closeSock(pSession->sock, pSession->uiSession);
@@ -156,12 +142,12 @@ size_t CWebSock::shakeHands(struct H_Session *pSession, char *pAllBuf, const siz
     bufferevent_write(pSession->pBev, strVal.c_str(), strVal.size());
     ++pSession->uiStatus;
 
-    return iParsed;
+    return (int)iParsed;
 }
 
-size_t CWebSock::parseHead(struct WebSockFram *pFram, const char *pBuffer, const size_t &iLens)
+int CWebSock::parseHead(struct WebSockFram *pFram, const char *pBuffer, const size_t &iLens)
 {
-    size_t iHeadLens(H_INIT_NUMBER);
+    int iHeadLens(H_INIT_NUMBER);
 
     if (FRAME_HEAD_BASE_LEN > iLens)
     {
@@ -240,29 +226,6 @@ void CWebSock::parseData(struct WebSockFram *pFram, char *pBuffer, const size_t 
     }
 }
 
-void CWebSock::initMapFram(H_SOCK &sock, const char *pBuf, const size_t &iLens)
-{
-    frameit itFram = m_mapFrame.find(sock);
-    if (m_mapFrame.end() == itFram)
-    {
-        std::string strBuf;
-        if (H_INIT_NUMBER != iLens)
-        {
-            strBuf.append(pBuf, iLens);
-        }
-
-        m_mapFrame.insert(std::make_pair(sock, strBuf));
-
-        return;
-    }
-   
-    itFram->second.clear();
-    if (H_INIT_NUMBER != iLens)
-    {
-        itFram->second.append(pBuf, iLens);
-    }
-}
-
 bool CWebSock::handleFrame(struct H_Session *pSession, struct WebSockFram *pFram,
     char *pBuffer, const size_t &iLens, class CBinary *pBinary)
 {
@@ -286,67 +249,15 @@ bool CWebSock::handleFrame(struct H_Session *pSession, struct WebSockFram *pFram
             break;
     }
 
-    //完整帧
-    if ((WSOCK_CONTINUATION != pFram->emOpCode)
-        && (1 == pFram->cFin))
+    if (H_INIT_NUMBER != iLens)
     {
-        if (H_INIT_NUMBER != iLens)
-        {
-            pBinary->setReadBuffer(pBuffer, iLens);
-        }
-        
-        return false;
-    }
-
-    /*一个分片的消息由起:
-    起始帧（FIN为0，opcode非0），
-    若干（0个或多个）帧（FIN为0，opcode为0），
-    结束帧（FIN为1，opcode为0）*/
-    
-    //起始帧
-    if ((0 == pFram->cFin)
-        && (WSOCK_CONTINUATION != pFram->emOpCode))
-    {
-        initMapFram(pSession->sock, pBuffer, iLens);
-        return false;
-    }
-    
-    frameit itFram = m_mapFrame.find(pSession->sock);
-    if (m_mapFrame.end() == itFram)
-    {
-        return true;
-    }
-
-    //中间帧
-    if ((0 == pFram->cFin)
-        && (WSOCK_CONTINUATION == pFram->emOpCode))
-    {
-        if (H_INIT_NUMBER != iLens)
-        {
-            itFram->second.append(pBuffer, iLens);
-        }
-
-        return false;
-    }
-
-    //是否为结束帧
-    if ((1 == pFram->cFin)
-        && (WSOCK_CONTINUATION == pFram->emOpCode))
-    {
-        if (H_INIT_NUMBER != iLens)
-        {
-            itFram->second.append(pBuffer, iLens);
-        }
-
-        pBinary->setReadBuffer(itFram->second.c_str(), itFram->second.size());
-
-        return false;
+        pBinary->setReadBuffer(pBuffer, iLens);
     }
 
     return false;
 }
 
-size_t CWebSock::parsePack(struct H_Session *pSession, char *pAllBuf, const size_t &iLens, class CBinary *pBinary)
+int CWebSock::parsePack(struct H_Session *pSession, char *pAllBuf, const size_t &iLens, class CBinary *pBinary)
 {
     //握手
     if (H_INIT_NUMBER == pSession->uiStatus)
@@ -355,9 +266,8 @@ size_t CWebSock::parsePack(struct H_Session *pSession, char *pAllBuf, const size
     }
 
     //正常数据处理
-    size_t iHeadLens(H_INIT_NUMBER);
+    int iHeadLens(H_INIT_NUMBER);
     size_t iParsed(H_INIT_NUMBER);
-    size_t iCurParsed(H_INIT_NUMBER);
     WebSockFram stFram;
 
     //解析头
@@ -430,15 +340,6 @@ void CWebSock::creatPack(std::string *pOutBuf, const char *pszMsg, const size_t 
 {
     createHead(pOutBuf, true, WSOCK_TEXTFRAME, iLens);
     pOutBuf->append(pszMsg, iLens);
-}
-
-void CWebSock::onClose(struct H_Session *pSession)
-{
-    frameit itFram = m_mapFrame.find(pSession->sock);
-    if (m_mapFrame.end() != itFram)
-    {
-        m_mapFrame.erase(itFram);
-    }
 }
 
 H_ENAMSP

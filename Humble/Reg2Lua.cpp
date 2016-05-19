@@ -336,6 +336,9 @@ void H_RegNetWorker(struct lua_State *pLState)
             .addFunction("delListener", &CNetWorker::delListener)
             .addFunction("addTcpLink", &CNetWorker::addTcpLink)
             .addFunction("delTcpLink", &CNetWorker::delTcpLink)
+
+            .addFunction("addUdp", &CNetWorker::addUdp)
+            .addFunction("delUdp", &CNetWorker::delUdp)
         .endClass();
 }
 
@@ -347,6 +350,11 @@ void H_RegSender(struct lua_State *pLState)
             .addFunction("sendB", &CSender::sendBinary)
             .addFunction("broadCast", &CSender::lbroadCast)
             .addFunction("broadCastB", &CSender::broadCastBinary)
+            
+            .addFunction("sendU", &CSender::sendU)
+            .addFunction("sendUB", &CSender::sendUBinary)
+            .addFunction("broadCastU", &CSender::broadCastU)
+            .addFunction("broadCastUB", &CSender::broadCastUBinary)
         .endClass();
 }
 

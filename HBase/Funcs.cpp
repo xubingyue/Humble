@@ -663,4 +663,25 @@ bool H_SockWrite(H_SOCK &fd, const char *pBuf, const size_t &iLens)
     return true;
 }
 
+int H_GetSockDataLens(H_SOCK &fd)
+{
+#ifdef H_OS_WIN
+    unsigned long ulNRead(H_INIT_NUMBER);
+    if (ioctlsocket(fd, FIONREAD, &ulNRead) < 0)
+    {
+        return -1;
+    }
+    
+    return (int)ulNRead;
+#else
+    int iNRead(H_INIT_NUMBER);
+    if (ioctl(fd, FIONREAD, &iNRead) < 0)
+    {
+        return -1;
+    }
+
+    return iNRead;
+#endif
+}
+
 H_ENAMSP

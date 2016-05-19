@@ -16,7 +16,7 @@ CTcp2::~CTcp2(void)
 {
 }
 
-size_t CTcp2::parsePack(struct H_Session *, char *pAllBuf, const size_t &iLens, class CBinary *pBinary)
+int CTcp2::parsePack(struct H_Session *, char *pAllBuf, const size_t &iLens, class CBinary *pBinary)
 {
     unsigned short uiBufLens(H_INIT_NUMBER);
     size_t iHeadLens(sizeof(uiBufLens));
@@ -39,7 +39,7 @@ size_t CTcp2::parsePack(struct H_Session *, char *pAllBuf, const size_t &iLens, 
 
     pBinary->setReadBuffer(pAllBuf + iHeadLens, uiBufLens);
 
-    return uiBufLens + iHeadLens;
+    return (int)(uiBufLens + iHeadLens);
 }
 
 void CTcp2::creatPack(std::string *pOutBuf, const char *pszMsg, const size_t &iLens)

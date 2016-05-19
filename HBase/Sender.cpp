@@ -8,10 +8,22 @@ H_BNAMSP
 SINGLETON_INIT(CSender)
 CSender objSender;
 
+struct H_Host
+{
+    unsigned short usPort;
+    char acHost[H_IPLENS];
+    H_Host(void)
+    {
+        H_Zero(acHost, sizeof(acHost));
+    };
+};
+
 enum
 {
     SendTo,
     BroadCast,
+    USendTo,
+    UBroadCast,
 };
 
 CSender::CSender(void)
@@ -119,6 +131,7 @@ void CSender::runTask(H_Sender *pMsg)
             H_SafeDelete(pMsg->pBuffer);
         }
         break;
+
         case BroadCast:
         {
             if (NULL == pMsg->pSock)
@@ -139,6 +152,34 @@ void CSender::runTask(H_Sender *pMsg)
             H_SafeDelete(pMsg->pBuffer);
         }
         break;
+
+        case USendTo:
+        {
+            H_Host *pHost = (H_Host *)pMsg->pBuffer;
+            char *pBuf = pMsg->pBuffer + sizeof(H_Host);
+            (void)m_objAddr.setAddr(pHost->acHost, pHost->usPort);
+
+            (void)sendto(pMsg->stSock.sock, pBuf, pMsg->iBufLens - sizeof(H_Host), 0,
+                m_objAddr.getAddr(), m_objAddr.getAddrSize());
+
+            H_SafeDelete(pMsg->pBuffer);
+        }
+        break;
+
+        case UBroadCast:
+        {
+            struct sockaddr_in stAddr;
+            stAddr.sin_family = AF_INET;
+            stAddr.sin_addr.s_addr = INADDR_BROADCAST;
+            stAddr.sin_port = htons((u_short)pMsg->usCount);
+            
+            (void)sendto(pMsg->stSock.sock, pMsg->pBuffer, pMsg->iBufLens, 0, 
+                (struct sockaddr *)&stAddr, sizeof(struct sockaddr));
+
+            H_SafeDelete(pMsg->pBuffer);
+        }
+        break;
+
         default:
             break;
     }
@@ -148,8 +189,8 @@ void CSender::Send(H_SOCK sock, const unsigned int uiSession, const char *pBuf, 
 {
     H_Sender *pSender = newT();
     char *pNewBuf = new(std::nothrow) char[iLens];
-
     H_ASSERT(NULL != pNewBuf, "malloc memory error.");
+
     memcpy(pNewBuf, pBuf, iLens);
     pSender->usCmd = SendTo;
     pSender->stSock.sock = sock;
@@ -162,7 +203,8 @@ void CSender::Send(H_SOCK sock, const unsigned int uiSession, const char *pBuf, 
 
 void CSender::sendBinary(H_SOCK sock, const unsigned int uiSession, CBinary *pBinary)
 {
-    Send(sock, uiSession, pBinary->getWritedBuf().c_str(), pBinary->getWritedBuf().size());
+    std::string strBuf = pBinary->getWritedBuf();
+    Send(sock, uiSession, strBuf.c_str(), strBuf.size());
 }
 
 H_SenderSock *CSender::createSenderSock(luabridge::LuaRef &lTable)
@@ -204,15 +246,16 @@ void CSender::broadCastBinary(luabridge::LuaRef lTable, CBinary *pBinary)
         return;
     }
 
-    broadCast(pSock, lTable.length(), pBinary->getWritedBuf().c_str(), pBinary->getWritedBuf().size());
+    std::string strBuf = pBinary->getWritedBuf();
+    broadCast(pSock, lTable.length(), strBuf.c_str(), strBuf.size());
 }
 
 void CSender::broadCast(H_SenderSock *pSock, const int &iCount, const char *pBuf, const size_t &iLens)
 {
     H_Sender *pSender = newT();
     char *pNewBuf = new(std::nothrow) char[iLens];
+    H_ASSERT(NULL != pNewBuf, "malloc memory error."); 
 
-    H_ASSERT(NULL != pNewBuf, "malloc memory error.");    
     memcpy(pNewBuf, pBuf, iLens);
     pSender->usCmd = BroadCast;
     pSender->pSock = pSock;
@@ -221,6 +264,55 @@ void CSender::broadCast(H_SenderSock *pSock, const int &iCount, const char *pBuf
     pSender->iBufLens = iLens;
 
     addTask(pSender);
+}
+
+void CSender::sendU(H_SOCK sock, const char *pstHost, unsigned short usPort,
+    const char *pBuf, const size_t iLens)
+{
+    H_Host stHost;
+    H_Sender *pSender = newT();
+    char *pNewBuf = new(std::nothrow) char[iLens + sizeof(stHost)];
+    H_ASSERT(NULL != pNewBuf, "malloc memory error.");
+
+    stHost.usPort = usPort;
+    memcpy(stHost.acHost, pstHost, strlen(pstHost));
+
+    memcpy(pNewBuf, &stHost, sizeof(stHost));
+    memcpy(pNewBuf + sizeof(stHost), pBuf, iLens);
+    pSender->usCmd = USendTo;
+    pSender->stSock.sock = sock;
+    pSender->pBuffer = pNewBuf;
+    pSender->iBufLens = iLens + sizeof(stHost);
+
+    addTask(pSender);
+}
+
+void CSender::sendUBinary(H_SOCK sock, const char *pstHost, unsigned short usPort, CBinary *pBinary)
+{
+    std::string strBuf = pBinary->getWritedBuf();
+    sendU(sock, pstHost, usPort, strBuf.c_str(), strBuf.size());
+}
+
+void CSender::broadCastU(H_SOCK sock, unsigned short usPort, const char *pBuf, const size_t iLens)
+{
+    H_Sender *pSender = newT();
+    char *pNewBuf = new(std::nothrow) char[iLens];
+    H_ASSERT(NULL != pNewBuf, "malloc memory error.");
+
+    memcpy(pNewBuf, pBuf, iLens);
+    pSender->usCmd = UBroadCast;
+    pSender->stSock.sock = sock;
+    pSender->pBuffer = pNewBuf;
+    pSender->iBufLens = iLens;
+    pSender->usCount = usPort;
+
+    addTask(pSender);
+}
+
+void CSender::broadCastUBinary(H_SOCK sock, unsigned short usPort, CBinary *pBinary)
+{
+    std::string strBuf = pBinary->getWritedBuf();
+    broadCastU(sock, usPort, strBuf.c_str(), strBuf.size());
 }
 
 void CSender::addSock(H_SOCK &sock, const unsigned int &uiSession, unsigned short &usType)
