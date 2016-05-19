@@ -1,16 +1,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include "msvcint.h"
-
-#include "lua.hpp"
-#include "lauxlib.h"
+#include "lua5.3/lua.hpp"
 #include "sproto.h"
-
-#ifdef WIN32
-#pragma warning(disable:4244)
-#pragma warning(disable:4267)
-#pragma warning(disable:4018)
-#endif
 
 #define MAX_GLOBALSPROTO 16
 #define ENCODE_BUFFERSIZE 2050
@@ -132,7 +124,7 @@ encode(const struct sproto_arg *args) {
 					lua_replace(L, self->array_index);
 				}
 				self->array_index = 0;
-				return 0;
+				return SPROTO_CB_NOARRAY;
 			}
 			if (!lua_istable(L, -1)) {
 				return luaL_error(L, ".*%s(%d) should be a table (Is a %s)",
@@ -153,7 +145,7 @@ encode(const struct sproto_arg *args) {
 				// iterate end
 				lua_pushnil(L);
 				lua_replace(L, self->iter_index);
-				return 0;
+				return SPROTO_CB_NIL;
 			}
 			lua_insert(L, -2);
 			lua_replace(L, self->iter_index);
@@ -165,7 +157,7 @@ encode(const struct sproto_arg *args) {
 	}
 	if (lua_isnil(L, -1)) {
 		lua_pop(L,1);
-		return 0;
+		return SPROTO_CB_NIL;
 	}
 	switch (args->type) {
 	case SPROTO_TINTEGER: {
@@ -209,10 +201,10 @@ encode(const struct sproto_arg *args) {
 			str = lua_tolstring(L, -1, &sz);
 		}
 		if ((int)sz > args->length)
-			return -1;
+			return SPROTO_CB_ERROR;
 		memcpy(args->value, str, sz);
 		lua_pop(L,1);
-		return sz + 1;	// The length of empty string is 1.
+		return sz;
 	}
 	case SPROTO_TSTRUCT: {
 		struct encode_ud sub;
@@ -232,6 +224,8 @@ encode(const struct sproto_arg *args) {
 		sub.iter_index = sub.tbl_index + 1;
 		r = sproto_encode(args->subtype, args->value, args->length, encode, &sub);
 		lua_settop(L, top-1);	// pop the value
+		if (r < 0) 
+			return SPROTO_CB_ERROR;
 		return r;
 	}
 	default:
@@ -267,7 +261,7 @@ static int
 lencode(lua_State *L) {
 	struct encode_ud self;
 	void * buffer = lua_touserdata(L, lua_upvalueindex(1));
-	int sz = lua_tointeger(L, lua_upvalueindex(2));
+	int sz = (int)lua_tointeger(L, lua_upvalueindex(2));
 	int tbl_index = 2;
 	struct sproto_type * st = (struct sproto_type *)lua_touserdata(L, 1);
 	if (st == NULL) {
@@ -293,7 +287,7 @@ lencode(lua_State *L) {
 			buffer = expand_buffer(L, sz, sz*2);
 			sz *= 2;
 		} else {
-			lua_pushlstring(L, (const char*)buffer, r);
+			lua_pushlstring(L, (const char *)buffer, r);
 			return 1;
 		}
 	}
@@ -315,7 +309,7 @@ decode(const struct sproto_arg *args) {
 	lua_State *L = self->L;
 	if (self->deep >= ENCODE_DEEPLEVEL)
 		return luaL_error(L, "The table is too deep");
-	if (args->index > 0) {
+	if (args->index != 0) {
 		// It's array
 		if (args->tagname != self->array_tag) {
 			self->array_tag = args->tagname;
@@ -327,6 +321,10 @@ decode(const struct sproto_arg *args) {
 			} else {
 				self->array_index = lua_gettop(L);
 			}
+			if (args->index < 0) {
+				// It's a empty array, return now.
+				return 0;
+			}
 		}
 	}
 	switch (args->type) {
@@ -337,12 +335,12 @@ decode(const struct sproto_arg *args) {
 		break;
 	}
 	case SPROTO_TBOOLEAN: {
-		int v = *(uint64_t*)args->value;
+		int v = (int)*(uint64_t*)args->value;
 		lua_pushboolean(L,v);
 		break;
 	}
 	case SPROTO_TSTRING: {
-		lua_pushlstring(L, (const char*)args->value, args->length);
+		lua_pushlstring(L, (const char *)args->value, args->length);
 		break;
 	}
 	case SPROTO_TSTRUCT: {
@@ -361,9 +359,10 @@ decode(const struct sproto_arg *args) {
 			sub.key_index = lua_gettop(L);
 
 			r = sproto_decode(args->subtype, args->value, args->length, decode, &sub);
-			if (r < 0 || r != args->length)
+			if (r < 0)
+				return SPROTO_CB_ERROR;
+			if (r != args->length)
 				return r;
-			// assert(args->index > 0);
 			lua_pushvalue(L, sub.key_index);
 			if (lua_isnil(L, -1)) {
 				luaL_error(L, "Can't find main index (tag=%d) in [%s]", args->mainindex, args->tagname);
@@ -376,7 +375,9 @@ decode(const struct sproto_arg *args) {
 			sub.mainindex_tag = -1;
 			sub.key_index = 0;
 			r = sproto_decode(args->subtype, args->value, args->length, decode, &sub);
-			if (r < 0 || r != args->length)
+			if (r < 0)
+				return SPROTO_CB_ERROR;
+			if (r != args->length)
 				return r;
 			lua_settop(L, sub.result_index);
 			break;
@@ -412,7 +413,7 @@ getbuffer(lua_State *L, int index, size_t *sz) {
 			return NULL;
 		}
 		buffer = lua_touserdata(L, index);
-		*sz = luaL_checkinteger(L, index+1);
+		*sz = (size_t)luaL_checkinteger(L, index+1);
 	}
 	return buffer;
 }
@@ -478,7 +479,7 @@ lpack(lua_State *L) {
 	size_t maxsz = (sz + 2047) / 2048 * 2 + sz + 2;
 	void * output = lua_touserdata(L, lua_upvalueindex(1));
 	int bytes;
-	int osz = lua_tointeger(L, lua_upvalueindex(2));
+	int osz = (int)lua_tointeger(L, lua_upvalueindex(2));
 	if (osz < (int)maxsz) {
 		output = expand_buffer(L, osz, maxsz);
 	}
@@ -486,7 +487,7 @@ lpack(lua_State *L) {
 	if (bytes > (int)maxsz) {
 		return luaL_error(L, "packing error, return size = %d", bytes);
 	}
-	lua_pushlstring(L, (const char*)output, bytes);
+	lua_pushlstring(L, (const char *)output, bytes);
 
 	return 1;
 }
@@ -496,7 +497,7 @@ lunpack(lua_State *L) {
 	size_t sz=0;
 	const void * buffer = getbuffer(L, 1, &sz);
 	void * output = lua_touserdata(L, lua_upvalueindex(1));
-	int osz = lua_tointeger(L, lua_upvalueindex(2));
+	int osz = (int)lua_tointeger(L, lua_upvalueindex(2));
 	int r = sproto_unpack(buffer, sz, output, osz);
 	if (r < 0)
 		return luaL_error(L, "Invalid unpack stream");
@@ -506,7 +507,7 @@ lunpack(lua_State *L) {
 		if (r < 0)
 			return luaL_error(L, "Invalid unpack stream");
 	}
-	lua_pushlstring(L, (const char*)output, r);
+	lua_pushlstring(L, (const char *)output, r);
 	return 1;
 }
 
@@ -531,7 +532,7 @@ lprotocol(lua_State *L) {
 	t = lua_type(L,2);
 	if (t == LUA_TNUMBER) {
 		const char * name;
-		tag = lua_tointeger(L, 2);
+		tag = (int)lua_tointeger(L, 2);
 		name = sproto_protoname(sp, tag);
 		if (name == NULL)
 			return 0;
@@ -569,7 +570,7 @@ static struct sproto * G_sproto[MAX_GLOBALSPROTO];
 static int
 lsaveproto(lua_State *L) {
 	struct sproto * sp = (struct sproto *)lua_touserdata(L, 1);
-	int index = luaL_optinteger(L, 2, 0);
+	int index = (int)luaL_optinteger(L, 2, 0);
 	if (index < 0 || index >= MAX_GLOBALSPROTO) {
 		return luaL_error(L, "Invalid global slot index %d", index);
 	}
@@ -580,7 +581,7 @@ lsaveproto(lua_State *L) {
 
 static int
 lloadproto(lua_State *L) {
-	int index = luaL_optinteger(L, 1, 0);
+	int index = (int)luaL_optinteger(L, 1, 0);
 	struct sproto * sp;
 	if (index < 0 || index >= MAX_GLOBALSPROTO) {
 		return luaL_error(L, "Invalid global slot index %d", index);
@@ -601,6 +602,8 @@ encode_default(const struct sproto_arg *args) {
 	lua_pushstring(L, args->tagname);
 	if (args->index > 0) {
 		lua_newtable(L);
+		lua_rawset(L, -3);
+		return SPROTO_CB_NOARRAY;
 	} else {
 		switch(args->type) {
 		case SPROTO_TINTEGER:
@@ -618,9 +621,9 @@ encode_default(const struct sproto_arg *args) {
 			lua_setfield(L, -2, "__type");
 			break;
 		}
+		lua_rawset(L, -3);
+		return SPROTO_CB_NIL;
 	}
-	lua_rawset(L, -3);
-	return 0;
 }
 
 /*
@@ -672,6 +675,7 @@ luaopen_sproto_core(lua_State *L) {
 		{ "default", ldefault },
 		{ NULL, NULL },
 	};
+
 	luaL_newlib(L,l);
 	pushfunction_withbuffer(L, "encode", lencode);
 	pushfunction_withbuffer(L, "pack", lpack);

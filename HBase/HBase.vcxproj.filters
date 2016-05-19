@@ -88,6 +88,9 @@
     <Filter Include="3rd\lua\mongo">
       <UniqueIdentifier>{a84fc4da-6c50-4449-a279-64ed61c0d786}</UniqueIdentifier>
     </Filter>
+    <Filter Include="3rd\lua\sharedata">
+      <UniqueIdentifier>{a82a0415-61b3-432a-ac89-39eb6b34f421}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Config.h">
@@ -1246,7 +1249,10 @@
     <ClCompile Include="WebSock.cpp">
       <Filter>Service\Parser</Filter>
     </ClCompile>
-    <ClCompile Include="lmongo\bson.cpp">
+    <ClCompile Include="luamongo\bson.cpp">
+      <Filter>3rd\lua\mongo</Filter>
+    </ClCompile>
+    <ClCompile Include="luamongo\mongo.cpp">
       <Filter>3rd\lua\mongo</Filter>
     </ClCompile>
   </ItemGroup>

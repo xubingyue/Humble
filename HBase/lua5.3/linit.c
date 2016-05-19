@@ -41,31 +41,32 @@
 ** program
 */
 static const luaL_Reg loadedlibs[] = {
-  {"_G", luaopen_base},
-  {LUA_LOADLIBNAME, luaopen_package},
-  {LUA_COLIBNAME, luaopen_coroutine},
-  {LUA_TABLIBNAME, luaopen_table},
-  {LUA_IOLIBNAME, luaopen_io},
-  {LUA_OSLIBNAME, luaopen_os},
-  {LUA_STRLIBNAME, luaopen_string},
-  {LUA_MATHLIBNAME, luaopen_math},
-  {LUA_UTF8LIBNAME, luaopen_utf8},
-  {LUA_DBLIBNAME, luaopen_debug},
+    { "_G", luaopen_base },
+    { LUA_LOADLIBNAME, luaopen_package },
+    { LUA_COLIBNAME, luaopen_coroutine },
+    { LUA_TABLIBNAME, luaopen_table },
+    { LUA_IOLIBNAME, luaopen_io },
+    { LUA_OSLIBNAME, luaopen_os },
+    { LUA_STRLIBNAME, luaopen_string },
+    { LUA_MATHLIBNAME, luaopen_math },
+    { LUA_UTF8LIBNAME, luaopen_utf8 },
+    { LUA_DBLIBNAME, luaopen_debug },
 #if defined(LUA_COMPAT_BITLIB)
-  {LUA_BITLIBNAME, luaopen_bit32},
+    { LUA_BITLIBNAME, luaopen_bit32 },
 #endif
-  {LUA_CJSONLIBNAME, luaopen_cjson},
+    { LUA_CJSONLIBNAME, luaopen_cjson },
 #ifdef H_MYSQL
-  {LUA_MYSQLLIBNAME, luaopen_luasql_mysql},
+    { LUA_MYSQLLIBNAME, luaopen_luasql_mysql },
 #endif
-  {LUA_LPEG, luaopen_lpeg},
-  {LUA_PROTOBUFC, luaopen_protobuf_c},
-  {LUA_SPROTO, luaopen_sproto_core},
-  {LUA_BSON, luaopen_bson},
-  {LUA_SERIALIZE, luaopen_serialize},
-  {LUA_SOCKET, luaopen_socket_core},
+    { LUA_LPEG, luaopen_lpeg },
+    { LUA_PROTOBUFC, luaopen_protobuf_c },
+    { LUA_SPROTO, luaopen_sproto_core },
+    { LUA_BSON, luaopen_bson },
+    { LUA_MONGO, luaopen_mongo_driver },
+    { LUA_SERIALIZE, luaopen_serialize },
+    { LUA_SOCKET, luaopen_socket_core },
 
-  {NULL, NULL}
+    { NULL, NULL }
 };
 
 
