@@ -622,7 +622,7 @@ fill_size(uint8_t * data, int sz) {
 
 static int
 encode_integer(uint32_t v, uint8_t * data, int size) {
-	if (size < SIZEOF_LENGTH + sizeof(v))
+	if (size < SIZEOF_LENGTH + (int)sizeof(v))
 		return -1;
 	data[4] = v & 0xff;
 	data[5] = (v >> 8) & 0xff;
@@ -633,7 +633,7 @@ encode_integer(uint32_t v, uint8_t * data, int size) {
 
 static int
 encode_uint64(uint64_t v, uint8_t * data, int size) {
-	if (size < SIZEOF_LENGTH + sizeof(v))
+	if (size < SIZEOF_LENGTH + (int)sizeof(v))
 		return -1;
 	data[4] = v & 0xff;
 	data[5] = (v >> 8) & 0xff;
@@ -733,9 +733,9 @@ encode_integer_array(sproto_callback cb, struct sproto_arg *args, uint8_t *buffe
 			}
 			return NULL;	// sz == SPROTO_CB_ERROR
 		}
-		if (size < sizeof(uint64_t))
+		if (size < (int)sizeof(uint64_t))
 			return NULL;
-		if (sz == sizeof(uint32_t)) {
+		if (sz == (int)sizeof(uint32_t)) {
 			uint32_t v = u.u32;
 			buffer[0] = v & 0xff;
 			buffer[1] = (v >> 8) & 0xff;
@@ -747,13 +747,13 @@ encode_integer_array(sproto_callback cb, struct sproto_arg *args, uint8_t *buffe
 			}
 		} else {
 			uint64_t v;
-			if (sz != sizeof(uint64_t))
+			if (sz != (int)sizeof(uint64_t))
 				return NULL;
-			if (intlen == sizeof(uint32_t)) {
+			if (intlen == (int)sizeof(uint32_t)) {
 				int i;
 				// rearrange
-				size -= (index-1) * sizeof(uint32_t);
-				if (size < sizeof(uint64_t))
+				size -= (index-1) * (int)sizeof(uint32_t);
+				if (size < (int)sizeof(uint64_t))
 					return NULL;
 				buffer += (index-1) * sizeof(uint32_t);
 				for (i=index-2;i>=0;i--) {
@@ -762,7 +762,7 @@ encode_integer_array(sproto_callback cb, struct sproto_arg *args, uint8_t *buffe
 					negative = header[1+i*sizeof(uint64_t)+3] & 0x80;
 					uint32_to_uint64(negative, header+1+i*sizeof(uint64_t));
 				}
-				intlen = sizeof(uint64_t);
+				intlen = (int)sizeof(uint64_t);
 			}
 
 			v = u.u64;

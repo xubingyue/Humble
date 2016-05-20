@@ -25,8 +25,11 @@
 #define BSON_INT64 18
 #define BSON_MINKEY 255
 #define BSON_MAXKEY 127
-
 #define BSON_TYPE_SHIFT 5
+#ifndef H_OS_WIN
+#define INT32_MIN  (-2147483647 - 1)
+#define INT32_MAX    2147483647
+#endif // !H_OS_WIN
 
 static char bson_numstrs[MAX_NUMBER][4];
 static int bson_numstr_len[MAX_NUMBER];
@@ -1005,7 +1008,7 @@ lsubtype(lua_State *L, int subtype, const uint8_t * buf, size_t sz) {
         char oid[24];
         int i;
         const uint8_t * id = buf;
-        static char *hex = "0123456789abcdef";
+        static const char *hex = "0123456789abcdef";
         for (i = 0; i < 12; i++) {
             oid[i * 2] = hex[id[i] >> 4];
             oid[i * 2 + 1] = hex[id[i] & 0xf];
@@ -1143,7 +1146,7 @@ init_oid_header() {
         return;
     }
 #ifdef H_OS_WIN
-    unsigned int pid = (unsigned int)GetCurrentProcessId();
+    int pid = (unsigned int)GetCurrentProcessId();
 #else
     pid_t pid = getpid();
 #endif // H_OS_WIN    
@@ -1151,7 +1154,7 @@ init_oid_header() {
     char hostname[256];
     if (gethostname(hostname, sizeof(hostname)) == 0) {
         int i;
-        for (i = 0; i < sizeof(hostname) && hostname[i]; i++) {
+        for (i = 0; i < (int)sizeof(hostname) && hostname[i]; i++) {
             h = h ^ ((h << 5) + (h >> 2) + hostname[i]);
         }
         h ^= i;

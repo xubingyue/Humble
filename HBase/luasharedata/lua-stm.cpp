@@ -39,7 +39,7 @@ stm_releasecopy(struct stm_copy *copy) {
     if (copy == NULL)
         return;
     if (H_AtomicAdd(&copy->reference, -1) -1 == 0) {
-        delete(copy->msg);
+        delete((char*)copy->msg);
         delete(copy);
     }
 }

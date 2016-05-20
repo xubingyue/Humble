@@ -277,14 +277,14 @@ convtable(lua_State *L) {
 	if (sizearray) {
 		tbl->arraytype = (uint8_t *)malloc(sizearray * sizeof(uint8_t));
 		if (tbl->arraytype == NULL) {
-			goto memerror;
+            return luaL_error(L, "memory error");
 		}
 		for (i=0;i<sizearray;i++) {
 			tbl->arraytype[i] = VALUETYPE_NIL;
 		}
 		tbl->array = (union value *)malloc(sizearray * sizeof(union value));
 		if (tbl->array == NULL) {
-			goto memerror;
+            return luaL_error(L, "memory error");
 		}
 		tbl->sizearray = sizearray;
 	}
@@ -292,7 +292,7 @@ convtable(lua_State *L) {
 	if (sizehash) {
 		tbl->hash = (struct node *)malloc(sizehash * sizeof(struct node));
 		if (tbl->hash == NULL) {
-			goto memerror;
+            return luaL_error(L, "memory error");
 		}
 		for (i=0;i<sizehash;i++) {
 			tbl->hash[i].valuetype = VALUETYPE_NIL;
@@ -312,8 +312,6 @@ convtable(lua_State *L) {
 	}
 
 	return 0;
-memerror:
-	return luaL_error(L, "memory error");
 }
 
 static void
