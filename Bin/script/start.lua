@@ -32,7 +32,7 @@ local tLinker = g_tLinker
 function onStart()
     tListener.test = humble.addListener(1, "0.0.0.0", 15000)
     --tLinker.test = humble.addTcpLink(1, "127.0.0.1", 15000)  
-    humble.setParser(1, "websock")
+    humble.setParser(1, "http")
     tListener.udp = humble.addUdp("0.0.0.0", 15001)
     
     humble.regTask("echo")
@@ -63,8 +63,8 @@ end
 
 function onTcpRead(sock, uiSession, usSockType)
     local a = os.clock()
-    --local strBuf = httpd.parsePack(pBuffer)    
-    local strBuf = pBuffer:getByte(pBuffer:getSurpLens())     
+    local strBuf = httpd.parsePack(pBuffer)    
+    --local strBuf = pBuffer:getByte(pBuffer:getSurpLens())     
     local b = os.clock()
     dTime = dTime + (b - a)
     iCount = iCount + 1 

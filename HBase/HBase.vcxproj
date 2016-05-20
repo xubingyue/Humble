@@ -287,6 +287,8 @@
     <ClCompile Include="luamongo\bson.cpp" />
     <ClCompile Include="luamongo\mongo.cpp" />
     <ClCompile Include="luaserialize\serialize.c" />
+    <ClCompile Include="luasharedata\lua-sharedata.cpp" />
+    <ClCompile Include="luasharedata\lua-stm.cpp" />
     <ClCompile Include="luasocket\auxiliar.c" />
     <ClCompile Include="luasocket\buffer.c" />
     <ClCompile Include="luasocket\except.c" />

@@ -70,6 +70,12 @@ LUALIB_API int (luaopen_socket_core)(lua_State *L);
 #define LUA_MONGO "mongo"
 LUALIB_API int (luaopen_mongo_driver)(lua_State *L);
 
+#define LUA_SHAREDATA "sharedata"
+LUALIB_API int (luaopen_sharedata_core)(lua_State *L);
+
+#define LUA_STM "stm"
+LUALIB_API int (luaopen_stm)(lua_State *L);
+
 /* open all previous libraries */
 LUALIB_API void (luaL_openlibs) (lua_State *L);
 

@@ -65,6 +65,8 @@ static const luaL_Reg loadedlibs[] = {
     { LUA_MONGO, luaopen_mongo_driver },
     { LUA_SERIALIZE, luaopen_serialize },
     { LUA_SOCKET, luaopen_socket_core },
+    { LUA_SHAREDATA ,luaopen_sharedata_core },
+    { LUA_STM ,luaopen_stm },
 
     { NULL, NULL }
 };

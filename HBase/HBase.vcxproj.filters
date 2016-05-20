@@ -1255,6 +1255,12 @@
     <ClCompile Include="luamongo\mongo.cpp">
       <Filter>3rd\lua\mongo</Filter>
     </ClCompile>
+    <ClCompile Include="luasharedata\lua-sharedata.cpp">
+      <Filter>3rd\lua\sharedata</Filter>
+    </ClCompile>
+    <ClCompile Include="luasharedata\lua-stm.cpp">
+      <Filter>3rd\lua\sharedata</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="uchardet\Big5Freq.tab">

@@ -1,30 +1,23 @@
-#include <lua.h>
-#include <lauxlib.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <assert.h>
-#include <string.h>
+#include "RWLock.h"
 
-#include "rwlock.h"
-#include "skynet_malloc.h"
-#include "atomic.h"
-
-struct stm_object {
-    struct rwlock lock;
-    int reference;
-    struct stm_copy * copy;
+struct stm_copy 
+{
+    uint32_t sz;
+    long reference;    
+    void * msg;
 };
 
-struct stm_copy {
-    int reference;
-    uint32_t sz;
-    void * msg;
+struct stm_object 
+{    
+    long reference;
+    stm_copy *copy;
+    Humble::CRWLock lock;
 };
 
 // msg should alloc by skynet_malloc 
 static struct stm_copy *
 stm_newcopy(void * msg, int32_t sz) {
-    struct stm_copy * copy = skynet_malloc(sizeof(*copy));
+    stm_copy *copy = new stm_copy;
     copy->reference = 1;
     copy->sz = sz;
     copy->msg = msg;
@@ -34,8 +27,7 @@ stm_newcopy(void * msg, int32_t sz) {
 
 static struct stm_object *
 stm_new(void * msg, int32_t sz) {
-    struct stm_object * obj = skynet_malloc(sizeof(*obj));
-    rwlock_init(&obj->lock);
+    stm_object * obj = new stm_object;
     obj->reference = 1;
     obj->copy = stm_newcopy(msg, sz);
 
@@ -46,57 +38,57 @@ static void
 stm_releasecopy(struct stm_copy *copy) {
     if (copy == NULL)
         return;
-    if (ATOM_DEC(&copy->reference) == 0) {
-        skynet_free(copy->msg);
-        skynet_free(copy);
+    if (H_AtomicAdd(&copy->reference, -1) -1 == 0) {
+        delete(copy->msg);
+        delete(copy);
     }
 }
 
 static void
 stm_release(struct stm_object *obj) {
     assert(obj->copy);
-    rwlock_wlock(&obj->lock);
+    obj->lock.wLock();
     // writer release the stm object, so release the last copy .
     stm_releasecopy(obj->copy);
     obj->copy = NULL;
     if (--obj->reference > 0) {
         // stm object grab by readers, reset the copy to NULL.
-        rwlock_wunlock(&obj->lock);
+        obj->lock.unLock();
         return;
     }
     // no one grab the stm object, no need to unlock wlock.
-    skynet_free(obj);
+    delete(obj);
 }
 
 static void
 stm_releasereader(struct stm_object *obj) {
-    rwlock_rlock(&obj->lock);
-    if (ATOM_DEC(&obj->reference) == 0) {
+    obj->lock.rLock();
+    if (H_AtomicAdd(&obj->reference, -1) - 1 == 0) {
         // last reader, no writer. so no need to unlock
         assert(obj->copy == NULL);
-        skynet_free(obj);
+        delete(obj);
         return;
     }
-    rwlock_runlock(&obj->lock);
+    obj->lock.unLock();
 }
 
 static void
 stm_grab(struct stm_object *obj) {
-    rwlock_rlock(&obj->lock);
-    int ref = ATOM_FINC(&obj->reference);
-    rwlock_runlock(&obj->lock);
+    obj->lock.rLock();
+    int ref = H_AtomicAdd(&obj->reference, 1);
+    obj->lock.unLock();
     assert(ref > 0);
 }
 
 static struct stm_copy *
 stm_copy(struct stm_object *obj) {
-    rwlock_rlock(&obj->lock);
+    obj->lock.rLock();
     struct stm_copy * ret = obj->copy;
     if (ret) {
-        int ref = ATOM_FINC(&ret->reference);
+        int ref = H_AtomicAdd(&ret->reference, 1);
         assert(ref > 0);
     }
-    rwlock_runlock(&obj->lock);
+    obj->lock.unLock();
 
     return ret;
 }
@@ -104,10 +96,10 @@ stm_copy(struct stm_object *obj) {
 static void
 stm_update(struct stm_object *obj, void *msg, int32_t sz) {
     struct stm_copy *copy = stm_newcopy(msg, sz);
-    rwlock_wlock(&obj->lock);
+    obj->lock.wLock();
     struct stm_copy *oldcopy = obj->copy;
     obj->copy = copy;
-    rwlock_wunlock(&obj->lock);
+    obj->lock.unLock();
 
     stm_releasecopy(oldcopy);
 }
@@ -120,7 +112,7 @@ struct boxstm {
 
 static int
 lcopy(lua_State *L) {
-    struct boxstm * box = lua_touserdata(L, 1);
+    struct boxstm * box = (struct boxstm *)lua_touserdata(L, 1);
     stm_grab(box->obj);
     lua_pushlightuserdata(L, box->obj);
     return 1;
@@ -136,10 +128,10 @@ lnewwriter(lua_State *L) {
     }
     else {
         const char * tmp = luaL_checklstring(L, 1, &sz);
-        msg = skynet_malloc(sz);
+        msg = (void *)new char[sz];
         memcpy(msg, tmp, sz);
     }
-    struct boxstm * box = lua_newuserdata(L, sizeof(*box));
+    struct boxstm * box = (struct boxstm *)lua_newuserdata(L, sizeof(*box));
     box->obj = stm_new(msg, sz);
     lua_pushvalue(L, lua_upvalueindex(1));
     lua_setmetatable(L, -2);
@@ -149,7 +141,7 @@ lnewwriter(lua_State *L) {
 
 static int
 ldeletewriter(lua_State *L) {
-    struct boxstm * box = lua_touserdata(L, 1);
+    struct boxstm * box = (struct boxstm *)lua_touserdata(L, 1);
     stm_release(box->obj);
     box->obj = NULL;
 
@@ -158,7 +150,7 @@ ldeletewriter(lua_State *L) {
 
 static int
 lupdate(lua_State *L) {
-    struct boxstm * box = lua_touserdata(L, 1);
+    struct boxstm * box = (struct boxstm *)lua_touserdata(L, 1);
     void * msg;
     size_t sz;
     if (lua_isuserdata(L, 2)) {
@@ -167,7 +159,7 @@ lupdate(lua_State *L) {
     }
     else {
         const char * tmp = luaL_checklstring(L, 2, &sz);
-        msg = skynet_malloc(sz);
+        msg = (void *)new char[sz];
         memcpy(msg, tmp, sz);
     }
     stm_update(box->obj, msg, sz);
@@ -182,8 +174,8 @@ struct boxreader {
 
 static int
 lnewreader(lua_State *L) {
-    struct boxreader * box = lua_newuserdata(L, sizeof(*box));
-    box->obj = lua_touserdata(L, 1);
+    struct boxreader * box = (struct boxreader *)lua_newuserdata(L, sizeof(*box));
+    box->obj = (struct stm_object *)lua_touserdata(L, 1);
     box->lastcopy = NULL;
     lua_pushvalue(L, lua_upvalueindex(1));
     lua_setmetatable(L, -2);
@@ -193,7 +185,7 @@ lnewreader(lua_State *L) {
 
 static int
 ldeletereader(lua_State *L) {
-    struct boxreader * box = lua_touserdata(L, 1);
+    struct boxreader * box = (struct boxreader *)lua_touserdata(L, 1);
     stm_releasereader(box->obj);
     box->obj = NULL;
     stm_releasecopy(box->lastcopy);
@@ -204,7 +196,7 @@ ldeletereader(lua_State *L) {
 
 static int
 lread(lua_State *L) {
-    struct boxreader * box = lua_touserdata(L, 1);
+    struct boxreader * box = (struct boxreader *)lua_touserdata(L, 1);
     luaL_checktype(L, 2, LUA_TFUNCTION);
 
     struct stm_copy * copy = stm_copy(box->obj);
