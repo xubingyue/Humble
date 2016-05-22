@@ -17,7 +17,7 @@ public:
     void setReadBuffer(const char *pszBuf, const size_t iLens);
     size_t getRBufLens(void)
     {
-        return (unsigned int)m_iParseBufLens;
+        return m_iParseBufLens;
     };
     size_t getReadedLens(void)
     {
@@ -27,9 +27,9 @@ public:
     //重置写
     void reSetWrite(void);
     //读  跳过指定字节
-    void skipRead(const unsigned int iLens);
+    void skipRead(const size_t iLens);
     //写  跳过指定字节跳过字节以0填充
-    void skipWrite(const unsigned int iLens);
+    void skipWrite(const size_t iLens);
 
     //获取尚未解析的字节数
     size_t getSurpLens(void);
@@ -99,16 +99,15 @@ private:
     template<typename T>
     T readNumber(void)
     {
-        T tVal = H_INIT_NUMBER;
         if ((m_iCurParseLens + sizeof(T)) > m_iParseBufLens)
         {
-            return tVal;
+            H_Printf("%s", "read number error.");
+            return H_INIT_NUMBER;
         }
 
-        tVal = *((T*)(m_pParseBuffer + m_iCurParseLens));
         m_iCurParseLens += sizeof(T);
 
-        return tVal;
+        return *((T*)(m_pParseBuffer + m_iCurParseLens));
     };
 
 private:

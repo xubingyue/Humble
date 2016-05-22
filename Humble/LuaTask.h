@@ -27,7 +27,7 @@ private:
         LTASK_COUNT,
     };
 
-private:    
+private:
     struct lua_State *m_pLState;
     luabridge::LuaRef **m_pLFunc;
 };

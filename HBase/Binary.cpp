@@ -9,6 +9,8 @@ H_BNAMSP
 CBinary::CBinary(void) : m_pParseBuffer(NULL),
     m_iParseBufLens(H_INIT_NUMBER), m_iCurParseLens(H_INIT_NUMBER)
 {
+    m_strWritBuffer.resize(4 * H_ONEK);
+
     H_Zero(m_acZero, sizeof(m_acZero));
     m_iLEFLens = strlen(H_LINEEFLAG);
 }
@@ -30,12 +32,12 @@ void CBinary::reSetWrite(void)
     m_strWritBuffer.clear();
 }
 
-void CBinary::skipRead(const unsigned int iLens)
+void CBinary::skipRead(const size_t iLens)
 {
     m_iCurParseLens += iLens;
 }
 
-void CBinary::skipWrite(const unsigned int iLens)
+void CBinary::skipWrite(const size_t iLens)
 {
     if (H_INIT_NUMBER == iLens
         || iLens > H_ONEK)

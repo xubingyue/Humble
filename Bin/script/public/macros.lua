@@ -21,9 +21,9 @@ Invalid_ID = -1
 Invalid_Sock = -1
 
 ErrCode = {
-    "faile",
-    "ok",
-    "error",
+    "Fail",
+    "Ok",
+    "Error",
 }
 ErrCode = table.enum(ErrCode, -1)
 
