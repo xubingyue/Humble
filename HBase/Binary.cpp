@@ -6,8 +6,9 @@ H_BNAMSP
 
 #define H_LINEEFLAG "\r\n"
 
-CBinary::CBinary(void) : m_pParseBuffer(NULL),
-    m_iParseBufLens(H_INIT_NUMBER), m_iCurParseLens(H_INIT_NUMBER)
+CBinary::CBinary(void) : m_pParseBuffer(NULL), m_pTmpBuf(NULL),
+    m_iParseBufLens(H_INIT_NUMBER), m_iTmpBufLens(H_INIT_NUMBER), m_iCurParseLens(H_INIT_NUMBER),
+    m_iTmpParseLens(H_INIT_NUMBER)
 {
     m_strWritBuffer.resize(4 * H_ONEK);
 

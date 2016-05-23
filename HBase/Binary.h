@@ -89,7 +89,16 @@ public:
     };
     void setW2R(void)
     {
+        m_pTmpBuf = m_pParseBuffer;
+        m_iTmpBufLens = m_iParseBufLens;
+        m_iTmpParseLens = m_iCurParseLens;
+
         setReadBuffer(m_strWritBuffer.c_str(), m_strWritBuffer.size());
+    };
+    void resetW2R(void)
+    {
+        setReadBuffer(m_pTmpBuf, m_iTmpBufLens);
+        m_iCurParseLens = m_iTmpParseLens;
     };
     void Append(CBinary *pBinary)
     {
@@ -116,9 +125,12 @@ private:
 
 private:
     char *m_pParseBuffer;//要解析的buffer
-    char m_acZero[H_ONEK];
+    char *m_pTmpBuf;
+    char m_acZero[H_ONEK / 8];
     size_t m_iParseBufLens;//要解析的buffer长度
+    size_t m_iTmpBufLens;
     size_t m_iCurParseLens;//已经解析的长度
+    size_t m_iTmpParseLens;
     size_t m_iLEFLens;
     std::string m_strWritBuffer;//写buffer
     luabridge::H_LBinary m_stVal;

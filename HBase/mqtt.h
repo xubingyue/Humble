@@ -18,7 +18,8 @@ public:
 
 private:
     H_DISALLOWCOPY(CMQTT);
-
+    size_t parseHead(char *pAllBuf, const size_t &iLens, size_t &iBufLens);
+    void parseByte1(const unsigned char &ucByte, class CBinary *pBinary);
 };
 
 H_ENAMSP

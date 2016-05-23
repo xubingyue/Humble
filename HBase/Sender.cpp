@@ -18,8 +18,16 @@ struct H_Host
     };
 };
 
+struct H_SenderBuf
+{
+    char *pBuf;
+    size_t iLens;
+    std::string strBuf;
+};
+
 enum
 {
+    AddBuffer,
     SendTo,
     BroadCast,
     USendTo,
@@ -33,25 +41,34 @@ CSender::CSender(void)
 
 CSender::~CSender(void)
 {
-
+    for (bufferit itBuf = m_mapBuffer.begin(); m_mapBuffer.end() != itBuf; ++itBuf)
+    {
+        H_SafeDelete(itBuf->second);
+    }
+    m_mapBuffer.clear();
 }
 
-std::string *CSender::creatPack(const char *pBuf, const size_t &iLens, const unsigned short &usType)
+struct H_SenderBuf *CSender::createPack(const char *pBuf, const size_t &iLens, const unsigned short &usType)
 {
-    std::string *pstrBuf = getBuffer(usType);
+    struct H_SenderBuf *pstBuf = getBuffer(usType);
     CParser *pParser = CNetParser::getSingletonPtr()->getParser(usType);
-    if ((NULL == pstrBuf)
+    if ((NULL == pstBuf)
         || (NULL == pParser))
     {
         return NULL;
     }
     
-    if (pstrBuf->empty())
+    pstBuf->pBuf = (char*)pParser->creatPack(pBuf);
+    pstBuf->iLens = iLens;
+    if (NULL == pstBuf->pBuf)
     {
-        pParser->creatPack(pstrBuf, pBuf, iLens);
-    }
+        if (pstBuf->strBuf.empty())
+        {
+            pParser->creatPack(&(pstBuf->strBuf), pBuf, iLens);
+        }
+    }    
 
-    return pstrBuf;
+    return pstBuf;
 }
 
 void CSender::sendToSock(H_SOCK &fd, const unsigned int &uiSession, const char *pBuf, const size_t &iLens)
@@ -62,31 +79,47 @@ void CSender::sendToSock(H_SOCK &fd, const unsigned int &uiSession, const char *
     {
         if (uiSession == itSender->second.uiSession)
         {
-            std::string *pstrBuf = creatPack(pBuf, iLens, itSender->second.usType);
-            if (NULL != pstrBuf)
+            struct H_SenderBuf *pstBuf = createPack(pBuf, iLens, itSender->second.usType);
+            if (NULL != pstBuf)
             {
-                H_SockWrite(fd, pstrBuf->c_str(), pstrBuf->size());
+                if (NULL != pstBuf->pBuf)
+                {
+                    H_SockWrite(fd, pstBuf->pBuf, pstBuf->iLens);
+                }
+                else
+                {
+                    H_SockWrite(fd, pstBuf->strBuf.c_str(), pstBuf->strBuf.size());
+                }                
             }
         }
     }
     m_objLck.unLock();
 }
 
-std::string *CSender::getBuffer(const unsigned short &usType)
+void CSender::addBufferMap(const unsigned short &usType)
 {
-    std::string *pBuffer = NULL;
+    bufferit itBuf = m_mapBuffer.find(usType);
+    if (m_mapBuffer.end() == itBuf)
+    {
+        H_SenderBuf *pstBuf = new(std::nothrow) H_SenderBuf;
+        H_ASSERT(NULL != pstBuf, "malloc memory error.");
+        m_mapBuffer.insert(std::make_pair(usType, pstBuf));
+    }
+}
 
-    m_objBufferLck.rLock();
+struct H_SenderBuf *CSender::getBuffer(const unsigned short &usType)
+{
+    struct H_SenderBuf *pBuffer = NULL;
+
     bufferit itBuf = m_mapBuffer.find(usType);
     if (m_mapBuffer.end() != itBuf)
     {
-        pBuffer = &itBuf->second;
+        pBuffer = itBuf->second;
     }
     else
     {
         H_Printf("get send buffer by type %d error.", usType);
     }
-    m_objBufferLck.unLock();
 
     return pBuffer;
 }
@@ -99,10 +132,12 @@ void CSender::cleanBuffer(H_SOCK &fd, const unsigned int &uiSession)
     {
         if (uiSession == itSender->second.uiSession)
         {
-            std::string *pBuffer = getBuffer(itSender->second.usType);
+            struct H_SenderBuf *pBuffer = getBuffer(itSender->second.usType);
             if (NULL != pBuffer)
             {
-                pBuffer->clear();
+                pBuffer->iLens = H_INIT_NUMBER;
+                pBuffer->pBuf = NULL;
+                pBuffer->strBuf.clear();
             }
         }
     }
@@ -111,19 +146,24 @@ void CSender::cleanBuffer(H_SOCK &fd, const unsigned int &uiSession)
 
 void CSender::addBuffer(const unsigned short &usType)
 {
-    m_objBufferLck.wLock();
-    bufferit itBuf = m_mapBuffer.find(usType);
-    if (m_mapBuffer.end() == itBuf)
-    {
-        m_mapBuffer.insert(std::make_pair(usType, std::string()));
-    }
-    m_objBufferLck.unLock();
+    H_Sender *pSender = newT();
+
+    pSender->usCmd = AddBuffer;
+    pSender->usCount = usType;
+
+    addTask(pSender);
 }
 
 void CSender::runTask(H_Sender *pMsg)
 {
     switch (pMsg->usCmd)
     {
+        case AddBuffer:
+        {
+            addBufferMap(pMsg->usCount);
+        }
+        break;
+
         case SendTo:
         {
             cleanBuffer(pMsg->stSock.sock, pMsg->stSock.uiSession);
