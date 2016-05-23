@@ -129,6 +129,7 @@
     <ClInclude Include="Macros.h" />
     <ClInclude Include="Mail.h" />
     <ClInclude Include="md5.h" />
+    <ClInclude Include="mqtt.h" />
     <ClInclude Include="NETAddr.h" />
     <ClInclude Include="NetBase.h" />
     <ClInclude Include="NetParser.h" />
@@ -309,6 +310,7 @@
     <ClCompile Include="luasql\luasql.c" />
     <ClCompile Include="Mail.cpp" />
     <ClCompile Include="md5.cpp" />
+    <ClCompile Include="mqtt.cpp" />
     <ClCompile Include="NETAddr.cpp" />
     <ClCompile Include="NetBase.cpp" />
     <ClCompile Include="NetParser.cpp" />

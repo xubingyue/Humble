@@ -9,6 +9,7 @@ local assert = assert
 local tonumber = tonumber
 
 local httpd = {}
+local pWBinary = CBinary()
 
 local http_status_msg = {
 	[100] = "Continue",
@@ -126,38 +127,46 @@ function httpd.parsePack(pBinary)
 end
 
 function httpd.Response(iCode, varBodyFunc, tHeader)
-    local tInfo = {}
-    table.insert(tInfo, string.format("HTTP/1.1 %03d %s\r\n", iCode, http_status_msg[iCode] or ""))
-	if tHeader then
-		for key, val in pairs(tHeader) do			
-		    table.insert(tInfo, string.format("%s: %s\r\n", key, val))
+    pWBinary:reSetWrite()
+    
+	local strMsg = string.format("HTTP/1.1 %03d %s\r\n", iCode, http_status_msg[iCode] or "")
+    pWBinary:setByte(strMsg, #strMsg)
+    if tHeader then
+		for key, val in pairs(tHeader) do
+            strMsg = string.format("%s: %s\r\n", key, val)
+            pWBinary:setByte(strMsg, #strMsg)
 		end
 	end
 
 	local iType = type(varBodyFunc)
 	if iType == "string" then
-		table.insert(tInfo, string.format("content-length: %d\r\n\r\n", string.len(varBodyFunc)))
-		table.insert(tInfo, varBodyFunc)
+		strMsg = string.format("content-length: %d\r\n\r\n", string.len(varBodyFunc))
+        pWBinary:setByte(strMsg, #strMsg)
+        pWBinary:setByte(varBodyFunc, #varBodyFunc)
 	elseif iType == "function" then
-		table.insert(tInfo, "transfer-encoding: chunked\r\n")
+		strMsg = "transfer-encoding: chunked\r\n"
+        pWBinary:setByte(strMsg, #strMsg)
         local str
 		while true do
 			local str = varBodyFunc()
 			if str then
 				if str ~= "" then
-					table.insert(tInfo, string.format("\r\n%x\r\n", string.len(str)))
-					table.insert(tInfo, str)
+					strMsg = string.format("\r\n%x\r\n", string.len(str))
+                    pWBinary:setByte(strMsg, #strMsg)
+                    pWBinary:setByte(str, #str)
 				end
 			else
-				table.insert(tInfo, "\r\n0\r\n\r\n")
+				strMsg = "\r\n0\r\n\r\n"
+                pWBinary:setByte(strMsg, #strMsg)
 				break
 			end
 		end
 	else
-		table.insert(tInfo, "\r\n")
+        strMsg = "\r\n"
+        pWBinary:setByte(strMsg, #strMsg)
 	end
 
-    return table.concat(tInfo, "")
+    return pWBinary
 end
 
 return httpd

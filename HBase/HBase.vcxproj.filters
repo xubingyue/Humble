@@ -685,6 +685,9 @@
     <ClInclude Include="WebSock.h">
       <Filter>Service\Parser</Filter>
     </ClInclude>
+    <ClInclude Include="mqtt.h">
+      <Filter>Service\Parser</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="jwsmtp\compat.cpp">
@@ -1260,6 +1263,9 @@
     </ClCompile>
     <ClCompile Include="luasharedata\lua-stm.cpp">
       <Filter>3rd\lua\sharedata</Filter>
+    </ClCompile>
+    <ClCompile Include="mqtt.cpp">
+      <Filter>Service\Parser</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

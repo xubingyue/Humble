@@ -42,6 +42,7 @@
 #include "Tcp2.h"
 #include "Httpd.h"
 #include "WebSock.h"
+#include "mqtt.h"
 #include "NetParser.h"
 
 #include "jwsmtp/mailer.h"

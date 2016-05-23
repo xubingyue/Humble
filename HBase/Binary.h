@@ -87,7 +87,10 @@ public:
     {
         return m_strWritBuffer;
     };
-
+    void setW2R(void)
+    {
+        setReadBuffer(m_strWritBuffer.c_str(), m_strWritBuffer.size());
+    };
     void Append(CBinary *pBinary)
     {
         m_strWritBuffer.append(pBinary->getWritedBuf().c_str(), pBinary->getWritedBuf().size());
@@ -105,9 +108,10 @@ private:
             return H_INIT_NUMBER;
         }
 
+        T varVal = *((T*)(m_pParseBuffer + m_iCurParseLens));
         m_iCurParseLens += sizeof(T);
 
-        return *((T*)(m_pParseBuffer + m_iCurParseLens));
+        return varVal;
     };
 
 private:

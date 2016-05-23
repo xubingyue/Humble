@@ -70,7 +70,6 @@ int CTcp1::parsePack(struct H_Session *, char *pAllBuf, const size_t &iLens, cla
     }
     if (H_INIT_NUMBER == iBufLens)
     {
-        pBinary->setReadBuffer(NULL, iBufLens);
         return iHeadLens;
     }
     if (iBufLens > (iLens - iHeadLens))
@@ -116,7 +115,10 @@ void CTcp1::creatHead(std::string *pOutBuf, const size_t &iLens)
 void CTcp1::creatPack(std::string *pOutBuf, const char *pszMsg, const size_t &iLens)
 {
     creatHead(pOutBuf, iLens);
-    pOutBuf->append(pszMsg, iLens);
+    if (iLens > H_INIT_NUMBER)
+    {
+        pOutBuf->append(pszMsg, iLens);
+    }    
 }
 
 H_ENAMSP

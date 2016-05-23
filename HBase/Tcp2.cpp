@@ -28,8 +28,6 @@ int CTcp2::parsePack(struct H_Session *, char *pAllBuf, const size_t &iLens, cla
     uiBufLens = ntohs(*(unsigned short*)(pAllBuf));
     if (H_INIT_NUMBER == uiBufLens)
     {
-        pBinary->setReadBuffer(NULL, uiBufLens);
-
         return iHeadLens;
     }
     if (uiBufLens + iHeadLens > iLens)
@@ -46,7 +44,10 @@ void CTcp2::creatPack(std::string *pOutBuf, const char *pszMsg, const size_t &iL
 {
     unsigned short usLens(ntohs((unsigned short)iLens));
     pOutBuf->append((const char*)&usLens, sizeof(usLens));
-    pOutBuf->append(pszMsg, iLens);
+    if (iLens > H_INIT_NUMBER)
+    {
+        pOutBuf->append(pszMsg, iLens);
+    }    
 }
 
 H_ENAMSP

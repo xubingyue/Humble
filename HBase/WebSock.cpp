@@ -21,6 +21,12 @@ CWebSock objWebSock;
 #define FRAME_HEAD_EXT16_LEN 8
 #define FRAME_HEAD_EXT64_LEN 14
 
+enum
+{
+    WSS_INIT = 0,
+    WSS_SHAKEHANDS,
+};
+
 enum  WebSockOpCode
 {
     WSOCK_CONTINUATION = 0x00,
@@ -140,7 +146,7 @@ int CWebSock::shakeHands(struct H_Session *pSession, char *pAllBuf, const size_t
 
     strVal = createResponse(strVal);
     bufferevent_write(pSession->pBev, strVal.c_str(), strVal.size());
-    ++pSession->uiStatus;
+    pSession->uiStatus = WSS_SHAKEHANDS;
 
     return (int)iParsed;
 }
@@ -218,49 +224,20 @@ int CWebSock::parseHead(struct WebSockFram *pFram, const char *pBuffer, const si
     return iHeadLens;
 }
 
-void CWebSock::parseData(struct WebSockFram *pFram, char *pBuffer, const size_t &iLens)
+char *CWebSock::parseData(struct WebSockFram *pFram, char *pBuffer, const size_t &iLens)
 {
     for (size_t i = 0; i < iLens; ++i)
     {
         pBuffer[i] = pBuffer[i] ^ pFram->acMaskKey[i % 4];
     }
-}
 
-bool CWebSock::handleFrame(struct H_Session *pSession, struct WebSockFram *pFram,
-    char *pBuffer, const size_t &iLens, class CBinary *pBinary)
-{
-    pBinary->setReadBuffer(NULL, H_INIT_NUMBER);
-
-    //¿ØÖÆÖ¡
-    switch (pFram->emOpCode)
-    {
-        case WSOCK_CLOSE:
-        {
-            return true;
-        }
-        case WSOCK_PING:
-        {
-            std::string strBuf;
-            createHead(&strBuf, true, WSOCK_PONG, 0);
-            bufferevent_write(pSession->pBev, strBuf.c_str(), strBuf.size());            
-            return false;
-        }
-        default:
-            break;
-    }
-
-    if (H_INIT_NUMBER != iLens)
-    {
-        pBinary->setReadBuffer(pBuffer, iLens);
-    }
-
-    return false;
+    return pBuffer;
 }
 
 int CWebSock::parsePack(struct H_Session *pSession, char *pAllBuf, const size_t &iLens, class CBinary *pBinary)
 {
     //ÎÕÊÖ
-    if (H_INIT_NUMBER == pSession->uiStatus)
+    if (WSS_SHAKEHANDS != pSession->uiStatus)
     {
         return shakeHands(pSession, pAllBuf, iLens);
     }
@@ -289,27 +266,23 @@ int CWebSock::parsePack(struct H_Session *pSession, char *pAllBuf, const size_t 
     }
     if (H_INIT_NUMBER != stFram.uiDataLens)
     {
-        parseData(&stFram, pAllBuf + iHeadLens, stFram.uiDataLens);
+        char *pParsed = parseData(&stFram, pAllBuf + iHeadLens, stFram.uiDataLens);
+        pBinary->setReadBuffer(pParsed, stFram.uiDataLens);
     }
-
-    if (handleFrame(pSession, &stFram, pAllBuf + iHeadLens, stFram.uiDataLens, pBinary))
-    {
-        CNetWorker::getSingletonPtr()->closeSock(pSession->sock, pSession->uiSession);
-        return H_RTN_FAILE;
-    }
-    else
-    {
-        return iParsed;
-    }    
+    
+    pBinary->setUint8(stFram.emOpCode);
+    pBinary->setUint8(stFram.cFin);
+    
+    return iParsed;
 }
 
-void CWebSock::createHead(std::string *pBuf, const bool &bFin, const unsigned int &uiCode,
+void CWebSock::createHead(std::string *pBuf, const char &cFin, const char &cCode,
     const size_t &iDataLens)
 {
     char acWebSockHead[FRAME_HEAD_EXT64_LEN] = { 0 };
 
-    acWebSockHead[0] = (char)(uiCode | 0x80);
-    if (!bFin)
+    acWebSockHead[0] = (char)(cCode | 0x80);
+    if (0 == cFin)
     {
         acWebSockHead[0] = (acWebSockHead[0] & 0x7f);
     }
@@ -338,8 +311,13 @@ void CWebSock::createHead(std::string *pBuf, const bool &bFin, const unsigned in
 
 void CWebSock::creatPack(std::string *pOutBuf, const char *pszMsg, const size_t &iLens)
 {
-    createHead(pOutBuf, true, WSOCK_TEXTFRAME, iLens);
-    pOutBuf->append(pszMsg, iLens);
+    char cCode = pszMsg[0];
+    char cFin = pszMsg[1];
+    createHead(pOutBuf, cFin, cCode, iLens - 2);
+    if (iLens - 2 > H_INIT_NUMBER)
+    {
+        pOutBuf->append(pszMsg + 2, iLens - 2);
+    }    
 }
 
 H_ENAMSP

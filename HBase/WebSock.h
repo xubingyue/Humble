@@ -25,11 +25,8 @@ private:
     std::string createResponse(const std::string &strKey) const;
 
     int parseHead(struct WebSockFram *pFram, const char *pBuffer, const size_t &iLens);
-    void parseData(struct WebSockFram *pFram, char *pBuffer, const size_t &iLens);
-    bool handleFrame(struct H_Session *pSession, struct WebSockFram *pFram,
-        char *pBuffer, const size_t &iLens, class CBinary *pBinary);
-
-    void createHead(std::string *pBuf, const bool &bFin, const unsigned int &uiCode,
+    char *parseData(struct WebSockFram *pFram, char *pBuffer, const size_t &iLens);
+    void createHead(std::string *pBuf, const char &cFin, const char &cCode,
         const size_t &iDataLens);
 
 private:

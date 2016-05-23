@@ -155,6 +155,8 @@ H_INLINE void CLNetDisp::onTcpRead(struct H_Session *pSession)
             break;
         }
 
+        m_objBinary.reSetWrite();
+        m_objBinary.setReadBuffer(NULL, H_INIT_NUMBER);
         iCurParsed = pParser->parsePack(pSession, pBuf + iParsed, iBufLens - iParsed, &m_objBinary);
         if (H_INIT_NUMBER == iCurParsed)
         {
@@ -167,7 +169,8 @@ H_INLINE void CLNetDisp::onTcpRead(struct H_Session *pSession)
 
         iParsed += iCurParsed;
 
-        if (H_INIT_NUMBER == m_objBinary.getRBufLens())
+        if (H_INIT_NUMBER == m_objBinary.getRBufLens()
+            && m_objBinary.getWritedBuf().empty())
         {
             continue;
         }

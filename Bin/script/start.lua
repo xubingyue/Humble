@@ -9,6 +9,7 @@ require("macros")
 local humble = require("humble")
 local utile = require("utile")
 local httpd = require("httpd")
+local websock = require("websock")
 local table = table
 local pairs = pairs
 local pBuffer = g_pBuffer
@@ -32,7 +33,7 @@ local tLinker = g_tLinker
 function onStart()
     tListener.test = humble.addListener(1, "0.0.0.0", 15000)
     --tLinker.test = humble.addTcpLink(1, "127.0.0.1", 15000)  
-    humble.setParser(1, "http")
+    humble.setParser(1, "websock")
     tListener.udp = humble.addUdp("0.0.0.0", 15001)
     
     humble.regTask("echo")
@@ -63,13 +64,20 @@ end
 
 function onTcpRead(sock, uiSession, usSockType)
     local a = os.clock()
-    local strBuf = httpd.parsePack(pBuffer)    
-    --local strBuf = pBuffer:getByte(pBuffer:getSurpLens())     
+    --http
+    --local buffer = httpd.parsePack(pBuffer)
+    
+    --tcp1 tcp1
+    --local buffer = pBuffer:getByte(pBuffer:getSurpLens())
+    
+    --websock
+    local buffer = websock.parsePack(pBuffer)
+    
     local b = os.clock()
     dTime = dTime + (b - a)
     iCount = iCount + 1 
     
-    tChan.echo:Send(utile.Pack({sock, uiSession, strBuf}))
+    tChan.echo:Send(utile.Pack({sock, uiSession, buffer}))
 end
 
 function onUdpRead(sock, pHost, usPort)

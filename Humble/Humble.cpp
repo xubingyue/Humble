@@ -1,14 +1,10 @@
 #include "LNetDisp.h"
 #include "LTick.h"
-#include "Tcp1.h"
-#include "Tcp2.h"
-#include "Httpd.h"
-#include "WebSock.h"
 
 using namespace Humble;
 
 #ifdef H_OS_WIN
-//#include "../vld/vld.h"
+#include "../vld/vld.h"
 #pragma comment(lib, "ws2_32.lib")
 #pragma comment(lib, "libevent.lib")
 #pragma comment(lib, "libevent_core.lib")
@@ -132,6 +128,7 @@ void initParser()
     pParser->addParser(CTcp2::getSingletonPtr());
     pParser->addParser(CHttp::getSingletonPtr());
     pParser->addParser(CWebSock::getSingletonPtr());
+    pParser->addParser(CMQTT::getSingletonPtr());
 }
 
 void runSV(void)

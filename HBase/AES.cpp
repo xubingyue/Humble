@@ -43,6 +43,8 @@ void CAES::setKey(const char *pszKey, const unsigned int uiKeyType)
 
     m_iEncodeRounds = rijndaelSetupEncrypt(m_pEncodeRK, pKey, uiKeyType);
     m_iDecodeRounds = rijndaelSetupDecrypt(m_pDecodeRK, pKey, uiKeyType);
+
+    H_SafeDelete(pKey);
 }
 
 std::string CAES::Encode(const char *pszPlaint, const size_t iLens)
