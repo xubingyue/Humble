@@ -239,7 +239,14 @@ int CWebSock::parsePack(struct H_Session *pSession, char *pAllBuf, const size_t 
     //握手
     if (WSS_SHAKEHANDS != pSession->uiStatus)
     {
-        return shakeHands(pSession, pAllBuf, iLens);
+        if (pSession->bLinker)
+        {
+
+        }
+        else
+        {
+            return shakeHands(pSession, pAllBuf, iLens);
+        }        
     }
 
     //正常数据处理
@@ -311,13 +318,13 @@ void CWebSock::createHead(std::string *pBuf, const char &cFin, const char &cCode
 
 void CWebSock::creatPack(std::string *pOutBuf, const char *pszMsg, const size_t &iLens)
 {
-    char cCode = pszMsg[0];
+    /*char cCode = pszMsg[0];
     char cFin = pszMsg[1];
     createHead(pOutBuf, cFin, cCode, iLens - 2);
     if (iLens - 2 > H_INIT_NUMBER)
     {
         pOutBuf->append(pszMsg + 2, iLens - 2);
-    }    
+    }*/    
 }
 
 H_ENAMSP

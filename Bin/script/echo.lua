@@ -6,6 +6,7 @@ local utile = require("utile")
 local humble = require("humble")
 local httpd = require("httpd")
 local websock = require("websock")
+local mqtt = require("mqtt")
 local table = table
 local string = string
 local WSCode = WSCode
@@ -33,8 +34,13 @@ function runTask()
     --humble.Send(sock, uiSession, strMsg)
     
     --websock
+    --table.print(strMsg)
+    --local pWBinary = websock.Text(strMsg.info)
+    --humble.SendB(sock, uiSession, pWBinary)
+    
+    --mqtt
     table.print(strMsg)
-    local pWBinary = websock.Response(strMsg.code, 1, strMsg.info)
+    local pWBinary = mqtt.CONNACK(0)
     humble.SendB(sock, uiSession, pWBinary)
 end
 
