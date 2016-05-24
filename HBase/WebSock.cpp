@@ -236,12 +236,20 @@ char *CWebSock::parseData(struct WebSockFram *pFram, char *pBuffer, const size_t
 
 int CWebSock::parsePack(struct H_Session *pSession, char *pAllBuf, const size_t &iLens, class CBinary *pBinary)
 {
+    std::string strval(pAllBuf, iLens);
     //ÎÕÊÖ
     if (WSS_SHAKEHANDS != pSession->uiStatus)
     {
         if (pSession->bLinker)
         {
+            char *pPos = strstr(pAllBuf, WebSock_ShakeHands_EndFlag);
+            if (NULL == pPos)
+            {
+                return H_INIT_NUMBER;
+            }
+            pSession->uiStatus = WSS_SHAKEHANDS;
 
+            return (pPos - pAllBuf + m_iEndFlagLens);
         }
         else
         {

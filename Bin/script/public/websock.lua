@@ -13,8 +13,6 @@ MsgType.CLOSE = 0x08
 MsgType.PING = 0x09
 MsgType.PONG = 0x0A
 
-websock.Type = MsgType
-
 local function Response(code, fin, val)
     pWBinary:reSetWrite()
     
@@ -63,35 +61,51 @@ function websock.ContBegin(code, val)
 end
 
 function websock.Cont(val)    
-    return Response(websock.Type.CONTINUATION, 0, val)
+    return Response(MsgType.CONTINUATION, 0, val)
 end
 
 function websock.ContEnd(val)
-    return Response(websock.Type.CONTINUATION, 1, val)
+    return Response(MsgType.CONTINUATION, 1, val)
 end
 --文本
 function websock.Text(val)
-    return Response(websock.Type.TEXT, 1, val)
+    return Response(MsgType.TEXT, 1, val)
 end
 --二进制
 function websock.Binary(val)
-    return Response(websock.Type.BINARY, 1, val)
+    return Response(MsgType.BINARY, 1, val)
 end
 --关闭
 function websock.Close()
-    return Response(websock.Type.CLOSE, 1)
+    return Response(MsgType.CLOSE, 1)
 end
 --ping
 function websock.Ping()
-    return Response(websock.Type.PING, 1)
+    return Response(MsgType.PING, 1)
 end
 --pong
 function websock.Pong()
-    return Response(websock.Type.PONG, 1)
+    return Response(MsgType.PONG, 1)
 end
 --握手
-function websock.shakeHands()
+function websock.shakeHands(strHost, usPort, strKey)   
+    local tInfo = {}
+    table.insert(tInfo, "GET / HTTP/1.1\r\n")
+    table.insert(tInfo, string.format("Host: %s:%d\r\n", strHost, usPort))
+    table.insert(tInfo, "Connection: Upgrade\r\n")
+    table.insert(tInfo, "Upgrade: websocket\r\n")
+    table.insert(tInfo, "Origin: null\r\n")
+    table.insert(tInfo, "Sec-WebSocket-Version: 13\r\n")
+    table.insert(tInfo, "User-Agent: Humble\r\n")
+    table.insert(tInfo, string.format("Sec-WebSocket-Key: %s\r\n", strKey))
+    table.insert(tInfo, "Sec-WebSocket-Extensions: x-webkit-deflate-frame\r\n")
+    table.insert(tInfo, "\r\n")
     
+    local strMsg = table.concat(tInfo, "")
+    pWBinary:reSetWrite()
+    pWBinary:setByte(strMsg, #strMsg)
+    
+    return pWBinary
 end
 
 return websock

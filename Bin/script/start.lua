@@ -34,7 +34,7 @@ local tLinker = g_tLinker
 function onStart()
     tListener.test = humble.addListener(1, "0.0.0.0", 15000)
     --tLinker.test = humble.addTcpLink(1, "127.0.0.1", 15000)  
-    humble.setParser(1, "mqtt")
+    humble.setParser(1, "websock")
     tListener.udp = humble.addUdp("0.0.0.0", 15001)
     
     humble.regTask("echo")
@@ -75,7 +75,7 @@ function onTcpRead(sock, uiSession, usSockType)
     --local buffer = websock.parsePack(pBuffer)
     
     --mqtt
-    local buffer = mqtt.parsePack(pBuffer)    
+    local buffer = mqtt.parsePack(pBuffer)
     
     local b = os.clock()
     dTime = dTime + (b - a)

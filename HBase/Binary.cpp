@@ -217,6 +217,11 @@ const char *CBinary::getByte(const unsigned int &iLens)
         return NULL;
     }
 
+    if (H_INIT_NUMBER == iLens)
+    {
+        return NULL;
+    }
+
     char *pBuf = m_pParseBuffer + m_iCurParseLens;
 
     m_iCurParseLens += iLens;

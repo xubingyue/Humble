@@ -3,11 +3,15 @@ mqtt
 --]]
 
 require("macros")
+local assert = assert
 local table = table
 local math = math
+local type = type
 
 local mqtt = {}
 local pWBinary = CBinary()
+local strProName = "MQIsdp"
+local iProVersion = 13
 
 local MsgType = {
     "CONNECT",    --1 客户端请求连接服务器
@@ -31,7 +35,7 @@ MsgType = table.enum(MsgType, 1)
 local function parseCONNECT(pBinary, tInfo)
     --可变头
     local tVHead = {}
-        
+
     local iLens = pBinary:getUint16()
     tVHead.proname = pBinary:getByte(iLens)
     tVHead.version = pBinary:getUint8()
@@ -59,12 +63,16 @@ local function parseCONNECT(pBinary, tInfo)
         tPayload.payload = pBinary:getByte(iLens)
     end    
     if 1 == tVHead.userflage then
-        iLens = pBinary:getUint16()
-        tPayload.user = pBinary:getByte(iLens)
+        if 0 ~= pBinary:getSurpLens() then
+            iLens = pBinary:getUint16()
+            tPayload.user = pBinary:getByte(iLens)
+        end
     end    
     if 1 == tVHead.pswflag then
-        iLens = pBinary:getUint16()
-        tPayload.psw = pBinary:getByte(iLens)
+        if 0 ~= pBinary:getSurpLens() then
+            iLens = pBinary:getUint16()
+            tPayload.psw = pBinary:getByte(iLens)
+        end
     end
         
     tInfo.payload = tPayload
@@ -80,6 +88,7 @@ local function parseCONNACK(pBinary, tInfo)
     tInfo.vhead = tVHead
 end
 
+--发布消息
 local function parsePUBLISH(pBinary, tInfo)
     --可变头
     local tVHead = {}
@@ -97,14 +106,48 @@ local function parsePUBLISH(pBinary, tInfo)
     
     tInfo.payload = tPayload
 end
+
+--发布确认 对QoS级别1的 PUBLISH 消息的回应
 local function parsePUBACK(pBinary, tInfo)
+    --可变头
+    local tVHead = {}
+    
+    tVHead.msgid = pBinary:getUint16()
+    
+    tInfo.vhead = tVHead
 end
+
+--发布接收（有保证的交付第1部分） 对QoS级别2的 PUBLISH 消息的回应
 local function parsePUBREC(pBinary, tInfo)
+    --可变头
+    local tVHead = {}
+    
+    tVHead.msgid = pBinary:getUint16()
+    
+    tInfo.vhead = tVHead
 end
+
+--发布释放（有保证的交付第2部分）发布者客户端对服务器发送给它的 PUBREC 消息的回应
 local function parsePUBREL(pBinary, tInfo)
+    --可变头
+    local tVHead = {}
+    
+    tVHead.msgid = pBinary:getUint16()
+    
+    tInfo.vhead = tVHead
 end
+
+--发布完成（有保证的交付第3部分）服务器对发布者客户端发送给它的 PUBREL 消息的回应
 local function parsePUBCOMP(pBinary, tInfo)
+    --可变头
+    local tVHead = {}
+    
+    tVHead.msgid = pBinary:getUint16()
+    
+    tInfo.vhead = tVHead
 end
+
+--客户端订阅请求
 local function parseSUBSCRIBE(pBinary, tInfo)
     --可变头
     local tVHead = {}
@@ -112,6 +155,7 @@ local function parseSUBSCRIBE(pBinary, tInfo)
     tInfo.vhead = tVHead
     
     --有效载荷
+    local iLens, topic, qos
     local tPayload = {}
     while true
     do
@@ -119,30 +163,87 @@ local function parseSUBSCRIBE(pBinary, tInfo)
             break
         end
         
-        local iLens = pBinary:getUint16()
-        if 0 == iLens then
-            break
-        end
-        
-        local tTmp = {}
-        tTmp.topic = pBinary:getByte(iLens)
-        tTmp.qos = pBinary:getUint8()
-        table.insert(tPayload, tTmp)
+        iLens = pBinary:getUint16()
+        topic = pBinary:getByte(iLens)
+        qos = pBinary:getUint8()
+        tPayload[topic] = qos
     end
     
     tInfo.payload = tPayload
 end
+
+--订阅确认
 local function parseSUBACK(pBinary, tInfo)
+    --可变头
+    local tVHead = {}
+    
+    tVHead.msgid = pBinary:getUint16()
+    
+    tInfo.vhead = tVHead
+    
+    --有效载荷
+    local tPayload = {}
+    
+    while true
+    do
+        if 0 == pBinary:getSurpLens() then
+            break
+        end
+        
+        table.insert(tPayload, pBinary:getUint8())
+    end
+    
+    tInfo.payload = tPayload
 end
+
+--客户端取消订阅请求
 local function parseUNSUBSCRIBE(pBinary, tInfo)
+    --可变头
+    local tVHead = {}
+    
+    tVHead.msgid = pBinary:getUint16()
+    
+    tInfo.vhead = tVHead
+    
+    --有效载荷
+    local tPayload = {}
+    local iLens
+    while true
+    do
+        if 2 > pBinary:getSurpLens() then
+            break
+        end
+        
+        iLens = pBinary:getUint16()
+        table.insert(tPayload, pBinary:getByte(iLens))
+    end
+    
+    tInfo.payload = tPayload
 end
+
+--取消订阅确认
 local function parseUNSUBACK(pBinary, tInfo)
+    --可变头
+    local tVHead = {}
+    
+    tVHead.msgid = pBinary:getUint16()
+    
+    tInfo.vhead = tVHead
 end
+
+--PING请求
 local function parsePINGREQ(pBinary, tInfo)
+    
 end
+
+--PING回复
 local function parsePINGRESP(pBinary, tInfo)
+    
 end
+
+--客户端断开连接
 local function parseDISCONNECT(pBinary, tInfo)
+    
 end
 
 function mqtt.parsePack(pBinary)
@@ -215,16 +316,302 @@ local function createHead(msgtype, dup, qos, retain, lens)
     return table.concat(tHead, "")
 end
 
+--客户端请求连接服务器
+function mqtt.CONNECT(clinetID, strUser, strPsw, 
+    willretain, willqos, will, 
+    topic, payload, 
+    cleansession, keepalive)
+    
+    assert(clinetID and 0 ~= #clinetID)
+    
+    pWBinary:reSetWrite()
+    
+    --可变头
+    local vHead = {}    
+    table.insert(vHead, string.pack(">H", #strProName))
+    table.insert(vHead, strProName)
+    table.insert(vHead, string.pack("B", iProVersion))
+    local cConnFlag = 0
+    if strUser and 0 ~= #strUser then
+        cConnFlag = 1 << 7
+    end
+    if strPsw and 0 ~= #strPsw then
+        cConnFlag = cConnFlag | (1 << 6)
+    end
+    if willretain and 0 ~= willretain then
+        cConnFlag = cConnFlag | (1 << 5)
+    end
+    if willqos and 0 ~= willqos then
+        cConnFlag = cConnFlag | (willqos << 3)
+    end
+    if will and 0 ~= will then
+        assert(topic and 0 ~= #topic)
+        cConnFlag = cConnFlag | (1 << 2)
+    end
+    if cleansession and 0 ~= cleansession then
+        cConnFlag = cConnFlag | (1 << 1)
+    end    
+    table.insert(vHead, string.pack("B", cConnFlag))    
+    table.insert(vHead, string.pack(">H", keepalive))
+    
+    --有效载荷
+    table.insert(vHead, string.pack(">H", #clinetID))
+    table.insert(vHead, clinetID)
+    if will and 0 ~= will then
+        table.insert(vHead, string.pack(">H", #topic))
+        table.insert(vHead, topic)
+        
+        if not payload then
+            table.insert(vHead, string.pack(">H", 0))
+            table.insert(vHead, "")
+        else
+            table.insert(vHead, string.pack(">H", #payload))
+            table.insert(vHead, payload)
+        end
+    end
+    
+    if strUser and 0 ~= #strUser then
+        table.insert(vHead, string.pack(">H", #strUser))
+        table.insert(vHead, strUser)
+    end
+    if strPsw and 0 ~= #strPsw then
+        table.insert(vHead, string.pack(">H", #strPsw))
+        table.insert(vHead, strPsw)
+    end
+    
+    local msg = table.concat(vHead, "")
+    local fHead = createHead(MsgType.CONNECT, 0, 0, 0, #msg)
+    
+    pWBinary:setByte(fHead, #fHead)
+    pWBinary:setByte(msg, #msg)
+    
+    return pWBinary
+end
+
 --连接确认
 function mqtt.CONNACK(rtnCode)
     pWBinary:reSetWrite()
    
+    --可变头
     local vHead = string.pack("B", 0)
     vHead = vHead .. string.pack("B", rtnCode)
+    
+    --固定头
     local fHead = createHead(MsgType.CONNACK, 0, 0, 0, #vHead)
     
     pWBinary:setByte(fHead, #fHead)
     pWBinary:setByte(vHead, #vHead)
+    
+    return pWBinary
+end
+
+--发布消息
+function mqtt.PUBLISH(topic, qos, msg, msgid)
+    assert(topic and 0 ~= #topic)
+    pWBinary:reSetWrite()
+    
+    --可变头
+    local vHead = {}
+    table.insert(vHead, string.pack(">H", #topic))
+    table.insert(vHead, topic)
+    if 1 == qos or 2 == qos then
+        assert(msgid)
+        table.insert(vHead, string.pack(">H", msgid))
+    end
+    
+    --有效载荷
+    table.insert(vHead, msg)
+    
+    --固定头
+    local msg = table.concat(vHead, "")
+    local fHead = createHead(MsgType.PUBLISH, 0, qos, 0, #msg)
+    
+    pWBinary:setByte(fHead, #fHead)
+    pWBinary:setByte(msg, #msg)
+    
+    return pWBinary
+end
+
+--发布确认 PUBLISH QoS级别1 的回应
+function mqtt.PUBACK(msgid)
+    assert(msgid)
+    pWBinary:reSetWrite()
+    
+    --可变头
+    local vHead = string.pack(">H", msgid)    
+    local fHead = createHead(MsgType.PUBACK, 0, 0, 0, #vHead)
+    
+    pWBinary:setByte(fHead, #fHead)
+    pWBinary:setByte(vHead, #vHead)
+    
+    return pWBinary
+end
+
+--发布接收（有保证的交付第1部分）PUBLISH QoS级别2 的回应
+function mqtt.PUBREC(msgid)
+    assert(msgid)
+    pWBinary:reSetWrite()
+    
+    --可变头
+    local vHead = string.pack(">H", msgid)    
+    local fHead = createHead(MsgType.PUBREC, 0, 0, 0, #vHead)
+    
+    pWBinary:setByte(fHead, #fHead)
+    pWBinary:setByte(vHead, #vHead)
+    
+    return pWBinary
+end
+
+--发布释放（有保证的交付第2部分） 对PUBREC的回应
+function mqtt.PUBREL(msgid)
+    assert(msgid)
+    pWBinary:reSetWrite()
+    
+    --可变头
+    local vHead = string.pack(">H", msgid)    
+    local fHead = createHead(MsgType.PUBREL, 0, 1, 0, #vHead)
+    
+    pWBinary:setByte(fHead, #fHead)
+    pWBinary:setByte(vHead, #vHead)
+    
+    return pWBinary
+end
+
+--发布完成（有保证的交付第3部分）对PUBREL的回应
+function mqtt.PUBCOMP(msgid)
+    assert(msgid)
+    pWBinary:reSetWrite()
+    
+    --可变头
+    local vHead = string.pack(">H", msgid)
+    local fHead = createHead(MsgType.PUBCOMP, 0, 0, 0, #vHead)
+    
+    pWBinary:setByte(fHead, #fHead)
+    pWBinary:setByte(vHead, #vHead)
+    
+    return pWBinary
+end
+
+--客户端订阅请求
+function mqtt.SUBSCRIBE(msgid, tTopic)
+    assert(msgid)
+    assert("table" == type(tTopic))
+    pWBinary:reSetWrite()
+    
+    --可变头
+    local vHead = {}
+    table.insert(vHead, string.pack(">H", msgid))
+    
+    --有效载荷
+    for topic, qos in pairs(tTopic) do
+        table.insert(vHead, string.pack(">H", #topic))
+        table.insert(vHead, topic)
+        table.insert(vHead, string.pack("B", qos))
+    end
+    
+    local msg = table.concat(vHead, "")
+    local fHead = createHead(MsgType.SUBSCRIBE, 0, 1, 0, #msg)
+    
+    pWBinary:setByte(fHead, #fHead)
+    pWBinary:setByte(msg, #msg)
+    
+    return pWBinary
+end
+
+--订阅确认
+function mqtt.SUBACK(msgid, tQos)
+    assert(msgid)
+    assert("table" == type(tQos))
+    pWBinary:reSetWrite()
+    
+    --可变头
+    local vHead = {}
+    table.insert(vHead, string.pack(">H", msgid))
+    
+    --有效载荷
+    for _, qos in pairs(tQos) do
+        table.insert(vHead, string.pack("B", qos))
+    end
+    
+    local msg = table.concat(vHead, "")
+    local fHead = createHead(MsgType.SUBACK, 0, 0, 0, #msg)
+    
+    pWBinary:setByte(fHead, #fHead)
+    pWBinary:setByte(msg, #msg)
+    
+    return pWBinary
+end
+
+--客户端取消订阅请求
+function mqtt.UNSUBSCRIBE(msgid, tTopic)
+    assert(msgid)
+    assert("table" == type(tTopic))
+    pWBinary:reSetWrite()
+    
+    --可变头
+    local vHead = {}
+    table.insert(vHead, string.pack(">H", msgid))
+    
+    --有效载荷
+    for _, topic in pairs(tTopic) do
+        table.insert(vHead, string.pack(">H", #topic))
+        table.insert(vHead, topic)
+    end
+    
+    local msg = table.concat(vHead, "")
+    local fHead = createHead(MsgType.UNSUBSCRIBE, 0, 1, 0, #msg)
+    
+    pWBinary:setByte(fHead, #fHead)
+    pWBinary:setByte(msg, #msg)
+    
+    return pWBinary
+end
+
+--取消订阅确认
+function mqtt.UNSUBACK(msgid)
+    assert(msgid)
+    pWBinary:reSetWrite()
+    
+    --可变头
+    local vHead = string.pack(">H", msgid)
+    
+    local fHead = createHead(MsgType.UNSUBACK, 0, 0, 0, #vHead)
+    
+    pWBinary:setByte(fHead, #fHead)
+    pWBinary:setByte(vHead, #vHead)
+    
+    return pWBinary
+end
+
+--PING请求
+function mqtt.PINGREQ()
+    pWBinary:reSetWrite()
+    
+    local fHead = createHead(MsgType.PINGREQ, 0, 0, 0, 0)
+    
+    pWBinary:setByte(fHead, #fHead)
+    
+    return pWBinary
+end
+
+--PING回复
+function mqtt.PINGRESP()
+    pWBinary:reSetWrite()
+    
+    local fHead = createHead(MsgType.PINGRESP, 0, 0, 0, 0)
+    
+    pWBinary:setByte(fHead, #fHead)
+    
+    return pWBinary
+end
+
+--客户端断开连接
+function mqtt.DISCONNECT()
+    pWBinary:reSetWrite()
+    
+    local fHead = createHead(MsgType.DISCONNECT, 0, 0, 0, 0)
+    
+    pWBinary:setByte(fHead, #fHead)
     
     return pWBinary
 end
