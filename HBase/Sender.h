@@ -30,6 +30,7 @@ struct H_Sender
     {};
 };
 
+//ÍøÂç·¢ËÍ·şÎñ
 class CSender : public CRecvTask<H_Sender>, public CSingleton<CSender>
 {
 public:

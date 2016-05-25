@@ -8,6 +8,7 @@
 
 H_BNAMSP
 
+//websocket
 class CWebSock : public CParser, public CSingleton<CWebSock>
 {
 public:

@@ -7,6 +7,7 @@
 
 H_BNAMSP
 
+//RSA√ÿ‘ø
 class CRSAKey
 {
 public:

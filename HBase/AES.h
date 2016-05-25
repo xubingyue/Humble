@@ -14,6 +14,7 @@ enum
     AESKEY_256 = 256
 };
 
+//AESº”Ω‚√‹
 class CAES
 {
 public:

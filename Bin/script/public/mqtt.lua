@@ -31,6 +31,8 @@ local MsgType = {
 }
 MsgType = table.enum(MsgType, 1)
 
+mqtt.Type = MsgType
+
 --客户端请求连接服务器
 local function parseCONNECT(pBinary, tInfo)
     --可变头
@@ -310,7 +312,6 @@ local function createHead(msgtype, dup, qos, retain, lens)
        end
        
        table.insert(tHead, string.pack("B", cDigit))
-       print(lens)
     until(lens <= 0)
     
     return table.concat(tHead, "")
@@ -327,7 +328,7 @@ function mqtt.CONNECT(clinetID, strUser, strPsw,
     pWBinary:reSetWrite()
     
     --可变头
-    local vHead = {}    
+    local vHead = {}
     table.insert(vHead, string.pack(">H", #strProName))
     table.insert(vHead, strProName)
     table.insert(vHead, string.pack("B", iProVersion))

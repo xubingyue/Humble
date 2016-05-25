@@ -6,6 +6,7 @@
 
 H_BNAMSP
 
+//lua ·þÎñ
 class CLuaTask : public CWorkerTask
 {
 public:

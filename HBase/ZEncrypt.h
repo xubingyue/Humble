@@ -6,7 +6,9 @@
 
 H_BNAMSP
 
+//zib —πÀı
 std::string H_ZEncode(const char *pszVal, const size_t iLens);
+//zib Ω‚—π
 std::string H_ZDecode(const char *pszVal, const size_t iLens);
 
 H_ENAMSP

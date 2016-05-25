@@ -7,6 +7,7 @@
 
 H_BNAMSP
 
+//数据包解析基类
 class CParser
 {
 public:
@@ -39,6 +40,7 @@ private:
     std::string m_strName;
 };
 
+//数据包解析管理
 class CNetParser : public CSingleton<CNetParser>
 {
 public:

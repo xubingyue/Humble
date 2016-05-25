@@ -30,6 +30,7 @@
     <ClInclude Include="Config.h" />
     <ClInclude Include="CoreDump.h" />
     <ClInclude Include="CRC.h" />
+    <ClInclude Include="DefParser.h" />
     <ClInclude Include="EvBuffer.h" />
     <ClInclude Include="Funcs.h" />
     <ClInclude Include="HBase.h" />
@@ -229,6 +230,7 @@
     <ClCompile Include="Clock.cpp" />
     <ClCompile Include="CoreDump.cpp" />
     <ClCompile Include="CRC.cpp" />
+    <ClCompile Include="DefParser.cpp" />
     <ClCompile Include="Funcs.cpp" />
     <ClCompile Include="HBase.cpp" />
     <ClCompile Include="HRSA.cpp" />

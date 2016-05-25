@@ -6,6 +6,7 @@
 
 H_BNAMSP
 
+//SnowFlake id
 class CSnowFlake
 {
 public:

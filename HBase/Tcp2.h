@@ -7,6 +7,7 @@
 
 H_BNAMSP
 
+//unsigned short + data
 class CTcp2 : public CParser, public CSingleton<CTcp2>
 {
 public:

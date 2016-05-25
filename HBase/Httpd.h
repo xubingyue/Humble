@@ -7,6 +7,7 @@
 
 H_BNAMSP
 
+//http
 class CHttp : public CParser, public CSingleton<CHttp>
 {
 public:

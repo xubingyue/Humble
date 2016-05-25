@@ -124,6 +124,7 @@ void initParser()
 {
     CNetParser *pParser = CNetParser::getSingletonPtr();
 
+    pParser->addParser(CDefParser::getSingletonPtr());
     pParser->addParser(CTcp1::getSingletonPtr());
     pParser->addParser(CTcp2::getSingletonPtr());
     pParser->addParser(CHttp::getSingletonPtr());

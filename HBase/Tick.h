@@ -9,6 +9,7 @@
 
 H_BNAMSP
 
+//定时器服务
 class CTick : public CNetBase, public CSingleton<CTick>
 {
 public:

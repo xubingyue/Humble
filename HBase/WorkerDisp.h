@@ -10,6 +10,7 @@
 
 H_BNAMSP
 
+//服务调度,服务管理
 class CWorkerDisp : public CTask, public CSingleton<CWorkerDisp>
 {
 public:

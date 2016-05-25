@@ -6,6 +6,7 @@
 
 H_BNAMSP
 
+//网络服务接口实现
 class CLNetDisp : public CSVIntf
 {
 public:

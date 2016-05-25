@@ -82,12 +82,12 @@ function utile.md5File(strFile)
     return md5File(strFile)
 end
 
-function utile.Pack(tVal)
-    return serialize.pack(tVal)
+function utile.Pack(...)
+    return serialize.pack({...})
 end
 
 function utile.unPack(pVal)
-    return serialize.unpack(pVal)
+    return table.unpack(serialize.unpack(pVal))
 end
 
 function utile.md5File(strFile)

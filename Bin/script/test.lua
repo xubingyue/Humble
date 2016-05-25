@@ -14,7 +14,7 @@ end
 
 function runTask()
     local varRecv = pChan:Recv()
-    local itick, icount = table.unpack(utile.unPack(varRecv))
+    local itick, icount = utile.unPack(varRecv)
     --print(string.format("timer task tick %d count %d", itick, icount))    
 end
 

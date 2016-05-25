@@ -72,16 +72,16 @@ function onTcpRead(sock, uiSession, usSockType)
     --local buffer = pBuffer:getByte(pBuffer:getSurpLens())
     
     --websock
-    --local buffer = websock.parsePack(pBuffer)
+    local buffer = websock.parsePack(pBuffer)
     
     --mqtt
-    local buffer = mqtt.parsePack(pBuffer)
+    --local buffer = mqtt.parsePack(pBuffer)
     
     local b = os.clock()
     dTime = dTime + (b - a)
     iCount = iCount + 1 
     
-    tChan.echo:Send(utile.Pack({sock, uiSession, buffer}))
+    tChan.echo:Send(utile.Pack(sock, uiSession, buffer))
 end
 
 function onUdpRead(sock, pHost, usPort)

@@ -6,6 +6,7 @@
 
 H_BNAMSP
 
+//—≠ª∑∂”¡–
 class CCirQueue
 {
 public:

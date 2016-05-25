@@ -7,6 +7,7 @@
 
 H_BNAMSP
 
+//±àÂë¸ñÊ½
 class CCharset
 {
 public:

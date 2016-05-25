@@ -23,7 +23,7 @@ end
 
 function runTask()
     local varRecv = pChan:Recv()
-    local sock, uiSession, strMsg = table.unpack(utile.unPack(varRecv))
+    local sock, uiSession, strMsg = utile.unPack(varRecv)
     
     --http
     --table.print(strMsg)
@@ -34,13 +34,28 @@ function runTask()
     --humble.Send(sock, uiSession, strMsg)
     
     --websock
-    --table.print(strMsg)
-    --local pWBinary = websock.Text(strMsg.info)
-    --humble.SendB(sock, uiSession, pWBinary)
+    table.print(strMsg)
+    local pWBinary = websock.Text(strMsg.info)
+    humble.SendB(sock, uiSession, pWBinary)
     
     --mqtt
+    --[[print(os.date())
     table.print(strMsg)
-    local pWBinary = mqtt.CONNACK(0)
+    local pWBinary
+    if strMsg.fhead.type == mqtt.Type.CONNECT then
+        pWBinary = mqtt.CONNACK(0)
+    end
+    
+    if strMsg.fhead.type == mqtt.Type.SUBSCRIBE then
+        local tTopic = strMsg.payload
+        local tQos = {}
+        for _, val in pairs(tTopic) do
+            table.insert(tQos, val)
+        end
+        
+        pWBinary = mqtt.SUBACK(strMsg.vhead.msgid, tQos)
+    end--]]
+
     humble.SendB(sock, uiSession, pWBinary)
 end
 

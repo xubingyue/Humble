@@ -130,6 +130,7 @@ H_Session *CNetBase::addTcpEv(H_SOCK &sock, const unsigned short &usSockType)
 {
     int iFlag = 1;
     (void)setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (char *)&iFlag, sizeof(iFlag));
+    H_KeepAlive(sock, H_SOCKKEEPALIVE_IDLE, H_SOCKKEEPALIVE_INTERVAL);
     struct bufferevent *pBev = bufferevent_socket_new(getBase(), sock, BEV_OPT_CLOSE_ON_FREE);
     if (NULL == pBev)
     {

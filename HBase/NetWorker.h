@@ -8,6 +8,7 @@
 
 H_BNAMSP
 
+//网络接收服务
 class CNetWorker : public CNetBase, public CSingleton<CNetWorker>
 {
 public:

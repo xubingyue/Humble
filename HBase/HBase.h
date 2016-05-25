@@ -38,6 +38,7 @@
 #include "Linker.h"
 #include "WorkerDisp.h"
 #include "Tick.h"
+#include "DefParser.h"
 #include "Tcp1.h"
 #include "Tcp2.h"
 #include "Httpd.h"

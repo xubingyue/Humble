@@ -7,6 +7,7 @@
 
 H_BNAMSP
 
+//°üÍ·Ààwebsocket
 class CTcp1 : public CParser, public CSingleton<CTcp1>
 {
 public:

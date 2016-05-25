@@ -57,6 +57,7 @@ struct H_Order
     char acHost[H_IPLENS];
 };
 
+//libevent ÍøÂç·â×°
 class CNetBase : public CTask
 {
 public:

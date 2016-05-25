@@ -167,6 +167,7 @@ void CWorkerDisp::Run(void)
     std::string *pTaskNam;
     unsigned short usIndex(H_INIT_NUMBER);
 
+    //初始化所有服务
     for (taskit itTask = m_mapTask.begin(); m_mapTask.end() != itTask; ++itTask)
     {
         itTask->second->initTask();
@@ -221,7 +222,7 @@ void CWorkerDisp::Run(void)
     //停止工作线程
     stopWorker();
     //执行剩余的任务
-    runSurpTask();    
+    runSurpTask();
     //任务清理
     destroyTask();
 

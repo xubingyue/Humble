@@ -6,6 +6,7 @@
 
 H_BNAMSP
 
+//Ïß³Ì
 class CThread
 {
 public:

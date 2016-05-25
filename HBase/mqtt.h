@@ -7,6 +7,7 @@
 
 H_BNAMSP
 
+//MQTT
 class CMQTT : public CParser, public CSingleton<CMQTT>
 {
 public:

@@ -6,6 +6,7 @@
 
 H_BNAMSP
 
+//消息通道
 class CChan
 {
 public:

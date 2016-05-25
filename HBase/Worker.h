@@ -13,6 +13,7 @@ enum
     WS_BUSY,
 };
 
+//服务基类
 class CWorkerTask : public CTask
 {
 public:
@@ -66,6 +67,7 @@ private:
     std::string m_strName;
 };
 
+//服务执行者
 class CWorker : public CRecvTask<CWorkerTask>
 {
 public:

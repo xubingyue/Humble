@@ -6,6 +6,7 @@
 
 H_BNAMSP
 
+//RSAº”Ω‚√‹
 class CRSA
 {
 public:

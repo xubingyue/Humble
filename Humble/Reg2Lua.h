@@ -6,6 +6,7 @@
 
 H_BNAMSP
 
+//向lua 注册c++函数 类 变量....
 void H_RegGlobal(struct lua_State *pLState);
 void H_RegFuncs(struct lua_State *pLState);
 void H_RegNetParser(struct lua_State *pLState);

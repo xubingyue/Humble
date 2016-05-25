@@ -688,6 +688,9 @@
     <ClInclude Include="mqtt.h">
       <Filter>Service\Parser</Filter>
     </ClInclude>
+    <ClInclude Include="DefParser.h">
+      <Filter>Service\Parser</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="jwsmtp\compat.cpp">
@@ -1265,6 +1268,9 @@
       <Filter>3rd\lua\sharedata</Filter>
     </ClCompile>
     <ClCompile Include="mqtt.cpp">
+      <Filter>Service\Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="DefParser.cpp">
       <Filter>Service\Parser</Filter>
     </ClCompile>
   </ItemGroup>

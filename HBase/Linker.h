@@ -14,6 +14,7 @@ struct H_Link
     char *pHost;
 };
 
+//创建socket连接
 class CLinker : public CRecvTask<H_Link>, public CSingleton<CLinker>
 {
 public:
