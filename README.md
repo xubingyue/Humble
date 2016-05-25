@@ -26,11 +26,11 @@ humble.regTask("echo")
 tChan.echo = humble.getChan("echo")                                     
 
 * start模块onTcpRead读取到网络消息并向echo模块发送    
-tChan.echo:Send(utile.Pack({sock, uiSession, buffer}))   
+tChan.echo:Send(utile.Pack(sock, uiSession, buffer))   
 
 * 当有echo:Send调用后会将echo加入到任务队列等待执行(runTask()函数)    
 
 * 执行(runTask()函数)      
 --取出消息   
-local sock, uiSession, buffer = table.unpack(utile.unPack(pChan:Recv()))   
+local sock, uiSession, buffer = utile.unPack(pChan:Recv())   
 ....
