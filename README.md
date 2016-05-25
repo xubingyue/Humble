@@ -1,11 +1,11 @@
 # Humble
-========
+
 Humble是c++、lua语言开发的多线程服务器框架。    
 目前支持MQTT、WebSocket、Http等协议。     
 
 ##一、编译Humble  
 * windows使用vs2015；  
-* linux使用mklib.sh编译依赖库，然后再mk.sh。
+* linux使用mklib.sh编译依赖库，然后再mk.sh。  
 
 ##二、配置文件  
 * config.ini 文件配置服务器启动参数。   
