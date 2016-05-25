@@ -72,7 +72,7 @@ void sigHandEntry(int iSigNum)
 }
 #endif
 
-int init()
+int init(void)
 {
     CLog *pLog = CLog::getSingletonPtr();
     CMail *pMail = CMail::getSingletonPtr();
@@ -120,7 +120,7 @@ int init()
     return H_RTN_OK;
 }
 
-void initParser()
+void initParser(void)
 {
     CNetParser *pParser = CNetParser::getSingletonPtr();
 

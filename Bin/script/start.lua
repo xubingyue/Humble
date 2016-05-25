@@ -34,7 +34,7 @@ local tLinker = g_tLinker
 function onStart()
     tListener.test = humble.addListener(1, "0.0.0.0", 15000)
     --tLinker.test = humble.addTcpLink(1, "127.0.0.1", 15000)  
-    humble.setParser(1, "websock")
+    humble.setParser(1, "tcp1")
     tListener.udp = humble.addUdp("0.0.0.0", 15001)
     
     humble.regTask("echo")
@@ -69,10 +69,10 @@ function onTcpRead(sock, uiSession, usSockType)
     --local buffer = httpd.parsePack(pBuffer)
     
     --tcp1 tcp1
-    --local buffer = pBuffer:getByte(pBuffer:getSurpLens())
+    local buffer = pBuffer:getByte(pBuffer:getSurpLens())
     
     --websock
-    local buffer = websock.parsePack(pBuffer)
+    --local buffer = websock.parsePack(pBuffer)
     
     --mqtt
     --local buffer = mqtt.parsePack(pBuffer)

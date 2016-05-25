@@ -31,12 +31,12 @@ function runTask()
     --humble.SendB(sock, uiSession, pWBinary)
     
     --tcp1 tcp1
-    --humble.Send(sock, uiSession, strMsg)
+    humble.Send(sock, uiSession, strMsg)
     
     --websock
-    table.print(strMsg)
-    local pWBinary = websock.Text(strMsg.info)
-    humble.SendB(sock, uiSession, pWBinary)
+    --table.print(strMsg)
+    --local pWBinary = websock.Text(strMsg.info)
+    --humble.SendB(sock, uiSession, pWBinary)
     
     --mqtt
     --[[print(os.date())
@@ -56,7 +56,7 @@ function runTask()
         pWBinary = mqtt.SUBACK(strMsg.vhead.msgid, tQos)
     end--]]
 
-    humble.SendB(sock, uiSession, pWBinary)
+    --humble.SendB(sock, uiSession, pWBinary)
 end
 
 function destroyTask()
