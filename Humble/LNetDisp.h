@@ -7,7 +7,7 @@
 H_BNAMSP
 
 //网络服务接口实现
-class CLNetDisp : public CSVIntf
+class CLNetDisp : public CSVIntf, public CSingleton<CLNetDisp>
 {
 public:
     CLNetDisp(void);
@@ -40,10 +40,6 @@ private:
     luabridge::LuaRef **m_pLFunc;
     CEvBuffer m_objEvBuffer;
     CBinary m_objBinary;
-
-    double m_dTime;
-    unsigned int m_uiCount;
-    CClock m_objClk;
 };
 
 H_ENAMSP

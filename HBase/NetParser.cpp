@@ -59,4 +59,17 @@ CParser *CNetParser::getParser(const unsigned short &usType)
     return pParser;
 }
 
+const char *CNetParser::getParserNam(const unsigned short usType)
+{
+    m_objTypeLck.rLock();
+    typeit itType = m_mapType.find(usType);
+    if (m_mapType.end() != itType)
+    {
+        return itType->second->getName();
+    }
+    m_objTypeLck.unLock();
+
+    return "";
+}
+
 H_ENAMSP

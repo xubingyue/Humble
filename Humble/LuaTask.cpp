@@ -20,16 +20,6 @@ CLuaTask::CLuaTask(void)
         H_ASSERT(NULL != pRef, "malloc memory error.");
         m_pLFunc[i] = pRef;
     }
-
-    try
-    {
-        H_RegAll(m_pLState);
-        luabridge::setGlobal(m_pLState, getChan(), "g_pChan");
-    }
-    catch (luabridge::LuaException &e)
-    {
-        H_ASSERT(false, e.what());
-    }
 }
 
 CLuaTask::~CLuaTask(void)
@@ -54,6 +44,9 @@ CLuaTask::~CLuaTask(void)
 
 void CLuaTask::initTask(void)
 {
+    H_RegAll(m_pLState);
+    luabridge::setGlobal(m_pLState, getChan(), "g_pChan");
+
     std::string strLuaFile = H_FormatStr("%s%s.lua", g_strScriptPath.c_str(), getName()->c_str());
     if (H_RTN_OK != luaL_dofile(m_pLState, strLuaFile.c_str()))
     {

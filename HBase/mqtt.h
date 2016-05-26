@@ -15,11 +15,6 @@ public:
     ~CMQTT(void);
 
     int parsePack(struct H_Session *, char *pAllBuf, const size_t &iLens, class CBinary *pBinary);
-    const char *creatPack(const char *pszMsg)
-    {
-        return pszMsg;
-    };
-    void creatPack(std::string *pOutBuf, const char *pszMsg, const size_t &iLens);
 
 private:
     H_DISALLOWCOPY(CMQTT);

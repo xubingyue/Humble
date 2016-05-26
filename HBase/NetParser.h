@@ -21,11 +21,6 @@ public:
 
     virtual int parsePack(struct H_Session *pSession, char *pAllBuf, const size_t &iLens, 
         class CBinary *pBinary) = 0;
-    virtual void creatPack(std::string *pOutBuf, const char *pszMsg, const size_t &iLens) = 0;
-    virtual const char *creatPack(const char *pszMsg) 
-    {
-        return NULL;
-    };
 
 protected:
     void setName(const char *pszNam)
@@ -50,6 +45,7 @@ public:
     void addParser(CParser *pParser);
     void setParser(const unsigned short usType, const char *pszName);
     CParser *getParser(const unsigned short &usType);
+    const char *getParserNam(const unsigned short usType);
 
 private:
     H_DISALLOWCOPY(CNetParser);

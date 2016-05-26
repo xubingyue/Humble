@@ -112,13 +112,4 @@ void CTcp1::creatHead(std::string *pOutBuf, const size_t &iLens)
     pOutBuf->append(acHead, iHeadLens);
 }
 
-void CTcp1::creatPack(std::string *pOutBuf, const char *pszMsg, const size_t &iLens)
-{
-    creatHead(pOutBuf, iLens);
-    if (iLens > H_INIT_NUMBER)
-    {
-        pOutBuf->append(pszMsg, iLens);
-    }    
-}
-
 H_ENAMSP

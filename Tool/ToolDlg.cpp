@@ -6,14 +6,61 @@
 #include "Tool.h"
 #include "ToolDlg.h"
 #include "afxdialogex.h"
+#include "ShowDlg.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
 
+#define WM_MESSAGE_SHOWMFCMSG WM_USER + 100
+#define WM_MESSAGE_ENBLELINKBUTT WM_MESSAGE_SHOWMFCMSG + 1
+
 #define TIMERID 1
 #define COMMSELECT "--请选择--"
 #define COMMFOLDER "command"
+
+HWND g_hWnd = NULL;
+
+void showMFCMsg(const char *pszMsg, const unsigned int iLens)
+{
+    char *pBuff = new char[iLens + 1];
+    memset(pBuff, 0, iLens + 1);
+    memcpy(pBuff, pszMsg, iLens);
+
+    SendMessage(g_hWnd, WM_MESSAGE_SHOWMFCMSG, (WPARAM)pBuff, iLens);
+}
+
+void enableLinkButt(void)
+{
+    SendMessage(g_hWnd, WM_MESSAGE_ENBLELINKBUTT, NULL, NULL);
+}
+
+H_BNAMSP
+void H_SetPackPath(struct lua_State *pLState)
+{
+    std::list<std::string> lstDirs;
+
+    H_GetSubDirName(g_strScriptPath.c_str(), lstDirs);
+    luabridge::LuaRef objPack = luabridge::getGlobal(pLState, "package");
+    std::string strPack = objPack["path"];
+    std::string strVal = H_FormatStr("%s?.lua", g_strScriptPath.c_str());
+
+    std::list<std::string>::iterator itDir;
+    for (itDir = lstDirs.begin(); lstDirs.end() != itDir; ++itDir)
+    {
+        strVal = H_FormatStr("%s;%s%s/?.lua", strVal.c_str(), g_strScriptPath.c_str(), itDir->c_str());
+    }
+
+    strVal = H_FormatStr("%s;%sscript/public/?.lua", strVal.c_str(), g_strProPath.c_str());
+    objPack["path"] = H_FormatStr("%s;%s", strPack.c_str(), strVal.c_str());
+}
+void H_RegOther(struct lua_State *pLState)
+{
+    luabridge::getGlobalNamespace(pLState)
+        .addFunction("showMsg", showMFCMsg)
+        .addFunction("enableLinkButt", enableLinkButt);
+}
+H_ENAMSP
 
 // 用于应用程序“关于”菜单项的 CAboutDlg 对话框
 
@@ -27,7 +74,7 @@ public:
 	enum { IDD = IDD_ABOUTBOX };
 #endif
 
-	protected:
+protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV 支持
 
 // 实现
@@ -78,12 +125,14 @@ BEGIN_MESSAGE_MAP(CToolDlg, CDialogEx)
 	ON_WM_QUERYDRAGICON()
     ON_WM_TIMER()
     ON_NOTIFY(NM_RCLICK, IDC_LIST1, &CToolDlg::OnNMRClickList1)
-    ON_COMMAND_RANGE(ID_MenuSave, ID_Clear, &CToolDlg::OnMenuClick)
+    ON_COMMAND_RANGE(ID_MenuSave, ID_Show, &CToolDlg::OnMenuClick)
     ON_BN_CLICKED(IDC_BUTTON4, &CToolDlg::OnBnClickedButton4)
     ON_CBN_SELCHANGE(IDC_COMBO2, &CToolDlg::OnCbnSelchangeCombo2)
     ON_BN_CLICKED(IDC_BUTTON3, &CToolDlg::OnBnClickedButton3)
     ON_BN_CLICKED(IDC_BUTTON1, &CToolDlg::OnBnClickedButton1)
     ON_BN_CLICKED(IDC_BUTTON2, &CToolDlg::OnBnClickedButton2)
+    ON_MESSAGE(WM_MESSAGE_SHOWMFCMSG, ShowMsg)
+    ON_MESSAGE(WM_MESSAGE_ENBLELINKBUTT, EnableLinkButt)
     ON_WM_CLOSE()
 END_MESSAGE_MAP()
 
@@ -120,21 +169,33 @@ BOOL CToolDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// 设置小图标
 
 	// TODO: 在此添加额外的初始化代码
+    g_hWnd = m_hWnd;
+    m_iLinkID = -1;
+    m_usType = H_INIT_NUMBER;
     g_strProPath = H_GetProPath();
-    g_strScriptPath = H_FormatStr("%s%s%s", g_strProPath.c_str(), "script", H_PATH_SEPARATOR);
+    g_strScriptPath = H_FormatStr("%s%s%s", g_strProPath.c_str(), "toolscript", H_PATH_SEPARATOR);
 
     m_CtrOutput.InsertColumn(0, "时间");//添加列
     m_CtrOutput.InsertColumn(1, "信息");
-
     setStyle();
-
     m_CtrOutput.SetColumnWidth(0, 200);//设置列宽
     m_CtrOutput.SetColumnWidth(1, 480);
     m_CtrIp.SetWindowTextA("127.0.0.1");
     m_CtrPort.SetWindowTextA("15000");
 
+    m_pLState = luaL_newstate();
+    luaL_openlibs(m_pLState);
+    H_RegAll(m_pLState);
+    std::string strLuaFile = g_strScriptPath + "send.lua";
+    if (H_RTN_OK != luaL_dofile(m_pLState, strLuaFile.c_str()))
+    {
+        const char *pError = lua_tostring(m_pLState, -1);
+        AfxMessageBox(pError);
+    }
+
     initParser();
     setCommand();
+    startSV();
 
     SetTimer(TIMERID, 1000, 0);
 
@@ -245,7 +306,17 @@ void CToolDlg::OnNMRClickList1(NMHDR *pNMHDR, LRESULT *pResult)
     {
         pSubMenu->EnableMenuItem(ID_MenuSave, MF_BYCOMMAND | MF_DISABLED | MF_GRAYED);
         pSubMenu->EnableMenuItem(ID_Clear, MF_BYCOMMAND | MF_DISABLED | MF_GRAYED);
+        pSubMenu->EnableMenuItem(ID_Show, MF_BYCOMMAND | MF_DISABLED | MF_GRAYED);
     }
+    else
+    {
+        int iCon = m_CtrOutput.GetSelectionMark();
+        if (-1 == iCon)
+        {
+            pSubMenu->EnableMenuItem(ID_Show, MF_BYCOMMAND | MF_DISABLED | MF_GRAYED);
+        }
+    }
+
     pSubMenu->TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, stPoint.x, stPoint.y, this);
     objMenu.Detach();
 
@@ -303,6 +374,20 @@ void CToolDlg::OnMenuClick(UINT nID)
 
             fclose(pFile);
             pFile = NULL;
+        }
+        break;
+
+        case ID_Show:
+        {
+            int iCon = m_CtrOutput.GetSelectionMark();
+            if (-1 != iCon)
+            {
+                CString cstrMsg = m_CtrOutput.GetItemText(iCon, 1);
+                CShowDlg objDlg;
+                objDlg.setFont(&m_objFont);
+                objDlg.setShow(cstrMsg.GetBuffer());
+                objDlg.DoModal();
+            }
         }
         break;
 
@@ -379,10 +464,8 @@ void CToolDlg::initParser(void)
 {
     CNetParser *pParser = CNetParser::getSingletonPtr();
 
-    pParser->addParser(CDefParser::getSingletonPtr());
-    m_CtrParser.AddString(CDefParser::getSingletonPtr()->getName());
     pParser->addParser(CTcp1::getSingletonPtr());
-    m_CtrParser.AddString(CTcp1::getSingletonPtr()->getName());
+    m_CtrParser.AddString(CTcp1::getSingletonPtr()->getName());     
     pParser->addParser(CTcp2::getSingletonPtr());
     m_CtrParser.AddString(CTcp2::getSingletonPtr()->getName());
     pParser->addParser(CHttp::getSingletonPtr());
@@ -391,6 +474,8 @@ void CToolDlg::initParser(void)
     m_CtrParser.AddString(CWebSock::getSingletonPtr()->getName());
     pParser->addParser(CMQTT::getSingletonPtr());
     m_CtrParser.AddString(CMQTT::getSingletonPtr()->getName());
+    pParser->addParser(CDefParser::getSingletonPtr());
+    m_CtrParser.AddString(CDefParser::getSingletonPtr()->getName());
 
     m_CtrParser.SetCurSel(0);
 }
@@ -483,27 +568,157 @@ void CToolDlg::OnCbnSelchangeCombo2()
     }
 }
 
+void CToolDlg::startSV(void)
+{
+    CLog *pLog = CLog::getSingletonPtr();
+    CWorkerDisp *pWorker = CWorkerDisp::getSingletonPtr();
+    CTick *pTick = CTick::getSingletonPtr();
+    CLinker *pLinker = CLinker::getSingletonPtr();
+    CNetWorker *pNet = CNetWorker::getSingletonPtr();
+    CSender *pSender = CSender::getSingletonPtr();
+    unsigned short usThreadNum(1);
+
+    pTick->setTick(20);
+    pWorker->setThreadNum(usThreadNum);
+    pTick->setThreadNum(usThreadNum);
+    pLog->setPriority(LOGLV_DEBUG);
+    std::string strLogFile = H_FormatStr("%s%s%s%s", g_strProPath.c_str(),
+        "log", H_PATH_SEPARATOR, "tool.log");
+    pLog->setLogFile(strLogFile.c_str());
+    pLog->Open();
+
+    pNet->setIntf(CLNetDisp::getSingletonPtr());
+    pTick->setIntf(CLTick::getSingletonPtr());
+
+    CThread::Creat(pLog);
+    pLog->waitStart();
+    CThread::Creat(pLinker);
+    pLinker->waitStart();
+    CThread::Creat(pNet);
+    pNet->waitStart();
+    CThread::Creat(pSender);
+    pSender->waitStart();
+    CThread::Creat(pWorker);
+    pWorker->waitStart();
+    CThread::Creat(pTick);
+    pTick->waitStart();
+}
+
+LRESULT CToolDlg::ShowMsg(WPARAM wParam, LPARAM lParam)
+{
+    char *pMsg = (char*)wParam;
+    size_t uiLens = lParam;
+    std::string strTmp(pMsg, uiLens);
+    H_SafeDelete(pMsg);
+
+    int iRow = m_CtrOutput.InsertItem(0, H_Now().c_str());//插入行
+    m_CtrOutput.SetItemText(iRow, 1, strTmp.c_str());//设置数据
+
+    return 0;
+}
+
+LRESULT CToolDlg::EnableLinkButt(WPARAM wParam, LPARAM lParam)
+{
+    m_CtrLink.EnableWindow(TRUE);
+    m_CtrParser.EnableWindow(TRUE);
+
+    return 0;
+}
+
 //发送
 void CToolDlg::OnBnClickedButton3()
 {
     // TODO: 在此添加控件通知处理程序代码
+    if (-1 == m_iLinkID)
+    {
+        return;
+    }
+
+    CString cstrVal;
+    m_CtrInput.GetWindowTextA(cstrVal);
+    std::string strVal = cstrVal.GetBuffer();
+    m_CtrParser.GetWindowTextA(cstrVal);
+    std::string strParser = cstrVal.GetBuffer();
+
+    if (strVal.empty())
+    {
+        return;
+    }
+
+    try
+    {
+        luabridge::getGlobal(m_pLState, "onSend")(strParser.c_str(), strVal.c_str());
+    }
+    catch (luabridge::LuaException &e)
+    {
+        showMFCMsg(e.what(), strlen(e.what()));
+    }
 }
 
 //连接
 void CToolDlg::OnBnClickedButton1()
 {
     // TODO: 在此添加控件通知处理程序代码
+    if (-1 != m_iLinkID)
+    {
+        return;
+    }
+
+    CString cstrVal;
+
+    m_CtrIp.GetWindowTextA(cstrVal);
+    std::string strIp = cstrVal.GetBuffer();
+    m_CtrPort.GetWindowTextA(cstrVal);
+    unsigned short usPort = atoi(cstrVal.GetBuffer());
+    m_CtrParser.GetWindowTextA(cstrVal);
+    std::string strParser = cstrVal.GetBuffer();
+
+    CNetWorker *pNet = CNetWorker::getSingletonPtr();
+    m_iLinkID = pNet->addTcpLink(m_usType, strIp.c_str(), usPort);
+    CNetParser::getSingletonPtr()->setParser(m_usType, strParser.c_str());
+
+    m_CtrLink.EnableWindow(FALSE);
+    m_CtrParser.EnableWindow(FALSE);
 }
 
-//保存
+//断开
 void CToolDlg::OnBnClickedButton2()
 {
     // TODO: 在此添加控件通知处理程序代码
+    if (-1 == m_iLinkID)
+    {
+        return;
+    }
+
+    CNetWorker::getSingletonPtr()->delTcpLink(m_iLinkID);
+    m_iLinkID = -1;
+    m_CtrLink.EnableWindow(TRUE);
+    m_CtrParser.EnableWindow(TRUE);
 }
 
 void CToolDlg::OnClose()
 {
     // TODO: 在此添加消息处理程序代码和/或调用默认值
+    CLog *pLog = CLog::getSingletonPtr();
+    CWorkerDisp *pWorker = CWorkerDisp::getSingletonPtr();
+    CTick *pTick = CTick::getSingletonPtr();
+    CLinker *pLinker = CLinker::getSingletonPtr();
+    CNetWorker *pNet = CNetWorker::getSingletonPtr();
+    CSender *pSender = CSender::getSingletonPtr();
+
+    pTick->Join();
+    pWorker->Join();
+    pSender->Join();
+    pNet->Join();
+    pLinker->Join();
+    pLog->Join();
+
+    if (NULL != m_pLState)
+    {
+        lua_close(m_pLState);
+        m_pLState = NULL;
+    }
 
     CDialogEx::OnClose();
 }
+

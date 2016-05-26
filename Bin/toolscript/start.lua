@@ -1,8 +1,9 @@
 --[[
-网络器服务
+tool 网络器服务
 --]]
 
 require("macros")
+local msgtype = require("msgtype")
 local humble = require("humble")
 local utile = require("utile")
 local httpd = require("httpd")
@@ -17,47 +18,23 @@ if not g_tChan then
 end
 local tChan = g_tChan
 
-if not g_tListener then
-    g_tListener = {}
-end
-local tListener = g_tListener
-
-if not g_tLinker then
-    g_tLinker = {}
-end
-local tLinker = g_tLinker
-
 --初始化
 function onStart()
-    tListener.test = humble.addListener(1, "0.0.0.0", 15000)
-    --tLinker.test = humble.addTcpLink(1, "127.0.0.1", 15000)  
-    humble.setParser(1, "tcp1")
-    tListener.udp = humble.addUdp("0.0.0.0", 15001)
-    
-    humble.regTask("echo")
-    humble.regTask("test")      
-    
-    tChan.echo = humble.getChan("echo")
+    humble.regTask("tool")
+    tChan.tool = humble.getChan("tool")
 end
-
-local dTime = 0
-local iCount = 0
 
 --退出，主要清理掉连接
 function onStop()
-    humble.closeByType(1)
-    humble.delListener(tListener.test)
-    humble.delUdp(tListener.udp)
-    print(dTime)
-    print(iCount)
+    
 end
 
-function onTcpLinked(sock, uiSession, usSockType)
-    
+function onTcpLinked(sock, uiSession, usSockType)    
+    tChan.tool:Send(utile.Pack(msgtype.link, sock, uiSession, usSockType))
 end
 
 function onTcpClose(sock, uiSession, usSockType)
-    
+    tChan.tool:Send(utile.Pack(msgtype.close, sock, uiSession, usSockType))
 end
 
 function onTcpRead(sock, uiSession, usSockType)
@@ -85,12 +62,10 @@ function onTcpRead(sock, uiSession, usSockType)
     end
     
     if buffer then
-        tChan.echo:Send(utile.Pack(sock, uiSession, strName, buffer))
+        tChan.tool:Send(utile.Pack(msgtype.read, strName, buffer))
     end
 end
 
 function onUdpRead(sock, pHost, usPort)
-    local strBuf = pBuffer:getByte(pBuffer:getSurpLens())
-    humble.sendU(sock, pHost, usPort, strBuf.."lua1")
-    humble.broadCastU(sock, usPort, strBuf.."lua2")
+    
 end

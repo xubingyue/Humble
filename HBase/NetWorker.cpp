@@ -195,7 +195,6 @@ void CNetWorker::onOrder(H_Order *pOrder)
 
             H_Printf("listen at host %s port %d.", pOrder->acHost, pOrder->usPort);            
             m_mapListener[pOrder->uiSession] = pListener;
-            CSender::getSingletonPtr()->addBuffer(pListener->usType);
         }
         break;
 
@@ -227,7 +226,6 @@ void CNetWorker::onOrder(H_Order *pOrder)
             pTcpLink->pMonitor = monitorLink(pTcpLink);
             m_mapTcpLink[pTcpLink->uiID] = pTcpLink;
             CLinker::getSingletonPtr()->addLink(pTcpLink->uiID, pTcpLink->acHost, pTcpLink->usPort);
-            CSender::getSingletonPtr()->addBuffer(pTcpLink->usSockType);
         }
         break;
 
@@ -239,7 +237,7 @@ void CNetWorker::onOrder(H_Order *pOrder)
                 itTcpLink->second->sock = pOrder->sock;
                 H_Session *pSession = addTcpEv(itTcpLink->second->sock, itTcpLink->second->usSockType);
                 pSession->bLinker = true;
-            }            
+            }
         }
         break;
 
@@ -248,6 +246,11 @@ void CNetWorker::onOrder(H_Order *pOrder)
             tcplinkit itTcpLink = m_mapTcpLink.find(pOrder->uiSession);
             if (m_mapTcpLink.end() != itTcpLink)
             {
+                if (H_INVALID_SOCK != itTcpLink->second->sock)
+                {
+                    delSession(itTcpLink->second->sock);
+                }
+
                 event_free(itTcpLink->second->pMonitor);
                 H_SafeDelete(itTcpLink->second);
 
@@ -321,7 +324,7 @@ void CNetWorker::onClose(H_Session *pSession)
 
 void CNetWorker::onLinked(H_Session *pSession)
 {
-    CSender::getSingletonPtr()->addSock(pSession->sock, pSession->uiSession, pSession->usSockType);
+    CSender::getSingletonPtr()->addSock(pSession->sock, pSession->uiSession);
     m_pIntf->onTcpLinked(pSession);
 }
 

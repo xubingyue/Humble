@@ -33,6 +33,21 @@
     <ClInclude Include="resource.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="..\Humble\LNetDisp.h">
+      <Filter>Tool</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Humble\LTick.h">
+      <Filter>Tool</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Humble\LuaTask.h">
+      <Filter>Tool</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Humble\Reg2Lua.h">
+      <Filter>Tool</Filter>
+    </ClInclude>
+    <ClInclude Include="ShowDlg.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Tool.cpp">
@@ -42,6 +57,21 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="stdafx.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Humble\LNetDisp.cpp">
+      <Filter>Tool</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Humble\LTick.cpp">
+      <Filter>Tool</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Humble\LuaTask.cpp">
+      <Filter>Tool</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Humble\Reg2Lua.cpp">
+      <Filter>Tool</Filter>
+    </ClCompile>
+    <ClCompile Include="ShowDlg.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

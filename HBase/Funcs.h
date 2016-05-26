@@ -30,6 +30,7 @@ int H_FileExist(const char *pszFileName);
 int H_FileSize(const char *pszFileName, unsigned long &ulSize);
 int H_DirName(const char *pszPath, std::string &strPath);
 std::string H_GetProPath(void);
+void H_GetSubDirName(const char *pszParentPathName, std::list<std::string> &lstDirName);
 
 //ϵͳ
 unsigned int H_GetThreadID(void);

@@ -53,46 +53,26 @@ public:
     void broadCastU(H_SOCK sock, unsigned short usPort, const char *pBuf, const size_t iLens);
     void broadCastUBinary(H_SOCK sock, unsigned short usPort, CBinary *pBinary);
 
-    void addSock(H_SOCK &sock, const unsigned int &uiSession, unsigned short &usType);
-    void delSock(H_SOCK &sock);
-
-    void addBuffer(const unsigned short &usType);
-
-private:
-    struct H_TypeSession
-    {
-        unsigned short usType;
-        unsigned int uiSession;
-    };    
+    void addSock(H_SOCK &sock, const unsigned int &uiSession);
+    void delSock(H_SOCK &sock); 
 
 private:
     void sendToSock(H_SOCK &fd, const unsigned int &uiSession, const char *pBuf, const size_t &iLens);
     void broadCast(H_SenderSock *pSock, const int &iCount, const char *pBuf, const size_t &iLens);
     H_SenderSock *createSenderSock(luabridge::LuaRef &lTable);
 
-    struct H_SenderBuf *getBuffer(const unsigned short &usType);
-    void cleanBuffer(H_SOCK &fd, const unsigned int &uiSession);
-    struct H_SenderBuf *createPack(const char *pBuf, const size_t &iLens, const unsigned short &usType);
-    void addBufferMap(const unsigned short &usType);
-
 private:
     H_DISALLOWCOPY(CSender); 
 #ifdef H_OS_WIN 
-    #define senderit std::unordered_map<H_SOCK, H_TypeSession>::iterator
-    #define sender_map std::unordered_map<H_SOCK, H_TypeSession>
-    #define bufferit std::unordered_map<unsigned short, struct H_SenderBuf *>::iterator
-    #define buffer_map std::unordered_map<unsigned short, struct H_SenderBuf *>
+    #define senderit std::unordered_map<H_SOCK, H_SenderSock>::iterator
+    #define sender_map std::unordered_map<H_SOCK, H_SenderSock>
 #else
-    #define senderit std::tr1::unordered_map<H_SOCK, H_TypeSession>::iterator
-    #define sender_map std::tr1::unordered_map<H_SOCK, H_TypeSession>
-    #define bufferit std::tr1::unordered_map<unsigned short, struct H_SenderBuf *>::iterator
-    #define buffer_map std::tr1::unordered_map<unsigned short, struct H_SenderBuf *>
+    #define senderit std::tr1::unordered_map<H_SOCK, H_SenderSock>::iterator
+    #define sender_map std::tr1::unordered_map<H_SOCK, H_SenderSock>
 #endif
 
 private:
     sender_map m_mapSender;
-    buffer_map m_mapBuffer;
-    CRWLock m_objLck;
     CNETAddr m_objAddr;
 };
 

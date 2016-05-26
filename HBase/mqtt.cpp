@@ -84,9 +84,4 @@ int CMQTT::parsePack(struct H_Session *, char *pAllBuf, const size_t &iLens, cla
     return (int)(iHeadLens + iBufferLens);
 }
 
-void CMQTT::creatPack(std::string *pOutBuf, const char *pszMsg, const size_t &iLens)
-{
-
-}
-
 H_ENAMSP

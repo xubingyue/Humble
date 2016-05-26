@@ -1,5 +1,3 @@
-local strpubdir = string.format("%s%s%s", g_strScriptPath, "public", "/")
-package.path = string.format("%s;%s?.lua", package.path, strpubdir)
 
 require("macros")
 local humble = require("humble")

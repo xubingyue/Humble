@@ -6,7 +6,10 @@
 
 #include "afxwin.h"
 #include "afxcmn.h"
-#include "../HBase/HBase.h"
+#include "../Humble/LNetDisp.h"
+#include "../Humble/LTick.h"
+#include "../Humble/LuaTask.h"
+
 using namespace Humble;
 
 // CToolDlg 对话框
@@ -21,7 +24,7 @@ public:
 	enum { IDD = IDD_TOOL_DIALOG };
 #endif
 
-	protected:
+protected:
 	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV 支持
 
 private:
@@ -29,11 +32,15 @@ private:
     void getAllFileName(const char *pszParentPathName, std::list<std::string> &lstFileName);
     void setCommand(void);
     void initParser(void);
+    void startSV(void);
 
 // 实现
 protected:
+    unsigned short m_usType;
 	HICON m_hIcon;
+    int m_iLinkID;
     std::list<std::string> m_lstCommName;
+    struct lua_State *m_pLState;
 
 	// 生成的消息映射函数
 	virtual BOOL OnInitDialog();
@@ -48,6 +55,8 @@ protected:
     afx_msg void OnBnClickedButton3();
     afx_msg void OnBnClickedButton1();
     afx_msg void OnBnClickedButton2();
+    afx_msg LRESULT ShowMsg(WPARAM wParam, LPARAM lParam);
+    afx_msg LRESULT EnableLinkButt(WPARAM wParam, LPARAM lParam);
     afx_msg void OnClose();
 	DECLARE_MESSAGE_MAP()
 
@@ -63,3 +72,5 @@ public:
     CButton m_CtrClose;
     CStatic m_CtrTotalNum;    
 };
+
+extern HWND g_hWnd;

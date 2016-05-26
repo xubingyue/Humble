@@ -228,6 +228,100 @@ std::string H_GetProPath(void)
     return strPath;
 }
 
+void H_GetSubDirName(const char *pszParentPathName, std::list<std::string> &lstDirName)
+{
+#ifdef H_OS_WIN
+    WIN32_FIND_DATA fd = { 0 };
+    HANDLE hSearch;
+    std::string strFilePathName;
+    strFilePathName = pszParentPathName + std::string("\\*");
+
+    hSearch = FindFirstFile(strFilePathName.c_str(), &fd);
+    if (INVALID_HANDLE_VALUE == hSearch)
+    {
+        return;
+    }
+
+    if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY
+        && !(fd.dwFileAttributes & FILE_ATTRIBUTE_SYSTEM)
+        && !(fd.dwFileAttributes & FILE_ATTRIBUTE_DEVICE)
+        && !(fd.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN))
+    {
+        if (strcmp(fd.cFileName, ".")
+            && strcmp(fd.cFileName, ".."))
+        {
+            lstDirName.push_back(fd.cFileName);
+        }
+    }
+
+    for (;;)
+    {
+        memset(&fd, 0, sizeof(fd));
+        if (!FindNextFile(hSearch, &fd))
+        {
+            if (ERROR_NO_MORE_FILES == GetLastError())
+            {
+                break;
+            }
+
+            FindClose(hSearch);
+
+            return;
+        }
+
+        if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY
+            && !(fd.dwFileAttributes & FILE_ATTRIBUTE_SYSTEM)
+            && !(fd.dwFileAttributes & FILE_ATTRIBUTE_DEVICE)
+            && !(fd.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN))
+        {
+            if (strcmp(fd.cFileName, ".")
+                && strcmp(fd.cFileName, ".."))
+            {
+                lstDirName.push_back(fd.cFileName);
+            }
+        }
+    }
+
+    FindClose(hSearch);
+
+    return;
+#else
+    DIR *dir;
+    struct dirent *ptr;
+    struct stat strFileInfo = { 0 };
+    char acFullName[Q_FILEPATH_LENS] = { 0 };
+    dir = opendir(pszParentPathName);
+    if (NULL == dir)
+    {
+        return;
+    }
+
+    while ((ptr = readdir(dir)) != NULL)
+    {
+        Q_Snprintf(acFullName, sizeof(acFullName) - 1, "%s/%s", pszParentPathName, ptr->d_name);
+        if (lstat(acFullName, &strFileInfo) < 0)
+        {
+            closedir(dir);
+
+            return;
+        }
+
+        if (S_ISDIR(strFileInfo.st_mode))
+        {
+            if (strcmp(ptr->d_name, ".")
+                && strcmp(ptr->d_name, ".."))
+            {
+                lstDirName.push_back(ptr->d_name);
+            }
+        }
+    }
+
+    closedir(dir);
+
+    return;
+#endif
+}
+
 void H_Split(const std::string &strSource, const char *pszFlag,
     std::list<std::string> &lstRst)
 {

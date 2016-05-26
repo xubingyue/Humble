@@ -3,6 +3,9 @@
 
 H_BNAMSP
 
+SINGLETON_INIT(CLNetDisp)
+CLNetDisp objLNetDisp;
+
 CLNetDisp::CLNetDisp(void) : m_pLState(NULL), m_pLFunc(NULL)
 {
     m_pLFunc = new(std::nothrow) luabridge::LuaRef *[LCount];
@@ -19,33 +22,6 @@ CLNetDisp::CLNetDisp(void) : m_pLState(NULL), m_pLFunc(NULL)
         H_ASSERT(NULL != pRef, "malloc memory error.");
         m_pLFunc[i] = pRef;
     }
-
-    try
-    {
-        H_RegAll(m_pLState);
-        luabridge::setGlobal(m_pLState, &m_objBinary, "g_pBuffer");
-    }
-    catch (luabridge::LuaException &e)
-    {
-        H_ASSERT(false, e.what());
-    }
-
-    std::string strLuaFile = g_strScriptPath +  "start.lua";
-    if (H_RTN_OK != luaL_dofile(m_pLState, strLuaFile.c_str()))
-    {
-        const char *pError = lua_tostring(m_pLState, -1);
-        H_ASSERT(false, pError);
-    }
-
-    *(m_pLFunc[LOnstart]) = luabridge::getGlobal(m_pLState, "onStart");
-    *(m_pLFunc[LOnStop]) = luabridge::getGlobal(m_pLState, "onStop");
-    *(m_pLFunc[LOnTcpLinked]) = luabridge::getGlobal(m_pLState, "onTcpLinked");
-    *(m_pLFunc[LOnTcpClose]) = luabridge::getGlobal(m_pLState, "onTcpClose");
-    *(m_pLFunc[LOnTcpRead]) = luabridge::getGlobal(m_pLState, "onTcpRead");
-    *(m_pLFunc[LOnUdpRead]) = luabridge::getGlobal(m_pLState, "onUdpRead");
-
-    m_dTime = 0.0;
-    m_uiCount = 0;
 }
 
 CLNetDisp::~CLNetDisp(void)
@@ -70,6 +46,23 @@ CLNetDisp::~CLNetDisp(void)
 
 void CLNetDisp::onStart(void)
 {
+    H_RegAll(m_pLState);
+    luabridge::setGlobal(m_pLState, &m_objBinary, "g_pBuffer");
+
+    std::string strLuaFile = g_strScriptPath + "start.lua";
+    if (H_RTN_OK != luaL_dofile(m_pLState, strLuaFile.c_str()))
+    {
+        const char *pError = lua_tostring(m_pLState, -1);
+        H_ASSERT(false, pError);
+    }
+
+    *(m_pLFunc[LOnstart]) = luabridge::getGlobal(m_pLState, "onStart");
+    *(m_pLFunc[LOnStop]) = luabridge::getGlobal(m_pLState, "onStop");
+    *(m_pLFunc[LOnTcpLinked]) = luabridge::getGlobal(m_pLState, "onTcpLinked");
+    *(m_pLFunc[LOnTcpClose]) = luabridge::getGlobal(m_pLState, "onTcpClose");
+    *(m_pLFunc[LOnTcpRead]) = luabridge::getGlobal(m_pLState, "onTcpRead");
+    *(m_pLFunc[LOnUdpRead]) = luabridge::getGlobal(m_pLState, "onUdpRead");
+
     try
     {
         (*(m_pLFunc[LOnstart]))();
@@ -82,8 +75,6 @@ void CLNetDisp::onStart(void)
 
 void CLNetDisp::onStop(void)
 {
-    H_Printf("%f", m_dTime);
-    H_Printf("%d", m_uiCount);
     try
     {
         (*(m_pLFunc[LOnStop]))();
@@ -127,8 +118,6 @@ H_INLINE void CLNetDisp::onTcpClose(struct H_Session *pSession)
 
 H_INLINE void CLNetDisp::onTcpRead(struct H_Session *pSession)
 {
-    m_objClk.reStart();
-
     CParser *pParser = CNetParser::getSingletonPtr()->getParser(pSession->usSockType);
     if (NULL == pParser)
     {
@@ -186,9 +175,6 @@ H_INLINE void CLNetDisp::onTcpRead(struct H_Session *pSession)
     }
 
     m_objEvBuffer.delBuffer(iParsed);
-
-    m_dTime += m_objClk.Elapsed();
-    ++m_uiCount;
 }
 
 H_INLINE void CLNetDisp::onUdpRead(H_SOCK &sock, const char *pHost, unsigned short usPort,

@@ -15,7 +15,6 @@ public:
     ~CTcp2(void);
 
     int parsePack(struct H_Session *, char *pAllBuf, const size_t &iLens, class CBinary *pBinary);
-    void creatPack(std::string *pOutBuf, const char *pszMsg, const size_t &iLens);
 
 private:
     H_DISALLOWCOPY(CTcp2);

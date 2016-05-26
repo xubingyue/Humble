@@ -198,13 +198,23 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\Humble\LNetDisp.h" />
+    <ClInclude Include="..\Humble\LTick.h" />
+    <ClInclude Include="..\Humble\LuaTask.h" />
+    <ClInclude Include="..\Humble\Reg2Lua.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="ShowDlg.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="Tool.h" />
     <ClInclude Include="ToolDlg.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\Humble\LNetDisp.cpp" />
+    <ClCompile Include="..\Humble\LTick.cpp" />
+    <ClCompile Include="..\Humble\LuaTask.cpp" />
+    <ClCompile Include="..\Humble\Reg2Lua.cpp" />
+    <ClCompile Include="ShowDlg.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

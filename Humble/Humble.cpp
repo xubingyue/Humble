@@ -17,6 +17,30 @@ using namespace Humble;
 
 CCoreDump g_objDump();
 
+H_BNAMSP
+void H_SetPackPath(struct lua_State *pLState)
+{    
+    std::list<std::string> lstDirs;
+
+    H_GetSubDirName(g_strScriptPath.c_str(), lstDirs);
+    luabridge::LuaRef objPack = luabridge::getGlobal(pLState, "package");
+    std::string strPack = objPack["path"];
+    std::string strVal = H_FormatStr("%s?.lua", g_strScriptPath.c_str());
+
+    std::list<std::string>::iterator itDir;
+    for (itDir = lstDirs.begin(); lstDirs.end() != itDir; ++itDir)
+    {
+        strVal = H_FormatStr("%s;%s%s/?.lua", strVal.c_str(), g_strScriptPath.c_str(), itDir->c_str());
+    }
+
+    objPack["path"] = H_FormatStr("%s;%s", strPack.c_str(), strVal.c_str());
+}
+void H_RegOther(struct lua_State *pLState)
+{
+
+}
+H_ENAMSP
+
 #ifdef H_OS_WIN
 BOOL WINAPI consoleHandler(DWORD msgType)
 {
@@ -141,11 +165,9 @@ void runSV(void)
     CWorkerDisp *pWorker = CWorkerDisp::getSingletonPtr();
     CSender *pSender = CSender::getSingletonPtr();
     CTick *pTick = CTick::getSingletonPtr();
-    CLNetDisp objNetIntf;
-    CLTick objTickIntf;
 
-    pNet->setIntf(&objNetIntf);
-    pTick->setIntf(&objTickIntf);
+    pNet->setIntf(CLNetDisp::getSingletonPtr());
+    pTick->setIntf(CLTick::getSingletonPtr());
 
     CThread::Creat(pLog);
     pLog->waitStart();

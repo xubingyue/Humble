@@ -3,6 +3,9 @@
 
 H_BNAMSP
 
+SINGLETON_INIT(CLTick)
+CLTick objLTick;
+
 CLTick::CLTick(void) : m_pLState(NULL), m_pLFunc(NULL)
 {
     m_pLFunc = new(std::nothrow) luabridge::LuaRef *[LCount];
@@ -19,26 +22,6 @@ CLTick::CLTick(void) : m_pLState(NULL), m_pLFunc(NULL)
         H_ASSERT(NULL != pRef, "malloc memory error.");
         m_pLFunc[i] = pRef;
     }
-
-    try
-    {
-        H_RegAll(m_pLState);
-    }
-    catch (luabridge::LuaException &e)
-    {
-        H_ASSERT(false, e.what());
-    }
-
-    std::string strLuaFile = g_strScriptPath + "tick.lua";
-    if (H_RTN_OK != luaL_dofile(m_pLState, strLuaFile.c_str()))
-    {
-        const char *pError = lua_tostring(m_pLState, -1);
-        H_ASSERT(false, pError);
-    }
-
-    *(m_pLFunc[LOnStart]) = luabridge::getGlobal(m_pLState, "onStart");
-    *(m_pLFunc[LOnStop]) = luabridge::getGlobal(m_pLState, "onStop");
-    *(m_pLFunc[LOnTime]) = luabridge::getGlobal(m_pLState, "onTimer");
 }
 
 CLTick::~CLTick(void)
@@ -63,6 +46,19 @@ CLTick::~CLTick(void)
 
 void CLTick::onStart(void)
 {
+    H_RegAll(m_pLState);
+
+    std::string strLuaFile = g_strScriptPath + "tick.lua";
+    if (H_RTN_OK != luaL_dofile(m_pLState, strLuaFile.c_str()))
+    {
+        const char *pError = lua_tostring(m_pLState, -1);
+        H_ASSERT(false, pError);
+    }
+
+    *(m_pLFunc[LOnStart]) = luabridge::getGlobal(m_pLState, "onStart");
+    *(m_pLFunc[LOnStop]) = luabridge::getGlobal(m_pLState, "onStop");
+    *(m_pLFunc[LOnTime]) = luabridge::getGlobal(m_pLState, "onTimer");
+
     try
     {
         (*(m_pLFunc[LOnStart]))();

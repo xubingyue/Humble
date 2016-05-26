@@ -107,9 +107,4 @@ int CHttp::parsePack(struct H_Session *, char *pAllBuf, const size_t &iLens, cla
     return (int)iTotalLens;
 }
 
-const char *CHttp::creatPack(const char *pszMsg)
-{
-    return pszMsg;
-}
-
 H_ENAMSP

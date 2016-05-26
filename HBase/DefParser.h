@@ -16,14 +16,6 @@ public:
 
     int parsePack(struct H_Session *pSession, char *pAllBuf, const size_t &iLens,
         class CBinary *pBinary);
-    void creatPack(std::string *pOutBuf, const char *pszMsg, const size_t &iLens) 
-    {
-
-    };
-    const char *creatPack(const char *pszMsg)
-    {
-        return pszMsg;
-    };
 
 private:
     H_DISALLOWCOPY(CDefParser);

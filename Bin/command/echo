@@ -1,0 +1,4 @@
+local tcp1 = require("tcp1")
+
+local strMsg = "this is echo test"
+return tcp1.Response(strMsg)

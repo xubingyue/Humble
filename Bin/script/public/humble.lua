@@ -23,6 +23,9 @@ end
 function humble.setParser(usSockType, strName)
     return pNetParser:setParser(usSockType, strName)
 end
+function humble.getParserNam(usSockType)
+    return pNetParser:getParserNam(usSockType)
+end
 function humble.addListener(usSockType, strHost, usPort)
     return pNet:addListener(usSockType, strHost, usPort)
 end

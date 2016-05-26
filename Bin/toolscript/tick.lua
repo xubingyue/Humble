@@ -1,8 +1,9 @@
 --[[
-定时器服务
+tool 定时器服务
 --]]
 
 require("macros")
+local msgtype = require("msgtype")
 local humble = require("humble")
 local utile = require("utile")
 
@@ -12,7 +13,7 @@ end
 local tChan = g_tChan
 
 function onStart()
-    tChan.timer = humble.getChan("test")
+    tChan.tool = humble.getChan("tool")
 end
 
 function onStop()
@@ -20,11 +21,9 @@ function onStop()
 end
 
 function onTimer(uiTick, uiCount)
-    tChan.timer:Send(utile.Pack(uiTick, uiCount))
-    
+    tChan.tool:Send(utile.Pack(msgtype.tick, uiTick, uiCount))
     --1秒
     if 0 == ((uiTick * uiCount) % 1000) then 
-        --print("1 sec")
-        --print(string.format("cur load %d.", humble.getCurLoad()))
+        tChan.tool:Send(utile.Pack(msgtype.onesec))
     end
 end

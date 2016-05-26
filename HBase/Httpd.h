@@ -15,12 +15,6 @@ public:
     ~CHttp(void);
 
     int parsePack(struct H_Session *, char *pAllBuf, const size_t &iLens, class CBinary *pBinary);
-    void creatPack(std::string *, const char *, const size_t &)
-    {
-
-    };
-
-    const char *creatPack(const char *pszMsg);
 
 private:
     H_DISALLOWCOPY(CHttp);

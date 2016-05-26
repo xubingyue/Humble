@@ -7,7 +7,7 @@
 H_BNAMSP
 
 //定时器服务接口实现
-class CLTick : public CSVIntf
+class CLTick : public CSVIntf, public CSingleton<CLTick>
 {
 public:
     CLTick(void);

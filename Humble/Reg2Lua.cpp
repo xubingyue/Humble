@@ -36,6 +36,16 @@ CWorkerTask *newLuaTask(void)
     return new CLuaTask();
 }
 
+const char *getProPath(void)
+{
+    return g_strProPath.c_str();
+}
+
+const char *getScriptPath(void)
+{
+    return g_strScriptPath.c_str();
+}
+
 void H_RegAll(struct lua_State *pLState)
 {
     H_RegBinary(pLState);
@@ -56,6 +66,8 @@ void H_RegAll(struct lua_State *pLState)
     H_RegWorkerDisp(pLState);
     H_RegWorkerTask(pLState);
     H_RegChan(pLState);
+    H_SetPackPath(pLState);
+    H_RegOther(pLState);
     H_RegGlobal(pLState);
 }
 
@@ -229,8 +241,6 @@ void H_RegCharset(struct lua_State *pLState)
 
 void H_RegGlobal(struct lua_State *pLState)
 {
-    luabridge::setGlobal(pLState, g_strProPath, "g_strProPath");
-    luabridge::setGlobal(pLState, g_strScriptPath, "g_strScriptPath");
     luabridge::setGlobal(pLState, CNetWorker::getSingletonPtr(), "g_pNetWorker");
     luabridge::setGlobal(pLState, CSender::getSingletonPtr(), "g_pSender");
     luabridge::setGlobal(pLState, CMail::getSingletonPtr(), "g_pEmail");
@@ -253,7 +263,9 @@ void H_RegFuncs(struct lua_State *pLState)
         .addFunction("b64Decode", H_B64Decode)
         .addFunction("md5Str", md5Str)
         .addFunction("md5File", md5File)
-        .addFunction("newLuaTask", newLuaTask);
+        .addFunction("newLuaTask", newLuaTask)
+        .addFunction("getProPath", getProPath)
+        .addFunction("getScriptPath", getScriptPath);
 }
 
 void H_RegNetParser(struct lua_State *pLState)
@@ -261,6 +273,7 @@ void H_RegNetParser(struct lua_State *pLState)
     luabridge::getGlobalNamespace(pLState)
         .beginClass<CNetParser>("CNetParser")
             .addFunction("setParser", &CNetParser::setParser)
+            .addFunction("getParserNam", &CNetParser::getParserNam)
         .endClass();
 }
 
