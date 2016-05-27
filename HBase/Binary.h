@@ -117,7 +117,7 @@ private:
             return H_INIT_NUMBER;
         }
 
-        T varVal = *((T*)(m_pParseBuffer + m_iCurParseLens));
+        T varVal(*((T*)(m_pParseBuffer + m_iCurParseLens)));
         m_iCurParseLens += sizeof(T);
 
         return varVal;
