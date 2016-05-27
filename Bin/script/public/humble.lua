@@ -1,5 +1,5 @@
 --[[
-C++全局函数
+C++函数
 --]]
 
 local serialize = require("serialize")
