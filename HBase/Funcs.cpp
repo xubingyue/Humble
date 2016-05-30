@@ -289,7 +289,7 @@ void H_GetSubDirName(const char *pszParentPathName, std::list<std::string> &lstD
     DIR *dir;
     struct dirent *ptr;
     struct stat strFileInfo = { 0 };
-    char acFullName[Q_FILEPATH_LENS] = { 0 };
+    char acFullName[H_FILEPATH_LENS] = { 0 };
     dir = opendir(pszParentPathName);
     if (NULL == dir)
     {
@@ -298,7 +298,7 @@ void H_GetSubDirName(const char *pszParentPathName, std::list<std::string> &lstD
 
     while ((ptr = readdir(dir)) != NULL)
     {
-        Q_Snprintf(acFullName, sizeof(acFullName) - 1, "%s/%s", pszParentPathName, ptr->d_name);
+        H_Snprintf(acFullName, sizeof(acFullName) - 1, "%s/%s", pszParentPathName, ptr->d_name);
         if (lstat(acFullName, &strFileInfo) < 0)
         {
             closedir(dir);
