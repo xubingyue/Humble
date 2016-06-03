@@ -208,7 +208,7 @@ void runSV(void)
 }
 
 int main(int argc, char *argv[])
-{    
+{
     g_strProPath = H_GetProPath();
     g_strScriptPath = H_FormatStr("%s%s%s", g_strProPath.c_str(), "script", H_PATH_SEPARATOR);
 
