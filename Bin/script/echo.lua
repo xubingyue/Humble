@@ -27,14 +27,14 @@ function runTask()
     
     if "tcp1" == strName then
         local pWBinary = tcp1.Response(strMsg)
-        humble.SendB(sock, uiSession, pWBinary)       
+        humble.sendB(sock, uiSession, pWBinary)       
     elseif "tcp2" == strName then
         local pWBinary = tcp2.Response(strMsg)
-        humble.SendB(sock, uiSession, pWBinary)  
+        humble.sendB(sock, uiSession, pWBinary)  
     elseif "websock" == strName then
         table.print(strMsg)
         local pWBinary = websock.Text(strMsg.info)
-        humble.SendB(sock, uiSession, pWBinary)
+        humble.sendB(sock, uiSession, pWBinary)
     elseif "mqtt" == strName then
         table.print(strMsg)
         local pWBinary
@@ -51,14 +51,14 @@ function runTask()
             
             pWBinary = mqtt.SUBACK(strMsg.vhead.msgid, tQos)
         end
-        humble.SendB(sock, uiSession, pWBinary)
+        humble.sendB(sock, uiSession, pWBinary)
     elseif "http" == strName then
         table.print(strMsg)
         local pWBinary = httpd.Response(200, "hello word")
-        humble.SendB(sock, uiSession, pWBinary)
+        humble.sendB(sock, uiSession, pWBinary)
     elseif "default" == strName then
         local pWBinary = def.Response(strMsg)
-        humble.SendB(sock, uiSession, pWBinary)  
+        humble.sendB(sock, uiSession, pWBinary)  
     else
         assert(false)
     end

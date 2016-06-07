@@ -27,8 +27,7 @@ struct H_Listener
     CNetWorker *pNetWorker;
 };
 
-CNetWorker::CNetWorker(void) : m_uiID(H_INIT_NUMBER), m_uiMaxLoad(H_INIT_NUMBER), 
-    m_uiCurLoad(H_INIT_NUMBER), m_pIntf(NULL)
+CNetWorker::CNetWorker(void) : m_uiID(H_INIT_NUMBER), m_pIntf(NULL)
 {
     m_stBinary.iLens = 4 * H_ONEK;
     m_stBinary.pBufer = (char*)malloc(m_stBinary.iLens);
@@ -112,20 +111,8 @@ void CNetWorker::acceptCB(struct evconnlistener *, H_SOCK sock, struct sockaddr 
         evutil_closesocket(sock);
         return;
     }
-
-    unsigned int uiMaxLoad(pListener->pNetWorker->getMaxLoad());
-    unsigned int uiCurLoad(pListener->pNetWorker->getCurLoad());
-    if (H_INIT_NUMBER != uiMaxLoad
-        && uiCurLoad >= uiMaxLoad)
-    {
-        evutil_closesocket(sock);
-        return;
-    }
     
-    if (NULL != pListener->pNetWorker->addTcpEv(sock, pListener->usType))
-    {
-        pListener->pNetWorker->addCurLoad();
-    }    
+    (void)pListener->pNetWorker->addTcpEv(sock, pListener->usType);
 }
 
 void CNetWorker::udpCB(H_SOCK sock, short sEv, void *arg)
@@ -315,10 +302,6 @@ void CNetWorker::onClose(H_Session *pSession)
             }            
         }
     }
-    else
-    {
-        subCurLoad();
-    }
     m_pIntf->onTcpClose(pSession);
 }
 
@@ -331,31 +314,6 @@ void CNetWorker::onLinked(H_Session *pSession)
 void CNetWorker::onRead(H_Session *pSession)
 {
     m_pIntf->onTcpRead(pSession);
-}
-
-void CNetWorker::setMaxLoad(const unsigned int uiLoad)
-{
-    H_AtomicSet(&m_uiMaxLoad, uiLoad);
-}
-
-unsigned int CNetWorker::getMaxLoad(void)
-{
-    return H_AtomicGet(&m_uiMaxLoad);
-}
-
-unsigned int CNetWorker::getCurLoad(void)
-{
-    return H_AtomicGet(&m_uiCurLoad);
-}
-
-void CNetWorker::addCurLoad(void)
-{
-    H_AtomicAdd(&m_uiCurLoad, 1);
-}
-
-void CNetWorker::subCurLoad(void)
-{
-    H_AtomicAdd(&m_uiCurLoad, -1);
 }
 
 unsigned int CNetWorker::addListener(const unsigned short usSockType, const char *pszHost, const unsigned short usPort)

@@ -87,25 +87,5 @@ end
 function websock.Pong()
     return Response(MsgType.PONG, 1)
 end
---Œ’ ÷
-function websock.shakeHands(strHost, usPort, strKey)   
-    local tInfo = {}
-    table.insert(tInfo, "GET / HTTP/1.1\r\n")
-    table.insert(tInfo, string.format("Host: %s:%d\r\n", strHost, usPort))
-    table.insert(tInfo, "Connection: Upgrade\r\n")
-    table.insert(tInfo, "Upgrade: websocket\r\n")
-    table.insert(tInfo, "Origin: null\r\n")
-    table.insert(tInfo, "Sec-WebSocket-Version: 13\r\n")
-    table.insert(tInfo, "User-Agent: Humble\r\n")
-    table.insert(tInfo, string.format("Sec-WebSocket-Key: %s\r\n", strKey))
-    table.insert(tInfo, "Sec-WebSocket-Extensions: x-webkit-deflate-frame\r\n")
-    table.insert(tInfo, "\r\n")
-    
-    local strMsg = table.concat(tInfo, "")
-    pWBinary:reSetWrite()
-    pWBinary:setByte(strMsg, #strMsg)
-    
-    return pWBinary
-end
 
 return websock

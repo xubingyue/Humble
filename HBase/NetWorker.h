@@ -25,12 +25,6 @@ public:
     void setIntf(CSVIntf *pIntf);
     CSVIntf *getIntf(void);
     
-    unsigned int getMaxLoad(void);    
-    void addCurLoad(void);
-    void subCurLoad(void);
-
-    void setMaxLoad(const unsigned int uiLoad);
-    unsigned int getCurLoad(void);
     unsigned int addListener(const unsigned short usSockType, const char *pszHost, const unsigned short usPort);
     void delListener(const unsigned int uiID);
     unsigned int addTcpLink(const unsigned short usSockType, const char *pszHost, const unsigned short usPort);
@@ -74,8 +68,6 @@ private:
 
 private:
     unsigned int m_uiID;
-    unsigned int m_uiMaxLoad;
-    unsigned int m_uiCurLoad;
     CSVIntf *m_pIntf;
     luabridge::H_LBinary m_stBinary;
     listener_map m_mapListener;

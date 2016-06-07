@@ -40,16 +40,11 @@ function onStart()
     tChan.echo = humble.getChan("echo")
 end
 
-local dTime = 0
-local iCount = 0
-
 --退出，主要清理掉连接
 function onStop()
     humble.closeByType(1)
     humble.delListener(tListener.test)
     humble.delUdp(tListener.udp)
-    print(dTime)
-    print(iCount)
 end
 
 function onTcpLinked(sock, uiSession, usSockType)

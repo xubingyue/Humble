@@ -14,12 +14,6 @@ local newLuaTask = newLuaTask
 local humble = {}
 
 --ÍøÂç
-function humble.setMaxLoad(uiCount)   
-    pNet:setMaxLoad(uiCount)
-end
-function humble.getCurLoad()   
-    return pNet:getCurLoad()
-end
 function humble.setParser(usSockType, strName)
     return pNetParser:setParser(usSockType, strName)
 end
@@ -47,7 +41,7 @@ end
 function humble.Send(sock, uiSession, strBuf)
     pSender:Send(sock, uiSession, strBuf, string.len(strBuf))
 end
-function humble.SendB(sock, uiSession, pBinary)
+function humble.sendB(sock, uiSession, pBinary)
     pSender:sendB(sock, uiSession, pBinary)
 end
 --tsock: {{sock,session},...}

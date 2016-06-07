@@ -3,7 +3,7 @@
 
 H_BNAMSP
 
-CRSA::CRSA(void) : m_pPubKey(NULL), m_pPriKey(NULL), m_pRandom(NULL)
+CRSA::CRSA(void)
 {
 
 }
@@ -13,11 +13,11 @@ CRSA::~CRSA(void)
 
 }
 
-void CRSA::setKey(R_RSA_PUBLIC_KEY *pPubKey, R_RSA_PRIVATE_KEY *pPriKey, R_RANDOM_STRUCT *pRandom)
+void CRSA::setKey(CRSAKey *pKey)
 {
-    m_pPubKey = pPubKey;
-    m_pPriKey = pPriKey;
-    m_pRandom = pRandom;
+    memcpy(&m_stPubKey, pKey->getPubKey(), sizeof(m_stPubKey));
+    memcpy(&m_stPriKey, pKey->getPriKey(), sizeof(m_stPriKey));
+    memcpy(&m_stRandom, pKey->getRandom(), sizeof(m_stRandom));
 }
 
 std::string CRSA::RSAEncrypt(RSAEnType emEnType, const char* pszData, 
@@ -34,13 +34,11 @@ std::string CRSA::RSAEncrypt(RSAEnType emEnType, const char* pszData,
     pTmp = (unsigned char*)(pszData);
     if (EnType_Pub == emEnType)
     {
-        H_ASSERT((NULL != m_pPubKey) && (NULL != m_pRandom), "pointer is null.");
-        iStep = (m_pPubKey->bits + 7) / 8 - 11;
+        iStep = (m_stPubKey.bits + 7) / 8 - 11;
     }
     else
     {
-        H_ASSERT((NULL != m_pPriKey), "pointer is null.");
-        iStep = (m_pPriKey->bits + 7) / 8 - 11;
+        iStep = (m_stPriKey.bits + 7) / 8 - 11;
     } 
 
     for (size_t i = 0; i < iDataLens; i += iStep)
@@ -49,12 +47,12 @@ std::string CRSA::RSAEncrypt(RSAEnType emEnType, const char* pszData,
         if (EnType_Pub == emEnType)
         {
             iRtn = RSAPublicEncrypt(acOutBuf, &iTmpSize, pTmp + i, iBufLens,
-                m_pPubKey, m_pRandom);
+                &m_stPubKey, &m_stRandom);
         }
         else
         {
             iRtn = RSAPrivateEncrypt(acOutBuf, &iTmpSize, pTmp + i, iBufLens,
-                m_pPriKey);
+                &m_stPriKey);
         }
 
         if (H_RTN_OK != iRtn)
@@ -84,13 +82,11 @@ std::string CRSA::RSADecrypt(RSADeType emEnType, const char* pszData,
     pTmp = (unsigned char*)(pszData);
     if (DeType_Pub == emEnType)
     {
-        H_ASSERT(NULL != m_pPubKey, "pointer is null.");
-        iStep = (m_pPubKey->bits + 7) / 8;
+        iStep = (m_stPubKey.bits + 7) / 8;
     }
     else
     {
-        H_ASSERT(NULL != m_pPriKey, "pointer is null.");
-        iStep = (m_pPriKey->bits + 7) / 8;
+        iStep = (m_stPriKey.bits + 7) / 8;
     } 
 
     for (size_t i = 0; i < iDataLens; i += iStep)
@@ -99,12 +95,12 @@ std::string CRSA::RSADecrypt(RSADeType emEnType, const char* pszData,
         if (DeType_Pub == emEnType)
         {
             iRtn = RSAPublicDecrypt(acOutBuf, &iTmpSize, pTmp + i, iBufLens,
-                m_pPubKey);
+                &m_stPubKey);
         }
         else
         {
             iRtn = RSAPrivateDecrypt(acOutBuf, &iTmpSize, pTmp + i, iBufLens,
-                m_pPriKey);
+                &m_stPriKey);
         }
 
         if (H_RTN_OK != iRtn)

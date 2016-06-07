@@ -14,7 +14,7 @@ public:
     ~CRSA(void);
 
     /*公钥加密,需要R_RANDOM_STRUCT结构体*/
-    void setKey(R_RSA_PUBLIC_KEY *pPubKey, R_RSA_PRIVATE_KEY *pPriKey, R_RANDOM_STRUCT *pRandom = NULL);
+    void setKey(CRSAKey *pKey);
 
     /*公钥加密*/
     std::string pubEncrypt(const char* pszData, const size_t iLens);
@@ -48,9 +48,9 @@ private:
         const size_t &iDataLens);
 
 private:
-    R_RSA_PUBLIC_KEY *m_pPubKey;
-    R_RSA_PRIVATE_KEY *m_pPriKey;
-    R_RANDOM_STRUCT *m_pRandom;
+    R_RSA_PUBLIC_KEY m_stPubKey;
+    R_RSA_PRIVATE_KEY m_stPriKey;
+    R_RANDOM_STRUCT m_stRandom;
 };
 
 H_ENAMSP

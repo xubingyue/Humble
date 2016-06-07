@@ -51,7 +51,7 @@ local function sendMsg(strParser, strComm)
         return
     end
     
-    humble.SendB(tSock.sock, tSock.session, pBinary)    
+    humble.sendB(tSock.sock, tSock.session, pBinary)    
 end
 
 local function readMsg(strName, buffer)

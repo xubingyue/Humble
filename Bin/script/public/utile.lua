@@ -87,6 +87,10 @@ function utile.Pack(...)
 end
 
 function utile.unPack(pVal)
+	if not pVal then
+		return nil
+	end
+	
     return table.unpack(serialize.unpack(pVal))
 end
 
