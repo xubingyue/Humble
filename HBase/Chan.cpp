@@ -52,5 +52,4 @@ void CChan::setTaskNam(std::string *pszName)
     m_pstrName = pszName;
 }
 
-
 H_ENAMSP

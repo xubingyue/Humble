@@ -715,7 +715,7 @@ static bool selectWrite(H_SOCK &fd)
 #endif // H_OS_WIN
     FD_ZERO(&fdWrite);
     FD_SET(fd, &fdWrite);
-    stTime.tv_sec = 1;
+    stTime.tv_sec = 3;
     stTime.tv_usec = 0;
 
     iRtn = select(fd + 1, NULL, &fdWrite, NULL, &stTime);
