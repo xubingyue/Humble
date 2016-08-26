@@ -55,26 +55,11 @@ LUALIB_API int (luaopen_lpeg) (lua_State *L);
 #define LUA_PROTOBUFC "protobuf.c"  
 LUALIB_API int (luaopen_protobuf_c) (lua_State *L);
 
-#define LUA_SPROTO "sproto.core"
-LUALIB_API int (luaopen_sproto_core) (lua_State *L);
-
-#define LUA_BSON "bson"
-LUALIB_API int (luaopen_bson) (lua_State *L);
-
 #define LUA_SERIALIZE "serialize"
 LUALIB_API int (luaopen_serialize)(lua_State *L);
 
 #define LUA_SOCKET "socket.core"
 LUALIB_API int (luaopen_socket_core)(lua_State *L);
-
-#define LUA_MONGO "mongo"
-LUALIB_API int (luaopen_mongo_driver)(lua_State *L);
-
-#define LUA_SHAREDATA "sharedata"
-LUALIB_API int (luaopen_sharedata_core)(lua_State *L);
-
-#define LUA_STM "stm"
-LUALIB_API int (luaopen_stm)(lua_State *L);
 
 /* open all previous libraries */
 LUALIB_API void (luaL_openlibs) (lua_State *L);

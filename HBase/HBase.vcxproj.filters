@@ -58,9 +58,6 @@
     <Filter Include="3rd\lua\pbc">
       <UniqueIdentifier>{06422bef-2029-4f75-9b7b-025adc862b48}</UniqueIdentifier>
     </Filter>
-    <Filter Include="3rd\lua\sproto">
-      <UniqueIdentifier>{1ca199f0-a0d6-47b4-b2d3-18d02b64ed1e}</UniqueIdentifier>
-    </Filter>
     <Filter Include="3rd\redisrand">
       <UniqueIdentifier>{23c6a74c-6ebd-4a28-8669-e0701785818a}</UniqueIdentifier>
     </Filter>
@@ -84,12 +81,6 @@
     </Filter>
     <Filter Include="Service\Parser">
       <UniqueIdentifier>{30dea6f7-72f1-4903-9f3a-8ae9699a7e65}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="3rd\lua\mongo">
-      <UniqueIdentifier>{a84fc4da-6c50-4449-a279-64ed61c0d786}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="3rd\lua\sharedata">
-      <UniqueIdentifier>{a82a0415-61b3-432a-ac89-39eb6b34f421}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -422,12 +413,6 @@
     </ClInclude>
     <ClInclude Include="luasql\luasql.h">
       <Filter>3rd\lua\luasql</Filter>
-    </ClInclude>
-    <ClInclude Include="sproto\msvcint.h">
-      <Filter>3rd\lua\sproto</Filter>
-    </ClInclude>
-    <ClInclude Include="sproto\sproto.h">
-      <Filter>3rd\lua\sproto</Filter>
     </ClInclude>
     <ClInclude Include="pbc\alloc.h">
       <Filter>3rd\lua\pbc</Filter>
@@ -1029,12 +1014,6 @@
     <ClCompile Include="luasql\luasql.c">
       <Filter>3rd\lua\luasql</Filter>
     </ClCompile>
-    <ClCompile Include="sproto\lsproto.cpp">
-      <Filter>3rd\lua\sproto</Filter>
-    </ClCompile>
-    <ClCompile Include="sproto\sproto.cpp">
-      <Filter>3rd\lua\sproto</Filter>
-    </ClCompile>
     <ClCompile Include="pbc\alloc.cpp">
       <Filter>3rd\lua\pbc</Filter>
     </ClCompile>
@@ -1254,18 +1233,6 @@
     </ClCompile>
     <ClCompile Include="WebSock.cpp">
       <Filter>Service\Parser</Filter>
-    </ClCompile>
-    <ClCompile Include="luamongo\bson.cpp">
-      <Filter>3rd\lua\mongo</Filter>
-    </ClCompile>
-    <ClCompile Include="luamongo\mongo.cpp">
-      <Filter>3rd\lua\mongo</Filter>
-    </ClCompile>
-    <ClCompile Include="luasharedata\lua-sharedata.cpp">
-      <Filter>3rd\lua\sharedata</Filter>
-    </ClCompile>
-    <ClCompile Include="luasharedata\lua-stm.cpp">
-      <Filter>3rd\lua\sharedata</Filter>
     </ClCompile>
     <ClCompile Include="mqtt.cpp">
       <Filter>Service\Parser</Filter>

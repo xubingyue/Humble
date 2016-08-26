@@ -169,8 +169,6 @@
     <ClInclude Include="Sender.h" />
     <ClInclude Include="SHA1.h" />
     <ClInclude Include="SnowFlake.h" />
-    <ClInclude Include="sproto\msvcint.h" />
-    <ClInclude Include="sproto\sproto.h" />
     <ClInclude Include="SVIntf.h" />
     <ClInclude Include="TableFile.h" />
     <ClInclude Include="Task.h" />
@@ -287,11 +285,7 @@
     <ClCompile Include="luacjson\g_fmt.c" />
     <ClCompile Include="luacjson\lua_cjson.c" />
     <ClCompile Include="luacjson\strbuf.c" />
-    <ClCompile Include="luamongo\bson.cpp" />
-    <ClCompile Include="luamongo\mongo.cpp" />
     <ClCompile Include="luaserialize\serialize.c" />
-    <ClCompile Include="luasharedata\lua-sharedata.cpp" />
-    <ClCompile Include="luasharedata\lua-stm.cpp" />
     <ClCompile Include="luasocket\auxiliar.c" />
     <ClCompile Include="luasocket\buffer.c" />
     <ClCompile Include="luasocket\except.c" />
@@ -353,8 +347,6 @@
     <ClCompile Include="Sender.cpp" />
     <ClCompile Include="SHA1.cpp" />
     <ClCompile Include="SnowFlake.cpp" />
-    <ClCompile Include="sproto\lsproto.cpp" />
-    <ClCompile Include="sproto\sproto.cpp" />
     <ClCompile Include="TableFile.cpp" />
     <ClCompile Include="Tcp1.cpp" />
     <ClCompile Include="Tcp2.cpp" />

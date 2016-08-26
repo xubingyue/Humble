@@ -60,13 +60,8 @@ static const luaL_Reg loadedlibs[] = {
 #endif
     { LUA_LPEG, luaopen_lpeg },
     { LUA_PROTOBUFC, luaopen_protobuf_c },
-    { LUA_SPROTO, luaopen_sproto_core },
-    { LUA_BSON, luaopen_bson },
-    { LUA_MONGO, luaopen_mongo_driver },
     { LUA_SERIALIZE, luaopen_serialize },
     { LUA_SOCKET, luaopen_socket_core },
-    { LUA_SHAREDATA ,luaopen_sharedata_core },
-    { LUA_STM ,luaopen_stm },
 
     { NULL, NULL }
 };
