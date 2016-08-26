@@ -249,7 +249,7 @@ int CWebSock::parsePack(struct H_Session *pSession, char *pAllBuf, const size_t 
             }
             pSession->uiStatus = WSS_SHAKEHANDS;
 
-            return (pPos - pAllBuf + m_iEndFlagLens);
+            return (int)(pPos - pAllBuf + m_iEndFlagLens);
         }
         else
         {
@@ -288,7 +288,7 @@ int CWebSock::parsePack(struct H_Session *pSession, char *pAllBuf, const size_t 
     pBinary->setUint8(stFram.emOpCode);
     pBinary->setUint8(stFram.cFin);
     
-    return iParsed;
+    return (int)iParsed;
 }
 
 void CWebSock::createHead(std::string *pBuf, const char &cFin, const char &cCode,

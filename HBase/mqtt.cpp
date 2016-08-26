@@ -69,7 +69,7 @@ int CMQTT::parsePack(struct H_Session *, char *pAllBuf, const size_t &iLens, cla
     {
         parseByte1(ucByte, pBinary);
 
-        return iHeadLens;
+        return (int)iHeadLens;
     }
 
     if (iHeadLens + iBufferLens > iLens)
@@ -79,7 +79,7 @@ int CMQTT::parsePack(struct H_Session *, char *pAllBuf, const size_t &iLens, cla
 
     pBinary->setReadBuffer(pAllBuf + iHeadLens, iBufferLens);    
     parseByte1(ucByte, pBinary);
-    pBinary->setUint32(iBufferLens);
+    pBinary->setUint32((unsigned int)iBufferLens);
 
     return (int)(iHeadLens + iBufferLens);
 }

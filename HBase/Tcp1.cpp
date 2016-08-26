@@ -70,7 +70,7 @@ int CTcp1::parsePack(struct H_Session *, char *pAllBuf, const size_t &iLens, cla
     }
     if (H_INIT_NUMBER == iBufLens)
     {
-        return iHeadLens;
+        return (int)iHeadLens;
     }
     if (iBufLens > (iLens - iHeadLens))
     {
@@ -103,7 +103,7 @@ void CTcp1::creatHead(std::string *pOutBuf, const size_t &iLens)
     else
     {
         acHead[0] = TCPBUFLENS_127;
-        unsigned int uiLens = ntohl(iLens);
+        unsigned int uiLens = ntohl((u_long)iLens);
         memcpy(acHead + sizeof(acHead[0]), &uiLens, sizeof(uiLens));
 
         iHeadLens = sizeof(acHead[0]) + sizeof(uiLens);

@@ -93,7 +93,7 @@ int CHttp::parsePack(struct H_Session *, char *pAllBuf, const size_t &iLens, cla
     {
         pBinary->setReadBuffer(pAllBuf, iHeadLens);
 
-        return iHeadLens;
+        return (int)iHeadLens;
     }
 
     size_t iTotalLens(iHeadLens + iContentLens);

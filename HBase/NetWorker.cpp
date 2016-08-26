@@ -141,7 +141,7 @@ void CNetWorker::udpCB(H_SOCK sock, short sEv, void *arg)
 
     sockaddr stAddr;
     socklen_t iAddrLens = sizeof(stAddr);
-    int iRecvLens = recvfrom(sock, pLBinary->pBufer, pLBinary->iLens, 0, &stAddr, &iAddrLens);
+    int iRecvLens = recvfrom(sock, pLBinary->pBufer, (int)pLBinary->iLens, 0, &stAddr, &iAddrLens);
     if (iRecvLens <= 0)
     {
         return;
@@ -252,7 +252,6 @@ void CNetWorker::onOrder(H_Order *pOrder)
                 pOrder->sock, EV_READ | EV_PERSIST, udpCB, this);
             if (NULL == pBev)
             {
-                H_Printf("add udp %d to loop error.", pOrder->sock);
                 break;
             }
 
@@ -383,7 +382,7 @@ H_SOCK  CNetWorker::addUdp(const char *pszHost, const unsigned short usPort)
     int iOpt = 1;
     (void)setsockopt(sock, SOL_SOCKET, SO_BROADCAST, (char *)&iOpt, sizeof(iOpt));
     (void)evutil_make_socket_nonblocking(sock);
-    if (-1 == bind(sock, objAddr.getAddr(), objAddr.getAddrSize()))
+    if (-1 == bind(sock, objAddr.getAddr(), (int)objAddr.getAddrSize()))
     {
         evutil_closesocket(sock);
         return H_INVALID_SOCK;

@@ -95,12 +95,12 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../HBase;../HBase/mysql;../HBase/jwsmtp;../HBase/pugixml;../HBase/rijndael;../HBase/redisrand;../HBase/zlib;../HBase/uchardet;../HBase/RSAEuro;../HBase/lua5.3;../HBase/lpeg;../HBase/luamongo;../HBase/luabridge;../HBase/luacjson;../HBase/luasql;../HBase/pbc;../HBase/sproto;../HBase/jsoncpp;../HBase/luaserialize;../HBase/luasocket;../HBase/luasharedata;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../HBase;../HBase/mysql;../HBase/jwsmtp;../HBase/pugixml;../HBase/rijndael;../HBase/redisrand;../HBase/zlib;../HBase/uchardet;../HBase/RSAEuro;../HBase/curl;../HBase/lua5.3;../HBase/lpeg;../HBase/luabridge;../HBase/luacjson;../HBase/luasql;../HBase/pbc;../HBase/jsoncpp;../HBase/luaserialize;../HBase/luasocket;../HBase/luacurl;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <AdditionalLibraryDirectories>../Bin</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libevent.lib;libevent_core.lib;libevent_extras.lib;libmysql.lib;HBase.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libevent.lib;libevent_core.lib;libevent_extras.lib;libmysql.lib;HBase.lib;libcurl_a_debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>libcmt.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
     </Link>
     <Midl>
@@ -120,12 +120,12 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_WINDOWS;WIN32;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../HBase;../HBase/mysql;../HBase/jwsmtp;../HBase/pugixml;../HBase/rijndael;../HBase/redisrand;../HBase/zlib;../HBase/uchardet;../HBase/RSAEuro;../HBase/lua5.3;../HBase/lpeg;../HBase/luamongo;../HBase/luabridge;../HBase/luacjson;../HBase/luasql;../HBase/pbc;../HBase/sproto;../HBase/jsoncpp;../HBase/luaserialize;../HBase/luasocket;../HBase/luasharedata;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../HBase;../HBase/mysql;../HBase/jwsmtp;../HBase/pugixml;../HBase/rijndael;../HBase/redisrand;../HBase/zlib;../HBase/uchardet;../HBase/RSAEuro;../HBase/curl;../HBase/lua5.3;../HBase/lpeg;../HBase/luabridge;../HBase/luacjson;../HBase/luasql;../HBase/pbc;../HBase/jsoncpp;../HBase/luaserialize;../HBase/luasocket;../HBase/luacurl;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <AdditionalLibraryDirectories>../BinX64</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libevent.lib;libevent_core.lib;libevent_extras.lib;libmysql.lib;HBase.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libevent.lib;libevent_core.lib;libevent_extras.lib;libmysql.lib;HBase.lib;libcurl_a_debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>libcmt.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
     </Link>
     <Midl>
@@ -147,14 +147,14 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../HBase;../HBase/mysql;../HBase/jwsmtp;../HBase/pugixml;../HBase/rijndael;../HBase/redisrand;../HBase/zlib;../HBase/uchardet;../HBase/RSAEuro;../HBase/lua5.3;../HBase/lpeg;../HBase/luamongo;../HBase/luabridge;../HBase/luacjson;../HBase/luasql;../HBase/pbc;../HBase/sproto;../HBase/jsoncpp;../HBase/luaserialize;../HBase/luasocket;../HBase/luasharedata;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../HBase;../HBase/mysql;../HBase/jwsmtp;../HBase/pugixml;../HBase/rijndael;../HBase/redisrand;../HBase/zlib;../HBase/uchardet;../HBase/RSAEuro;../HBase/curl;../HBase/lua5.3;../HBase/lpeg;../HBase/luabridge;../HBase/luacjson;../HBase/luasql;../HBase/pbc;../HBase/jsoncpp;../HBase/luaserialize;../HBase/luasocket;../HBase/luacurl;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>../Bin</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libevent.lib;libevent_core.lib;libevent_extras.lib;libmysql.lib;HBase.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libevent.lib;libevent_core.lib;libevent_extras.lib;libmysql.lib;HBase.lib;libcurl_a.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>libcmt.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
     </Link>
     <Midl>
@@ -176,14 +176,14 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>_WINDOWS;WIN32;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../HBase;../HBase/mysql;../HBase/jwsmtp;../HBase/pugixml;../HBase/rijndael;../HBase/redisrand;../HBase/zlib;../HBase/uchardet;../HBase/RSAEuro;../HBase/lua5.3;../HBase/lpeg;../HBase/luamongo;../HBase/luabridge;../HBase/luacjson;../HBase/luasql;../HBase/pbc;../HBase/sproto;../HBase/jsoncpp;../HBase/luaserialize;../HBase/luasocket;../HBase/luasharedata;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../HBase;../HBase/mysql;../HBase/jwsmtp;../HBase/pugixml;../HBase/rijndael;../HBase/redisrand;../HBase/zlib;../HBase/uchardet;../HBase/RSAEuro;../HBase/curl;../HBase/lua5.3;../HBase/lpeg;../HBase/luabridge;../HBase/luacjson;../HBase/luasql;../HBase/pbc;../HBase/jsoncpp;../HBase/luaserialize;../HBase/luasocket;../HBase/luacurl;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>../BinX64</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libevent.lib;libevent_core.lib;libevent_extras.lib;libmysql.lib;HBase.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libevent.lib;libevent_core.lib;libevent_extras.lib;libmysql.lib;HBase.lib;libcurl_a.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>libcmt.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
     </Link>
     <Midl>

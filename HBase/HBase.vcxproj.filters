@@ -82,6 +82,9 @@
     <Filter Include="Service\Parser">
       <UniqueIdentifier>{30dea6f7-72f1-4903-9f3a-8ae9699a7e65}</UniqueIdentifier>
     </Filter>
+    <Filter Include="3rd\lua\luacurl">
+      <UniqueIdentifier>{d2b3c3a8-8527-44ca-98f8-6159a430a6d0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Config.h">

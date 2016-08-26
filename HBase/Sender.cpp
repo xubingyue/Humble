@@ -99,8 +99,8 @@ void CSender::runTask(H_Sender *pMsg)
             char *pBuf = pMsg->pBuffer + sizeof(H_Host);
             (void)m_objAddr.setAddr(pHost->acHost, pHost->usPort);
 
-            (void)sendto(pMsg->stSock.sock, pBuf, pMsg->iBufLens - sizeof(H_Host), 0,
-                m_objAddr.getAddr(), m_objAddr.getAddrSize());
+            (void)sendto(pMsg->stSock.sock, pBuf, (int)(pMsg->iBufLens - sizeof(H_Host)), 0,
+                m_objAddr.getAddr(), (int)m_objAddr.getAddrSize());
 
             H_SafeDelete(pMsg->pBuffer);
         }
@@ -113,7 +113,7 @@ void CSender::runTask(H_Sender *pMsg)
             stAddr.sin_addr.s_addr = INADDR_BROADCAST;
             stAddr.sin_port = htons((u_short)pMsg->usCount);
             
-            (void)sendto(pMsg->stSock.sock, pMsg->pBuffer, pMsg->iBufLens, 0, 
+            (void)sendto(pMsg->stSock.sock, pMsg->pBuffer, (int)pMsg->iBufLens, 0,
                 (struct sockaddr *)&stAddr, sizeof(struct sockaddr));
 
             H_SafeDelete(pMsg->pBuffer);
