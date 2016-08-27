@@ -19,7 +19,7 @@ PROGRAMNAME="Humble"
 #############################################
 #Humble文件夹
 HumbleDir="HBase HBase/event2 HBase/jwsmtp HBase/pugixml HBase/rijndael HBase/RSAEuro HBase/uchardet HBase/uchardet/LangModels HBase/zlib HBase/redisrand HBase/jsoncpp HBase/curl"
-HumbleDir=$HumbleDir" HBase/lpeg HBase/lua5.3 HBase/luabridge HBase/luacjson HBase/mysql HBase/luasql HBase/pbc HBase/luaserialize HBase/luasocket"
+HumbleDir=$HumbleDir" HBase/lpeg HBase/lua5.3 HBase/luabridge HBase/luacjson HBase/mysql HBase/luasql HBase/pbc HBase/luaserialize HBase/luasocket HBase/luacurl"
 HumbleDir=$HumbleDir" Humble"
 
 #main函数所在文件夹
@@ -36,7 +36,7 @@ then
 fi
 
 #附加包含库
-INCLUDELIB="-lrt -ldl -lpthread"
+INCLUDELIB="-lrt -ldl -lidn -lssl -lpthread"
 INCLUDELIB=$INCLUDELIB" -levent_core -levent_extra -levent_pthreads -lcurl -lmysqlclient"
 
 #中间库文件名
