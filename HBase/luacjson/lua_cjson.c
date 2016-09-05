@@ -145,6 +145,11 @@ typedef struct {
 } json_config_t;
 
 typedef struct {
+    char *pBuf;
+    int iLens;
+}json_buffer;
+
+typedef struct {
     const char *data;
     const char *ptr;
     strbuf_t *tmp;    /* Temporary storage for strings */
@@ -766,6 +771,26 @@ static int json_encode(lua_State *l)
     return 1;
 }
 
+static int lpack(lua_State *l)
+{
+    strbuf_t local_encode_buf;
+    json_config_t *cfg = json_fetch_config(l);   
+
+    luaL_argcheck(l, lua_gettop(l) == 1, 1, "expected 1 argument");
+
+    strbuf_init(&local_encode_buf, 0);
+
+    json_append_data(l, cfg, 0, &local_encode_buf);
+
+    json_buffer *pPackBuf = (json_buffer*)malloc(sizeof(json_buffer));
+    pPackBuf->pBuf = strbuf_string(&local_encode_buf, &pPackBuf->iLens);    
+    pPackBuf->pBuf[pPackBuf->iLens] = '\0';   
+
+    lua_pushlightuserdata(l, pPackBuf);
+
+    return 1;
+}
+
 /* ===== DECODING ===== */
 
 static void json_process_value(lua_State *l, json_parse_t *json,
@@ -1333,6 +1358,56 @@ static int json_decode(lua_State *l)
     return 1;
 }
 
+static int lunpack(lua_State *l)
+{
+    json_parse_t json;
+    json_token_t token;
+    size_t json_len;
+    json_buffer *pUNPackBuf;
+
+    luaL_argcheck(l, lua_gettop(l) == 1, 1, "expected 1 argument");
+
+    json.cfg = json_fetch_config(l);
+    pUNPackBuf = (json_buffer*)lua_touserdata(l, 1);
+    if (NULL == pUNPackBuf)
+    {
+        luaL_error(l, "get a nil value.");
+    }
+
+    json_len = pUNPackBuf->iLens;
+    json.data = pUNPackBuf->pBuf;
+    json.current_depth = 0;
+    json.ptr = json.data;
+
+    if (json_len >= 2 && (!json.data[0] || !json.data[1]))
+    {
+        free(pUNPackBuf->pBuf);
+        free(pUNPackBuf);    
+        luaL_error(l, "JSON parser does not support UTF-16 or UTF-32");
+    }
+
+    json.tmp = strbuf_new(json_len);
+
+    json_next_token(&json, &token);
+    json_process_value(l, &json, &token);
+
+    json_next_token(&json, &token);
+
+    if (token.type != T_END)
+    {
+        free(pUNPackBuf->pBuf);
+        free(pUNPackBuf);
+        json_throw_parse_error(l, &json, "the end", &token);
+    }        
+
+    strbuf_free(json.tmp);
+    free(pUNPackBuf->pBuf);
+    free(pUNPackBuf);
+
+    return 1;
+}
+
+
 /* ===== INITIALISATION ===== */
 
 #if !defined(LUA_VERSION_NUM) || LUA_VERSION_NUM < 502
@@ -1389,6 +1464,8 @@ static int lua_cjson_new(lua_State *l)
     luaL_Reg reg[] = {
         { "encode", json_encode },
         { "decode", json_decode },
+        { "pack", lpack },
+        { "unpack", lunpack },
         { "encode_sparse_array", json_cfg_encode_sparse_array },
         { "encode_max_depth", json_cfg_encode_max_depth },
         { "decode_max_depth", json_cfg_decode_max_depth },
